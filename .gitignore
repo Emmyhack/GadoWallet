@@ -1,0 +1,6 @@
+gada/target/
+gada/node_modules/
+test-ledger/rocksdb/
+test-ledger/snapshot/
+test-ledger/snapshot-*.tar.zst
+test-ledger/genesis.*
