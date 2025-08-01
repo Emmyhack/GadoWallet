@@ -12,9 +12,9 @@ function App() {
   return (
     <WalletContextProvider>
       <Router>
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-gradient-to-br from-dark-950 via-dark-900 to-dark-800">
           <Navbar />
-          <main>
+          <main className="pt-16 lg:pt-20">
             <Routes>
               <Route path="/" element={<LandingPageStitch />} />
               <Route path="/dashboard" element={<Dashboard />} />
