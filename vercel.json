@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd gada/frontend && npm install && npm run build",
+  "outputDirectory": "gada/frontend/dist",
+  "installCommand": "cd gada/frontend && npm install",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
