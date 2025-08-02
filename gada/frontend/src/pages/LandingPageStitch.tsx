@@ -1,262 +1,264 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Shield, Zap, TrendingUp, Lock, Globe, Smartphone, Wallet } from 'lucide-react';
 
-const LandingPageStitch: React.FC = () => {
+const LandingPageStitch = () => {
   return (
-    <div
-      className="relative flex size-full min-h-screen flex-col bg-[#20131e] dark group/design-root overflow-x-hidden"
-      style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}
-    >
-      <div className="layout-container flex h-full grow flex-col">
-        {/* Hero Section */}
-        <div className="px-40 flex flex-1 justify-center py-5">
-          <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
-            <div className="@container">
-              <div className="@[480px]:p-4">
-                <div
-                  className="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 @[480px]:rounded-xl items-center justify-center p-4"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBRxsyDAU1S_zjzJ1ukkMMsnYkpPQZIILgb0Vf6tRqJ04GfbH5bA2-ZTtPBEpApolPkWWIy58YqTvtHtdrYhir7gm8W9232rbm7Np7vaXE-XN-xwwmOZCbMHBk1Yi07PkBVFtyNc4Ur0DC1vWfMfW736PWZxO2TZPzEPnYEVzOK6D4T26dF5GPLz_JNlimiz7sAsOg7-3zyMmDba1IEmy29gZt3bUokgOWv78MRR3eQrdgI3IDHQtW7TZjkdw0GiRZth-XcdrmMHxo")',
-                  }}
-                >
-                  <div className="flex flex-col gap-2 text-center">
-                    <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em]">
-                      Secure Your Digital Legacy
-                    </h1>
-                    <h2 className="text-white text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal">
-                      Ensure your crypto assets are securely transferred to your loved ones with our Solana-based platform. Set time-based conditions and rest assured your legacy is protected.
-                    </h2>
+    <div className="min-h-screen bg-gradient-to-br from-metamask-50 via-white to-metamask-50">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-20 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 bg-metamask-100 text-metamask-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <Shield className="w-4 h-4" />
+              Trusted by 10M+ users worldwide
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold text-metamask-900 mb-6">
+              GadaWallet
+            </h1>
+            <p className="text-xl md:text-2xl text-metamask-700 mb-8 max-w-3xl mx-auto leading-relaxed">
+              The most secure and user-friendly Solana wallet. Manage your digital assets with confidence and style.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link
+                to="/wallet"
+                className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
+              >
+                Get Started
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link
+                to="/dashboard"
+                className="btn-secondary text-lg px-8 py-4"
+              >
+                View Dashboard
+              </Link>
+            </div>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-metamask-600">$2.5B+</div>
+                <div className="text-sm text-metamask-600">Assets Secured</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-metamask-600">10M+</div>
+                <div className="text-sm text-metamask-600">Active Users</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-metamask-600">99.9%</div>
+                <div className="text-sm text-metamask-600">Uptime</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-metamask-900 mb-4">
+              Why Choose GadaWallet?
+            </h2>
+            <p className="text-xl text-metamask-700 max-w-2xl mx-auto">
+              Built with security and ease of use in mind, GadaWallet provides everything you need for managing your Solana assets.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="metamask-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-metamask-200 transition-colors">
+                <Lock className="w-8 h-8 text-metamask-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-metamask-900 mb-4">Secure</h3>
+              <p className="text-metamask-700 leading-relaxed">
+                Your private keys are encrypted and stored securely. We never have access to your funds.
+              </p>
+            </div>
+            
+            <div className="metamask-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-metamask-200 transition-colors">
+                <Zap className="w-8 h-8 text-metamask-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-metamask-900 mb-4">Lightning Fast</h3>
+              <p className="text-metamask-700 leading-relaxed">
+                Lightning-fast transactions and real-time updates. Experience the speed of Solana.
+              </p>
+            </div>
+            
+            <div className="metamask-card p-8 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-metamask-200 transition-colors">
+                <Smartphone className="w-8 h-8 text-metamask-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-metamask-900 mb-4">User-Friendly</h3>
+              <p className="text-metamask-700 leading-relaxed">
+                Intuitive interface designed for both beginners and advanced users.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section className="py-20 bg-gradient-to-br from-metamask-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-metamask-900 mb-6">
+                Everything you need in one wallet
+              </h2>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-metamask-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-4 h-4 text-metamask-600" />
                   </div>
-                  <Link
-                    to="/dashboard"
-                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 @[480px]:h-12 @[480px]:px-5 bg-[#bb2ea6] text-white text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em] hover:bg-[#a91f8f] transition-colors"
-                  >
-                    <span className="truncate">Get Started</span>
-                  </Link>
+                  <div>
+                    <h3 className="text-lg font-semibold text-metamask-900 mb-2">Multi-Chain Support</h3>
+                    <p className="text-metamask-700">Support for Solana and other major blockchains</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-metamask-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-4 h-4 text-metamask-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-metamask-900 mb-2">DeFi Integration</h3>
+                    <p className="text-metamask-700">Access to all major DeFi protocols and dApps</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-metamask-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-4 h-4 text-metamask-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-metamask-900 mb-2">Portfolio Tracking</h3>
+                    <p className="text-metamask-700">Real-time portfolio tracking and analytics</p>
+                  </div>
                 </div>
               </div>
             </div>
-            {/* Features Section */}
-            <div className="flex flex-col gap-10 px-4 py-10 @container">
-              <div className="flex flex-col gap-4">
-                <h1 className="text-white tracking-light text-[32px] font-bold leading-tight @[480px]:text-4xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em] max-w-[720px]">
-                  Key Features
-                </h1>
-                <p className="text-white text-base font-normal leading-normal max-w-[720px]">
-                  Our platform offers a range of features designed to provide security and flexibility in managing your digital inheritance.
-                </p>
-              </div>
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-0">
-                <div className="flex flex-1 gap-3 rounded-lg border border-[#5f3a59] bg-[#2f1d2d] p-4 flex-col">
-                  <div className="text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M208,40H48A16,16,0,0,0,32,56v58.77c0,89.61,75.82,119.34,91,124.39a15.53,15.53,0,0,0,10,0c15.2-5.05,91-34.78,91-124.39V56A16,16,0,0,0,208,40Zm0,74.79c0,78.42-66.35,104.62-80,109.18-13.53-4.51-80-30.69-80-109.18V56l160,0Z"></path>
-                    </svg>
+            <div className="metamask-card p-8">
+              <div className="aspect-square bg-gradient-to-br from-metamask-100 to-metamask-200 rounded-2xl flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-metamask-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Wallet className="w-12 h-12 text-white" />
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <h2 className="text-white text-base font-bold leading-tight">Secure Inheritance</h2>
-                    <p className="text-[#c19abb] text-sm font-normal leading-normal">Utilize Solana's smart contracts for secure and transparent asset transfer.</p>
-                  </div>
-                </div>
-                <div className="flex flex-1 gap-3 rounded-lg border border-[#5f3a59] bg-[#2f1d2d] p-4 flex-col">
-                  <div className="text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"></path>
-                    </svg>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <h2 className="text-white text-base font-bold leading-tight">Multiple Heirs</h2>
-                    <p className="text-[#c19abb] text-sm font-normal leading-normal">Designate multiple beneficiaries to receive your crypto assets.</p>
-                  </div>
-                </div>
-                <div className="flex flex-1 gap-3 rounded-lg border border-[#5f3a59] bg-[#2f1d2d] p-4 flex-col">
-                  <div className="text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path>
-                    </svg>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <h2 className="text-white text-base font-bold leading-tight">Time-Based Claims</h2>
-                    <p className="text-[#c19abb] text-sm font-normal leading-normal">Set specific time conditions for when heirs can claim their inheritance.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* How It Works Section */}
-            <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">How It Works</h2>
-            <div className="grid grid-cols-[40px_1fr] gap-x-2 px-4">
-              <div className="flex flex-col items-center gap-1 pt-5">
-                <div className="size-2 rounded-full bg-white"></div>
-                <div className="w-[1.5px] bg-[#5f3a59] h-4 grow"></div>
-              </div>
-              <div className="flex flex-1 flex-col py-3">
-                <p className="text-white text-base font-medium leading-normal">Add Heirs</p>
-                <p className="text-[#c19abb] text-base font-normal leading-normal">Easily add beneficiaries to your account.</p>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-[1.5px] bg-[#5f3a59] h-4"></div>
-                <div className="size-2 rounded-full bg-white"></div>
-                <div className="w-[1.5px] bg-[#5f3a59] h-4 grow"></div>
-              </div>
-              <div className="flex flex-1 flex-col py-3">
-                <p className="text-white text-base font-medium leading-normal">Set Conditions</p>
-                <p className="text-[#c19abb] text-base font-normal leading-normal">Define the conditions and timing for asset transfer.</p>
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-[1.5px] bg-[#5f3a59] h-4"></div>
-                <div className="size-2 rounded-full bg-white"></div>
-                <div className="w-[1.5px] bg-[#5f3a59] h-4 grow"></div>
-              </div>
-              <div className="flex flex-1 flex-col py-3">
-                <p className="text-white text-base font-medium leading-normal">Stay Active</p>
-                <p className="text-[#c19abb] text-base font-normal leading-normal">Maintain account activity to keep your plan active.</p>
-              </div>
-              <div className="flex flex-col items-center gap-1 pb-3">
-                <div className="w-[1.5px] bg-[#5f3a59] h-4"></div>
-                <div className="size-2 rounded-full bg-white"></div>
-              </div>
-              <div className="flex flex-1 flex-col py-3">
-                <p className="text-white text-base font-medium leading-normal">Automatic Transfer</p>
-                <p className="text-[#c19abb] text-base font-normal leading-normal">Assets are automatically transferred to heirs upon inactivity.</p>
-              </div>
-            </div>
-            {/* Statistics Section */}
-            <div className="flex flex-wrap gap-4 p-4">
-              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#42293f]">
-                <p className="text-white text-base font-medium leading-normal">Users</p>
-                <p className="text-white tracking-light text-2xl font-bold leading-tight">1,500+</p>
-              </div>
-              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#42293f]">
-                <p className="text-white text-base font-medium leading-normal">Assets Secured</p>
-                <p className="text-white tracking-light text-2xl font-bold leading-tight">$2.5M+</p>
-              </div>
-              <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 bg-[#42293f]">
-                <p className="text-white text-base font-medium leading-normal">Heirs Protected</p>
-                <p className="text-white tracking-light text-2xl font-bold leading-tight">2,000+</p>
-              </div>
-            </div>
-            {/* Testimonials Section */}
-            <h2 className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Testimonials</h2>
-            <div className="flex flex-col gap-8 overflow-x-hidden bg-[#20131e] p-4">
-              <div className="flex flex-col gap-3 bg-[#20131e]">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                    style={{
-                      backgroundImage:
-                        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCWP13KAvTO9M7zzt0cHXgzwtJ2jRfaWzVdgE-fUV0rewtq-oEiHZK6m9AMlLw7GgYdCXMNGdpW7O0r3w_1xeVczcygeJRaLf1U6qt_e-W8H_HELutP1N1v6wfDxKdzHDSKDoyLGYTtnc7H4lqy0-Gvp6Qnm-j1NnsGf8MgEBPJZxOLAv8jNqR_vRdDxFRSUQXg5zYO6j8JVMWpwNpe5Kh9TjzLYCGWZxjsSif44d86EsIVneQ2tbvufR5iUpmcm31FYd6jk6l7OzM")',
-                    }}
-                  ></div>
-                  <div className="flex-1">
-                    <p className="text-white text-base font-medium leading-normal">Olivia Carter</p>
-                    <p className="text-[#c19abb] text-sm font-normal leading-normal">2 months ago</p>
-                  </div>
-                </div>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256" className="text-[#bb2ea6]">
-                      <path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"></path>
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-white text-base font-normal leading-normal">
-                  I was looking for a secure way to pass on my crypto assets, and this platform exceeded my expectations. The process was straightforward, and I feel confident my legacy is in good hands.
-                </p>
-                <div className="flex gap-9 text-[#c19abb]">
-                  <button className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M234,80.12A24,24,0,0,0,216,72H160V56a40,40,0,0,0-40-40,8,8,0,0,0-7.16,4.42L75.06,96H32a16,16,0,0,0-16,16v88a16,16,0,0,0,16,16H204a24,24,0,0,0,23.82-21l12-96A24,24,0,0,0,234,80.12ZM32,112H72v88H32ZM223.94,97l-12,96a8,8,0,0,1-7.94,7H88V105.89l36.71-73.43A24,24,0,0,1,144,56V80a8,8,0,0,0,8,8h64a8,8,0,0,1,7.94,9Z"></path>
-                    </svg>
-                    <p className="text-inherit">12</p>
-                  </button>
-                  <button className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M239.82,157l-12-96A24,24,0,0,0,204,40H32A16,16,0,0,0,16,56v88a16,16,0,0,0,16,16H75.06l37.78,75.58A8,8,0,0,0,120,240a40,40,0,0,0,40-40V184h56a24,24,0,0,0,23.82-27ZM72,144H32V56H72Zm150,21.29a7.88,7.88,0,0,1-6,2.71H152a8,8,0,0,0-8,8v24a24,24,0,0,1-19.29,23.54L88,150.11V56H204a8,8,0,0,1,7.94,7l12,96A7.87,7.87,0,0,1,222,165.29Z"></path>
-                    </svg>
-                    <p className="text-inherit">2</p>
-                  </button>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3 bg-[#20131e]">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
-                    style={{
-                      backgroundImage:
-                        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDyga3I-aGpO4wZ7dc2CzzYt1-HCHRB86a5-dU-vdvqNhrL3tBOyOkG33iFn1KRskRz12bSGv0n56QDZsk-u91AOTpYWhJew_iqoNFyvKwflqx8bc_P0uggRVFYtYZx8EN_5WzRJ-Dgec8qe8qhbv9ukp5oTDuOcVliBCXzFwJLrJ_wYd9GzTWPQlavYIF7JkW4Rq_LAnqZIcVvMbiWeR_2SE4gFsP6zCHJCMfaGqF1Lv8WXKCRUogIrbloL2PtRv9fNkto3k3pP98")',
-                    }}
-                  ></div>
-                  <div className="flex-1">
-                    <p className="text-white text-base font-medium leading-normal">Owen Reynolds</p>
-                    <p className="text-[#c19abb] text-sm font-normal leading-normal">3 months ago</p>
-                  </div>
-                </div>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256" className="text-[#bb2ea6]">
-                      <path d="M234.5,114.38l-45.1,39.36,13.51,58.6a16,16,0,0,1-23.84,17.34l-51.11-31-51,31a16,16,0,0,1-23.84-17.34L66.61,153.8,21.5,114.38a16,16,0,0,1,9.11-28.06l59.46-5.15,23.21-55.36a15.95,15.95,0,0,1,29.44,0h0L166,81.17l59.44,5.15a16,16,0,0,1,9.11,28.06Z"></path>
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-white text-base font-normal leading-normal">
-                  The ability to set time-based conditions gave me peace of mind. Knowing my assets will be transferred securely and at the right time is invaluable.
-                </p>
-                <div className="flex gap-9 text-[#c19abb]">
-                  <button className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M234,80.12A24,24,0,0,0,216,72H160V56a40,40,0,0,0-40-40,8,8,0,0,0-7.16,4.42L75.06,96H32a16,16,0,0,0-16,16v88a16,16,0,0,0,16,16H204a24,24,0,0,0,23.82-21l12-96A24,24,0,0,0,234,80.12ZM32,112H72v88H32ZM223.94,97l-12,96a8,8,0,0,1-7.94,7H88V105.89l36.71-73.43A24,24,0,0,1,144,56V80a8,8,0,0,0,8,8h64a8,8,0,0,1,7.94,9Z"></path>
-                    </svg>
-                    <p className="text-inherit">15</p>
-                  </button>
-                  <button className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                      <path d="M239.82,157l-12-96A24,24,0,0,0,204,40H32A16,16,0,0,0,16,56v88a16,16,0,0,0,16,16H75.06l37.78,75.58A8,8,0,0,0,120,240a40,40,0,0,0,40-40V184h56a24,24,0,0,0,23.82-27ZM72,144H32V56H72Zm150,21.29a7.88,7.88,0,0,1-6,2.71H152a8,8,0,0,0-8,8v24a24,24,0,0,1-19.29,23.54L88,150.11V56H204a8,8,0,0,1,7.94,7l12,96A7.87,7.87,0,0,1,222,165.29Z"></path>
-                    </svg>
-                    <p className="text-inherit">1</p>
-                  </button>
-                </div>
-              </div>
-            </div>
-            {/* Final CTA Section */}
-            <div className="@container">
-              <div className="flex flex-col justify-end gap-6 px-4 py-10 @[480px]:gap-8 @[480px]:px-10 @[480px]:py-20">
-                <div className="flex flex-col gap-2 text-center">
-                  <h1 className="text-white tracking-light text-[32px] font-bold leading-tight @[480px]:text-4xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em] max-w-[720px]">
-                    Ready to Secure Your Digital Legacy?
-                  </h1>
-                  <p className="text-white text-base font-normal leading-normal max-w-[720px]">
-                    Join thousands of users who trust our platform to protect their crypto assets and ensure a smooth transfer to their loved ones.
-                  </p>
-                </div>
-                <div className="flex flex-1 justify-center">
-                  <div className="flex justify-center">
-                    <Link
-                      to="/dashboard"
-                      className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 @[480px]:h-12 @[480px]:px-5 bg-[#bb2ea6] text-white text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base @[480px]:font-bold @[480px]:leading-normal @[480px]:tracking-[0.015em] grow hover:bg-[#a91f8f] transition-colors"
-                    >
-                      <span className="truncate">Get Started</span>
-                    </Link>
-                  </div>
+                  <h3 className="text-xl font-bold text-metamask-900 mb-2">Your Digital Wallet</h3>
+                  <p className="text-metamask-700">Secure, fast, and reliable</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        {/* Footer */}
-        <footer className="flex justify-center">
-          <div className="flex max-w-[960px] flex-1 flex-col">
-            <footer className="flex flex-col gap-6 px-5 py-10 text-center @container">
-              <div className="flex flex-wrap items-center justify-center gap-6 @[480px]:flex-row @[480px]:justify-around">
-                <a className="text-[#c19abb] text-base font-normal leading-normal min-w-40" href="#">Privacy Policy</a>
-                <a className="text-[#c19abb] text-base font-normal leading-normal min-w-40" href="#">Terms of Service</a>
-                <a className="text-[#c19abb] text-base font-normal leading-normal min-w-40" href="#">Contact Us</a>
-              </div>
-              <p className="text-[#c19abb] text-base font-normal leading-normal">© 2024 Crypto Legacy. All rights reserved.</p>
-            </footer>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-metamask-900 mb-4">
+              How It Works
+            </h2>
+            <p className="text-xl text-metamask-700 max-w-2xl mx-auto">
+              Get started with GadaWallet in just a few simple steps
+            </p>
           </div>
-        </footer>
-      </div>
+          
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">1</span>
+              </div>
+              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Connect</h3>
+              <p className="text-metamask-700">Connect your wallet securely</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">2</span>
+              </div>
+              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Import</h3>
+              <p className="text-metamask-700">Import your existing assets</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">3</span>
+              </div>
+              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Manage</h3>
+              <p className="text-metamask-700">Manage and track your portfolio</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white font-bold text-xl">4</span>
+              </div>
+              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Trade</h3>
+              <p className="text-metamask-700">Send, receive, and swap tokens</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 metamask-gradient">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Ready to Get Started?
+          </h2>
+          <p className="text-xl text-white/90 mb-8 leading-relaxed">
+            Join millions of users who trust GadaWallet for their Solana transactions.
+          </p>
+          <Link
+            to="/wallet"
+            className="bg-white text-metamask-600 hover:bg-metamask-50 font-bold py-4 px-8 rounded-xl inline-flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            Connect Wallet
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-metamask-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-lg font-bold mb-4">GadaWallet</h3>
+              <p className="text-metamask-300 text-sm">
+                The most secure and user-friendly Solana wallet for managing your digital assets.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Product</h4>
+              <ul className="space-y-2 text-sm text-metamask-300">
+                <li><Link to="/wallet" className="hover:text-white transition-colors">Wallet</Link></li>
+                <li><Link to="/send" className="hover:text-white transition-colors">Send</Link></li>
+                <li><Link to="/receive" className="hover:text-white transition-colors">Receive</Link></li>
+                <li><Link to="/swap" className="hover:text-white transition-colors">Swap</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-sm text-metamask-300">
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-metamask-300">
+                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-metamask-800 mt-8 pt-8 text-center">
+            <p className="text-metamask-300 text-sm">
+              © 2024 GadaWallet. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

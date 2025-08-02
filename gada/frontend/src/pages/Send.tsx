@@ -101,11 +101,13 @@ const Send = () => {
 
   if (!connected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-phantom-50 to-phantom-100 flex items-center justify-center">
-        <div className="glass-card p-8 text-center max-w-md">
-          <SendIcon className="w-16 h-16 mx-auto mb-4 text-phantom-600" />
-          <h2 className="text-2xl font-bold mb-4">Wallet Not Connected</h2>
-          <p className="text-secondary-600 mb-6">Please connect your wallet to send tokens.</p>
+      <div className="min-h-screen bg-gradient-to-br from-metamask-50 to-metamask-100 flex items-center justify-center">
+        <div className="metamask-card p-8 text-center max-w-md">
+          <div className="w-20 h-20 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <SendIcon className="w-10 h-10 text-metamask-600" />
+          </div>
+          <h2 className="text-2xl font-bold mb-4 text-metamask-900">Wallet Not Connected</h2>
+          <p className="text-metamask-700 mb-6">Please connect your wallet to send tokens.</p>
           <button className="btn-primary">Connect Wallet</button>
         </div>
       </div>
@@ -113,10 +115,10 @@ const Send = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-phantom-50 to-phantom-100">
+    <div className="min-h-screen bg-gradient-to-br from-metamask-50 to-metamask-100">
       <div className="max-w-2xl mx-auto p-4 md:p-8">
         {/* Header */}
-        <div className="glass-card p-6 mb-6">
+        <div className="metamask-card p-6 mb-6">
           <div className="flex items-center gap-4 mb-4">
             <button 
               onClick={() => window.history.back()}
@@ -125,8 +127,8 @@ const Send = () => {
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-phantom-900">Send</h1>
-              <p className="text-secondary-600">Transfer tokens to another wallet</p>
+              <h1 className="text-2xl font-bold text-metamask-900">Send</h1>
+              <p className="text-metamask-700">Transfer tokens to another wallet</p>
             </div>
           </div>
         </div>
