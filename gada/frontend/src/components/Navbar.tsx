@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Wallet } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#42293f] px-10 py-3 bg-[#20131e]">
+    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-phantom-200 px-10 py-3 bg-phantom-900">
       <div className="flex items-center gap-4 text-white">
         <div className="size-4">
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -21,20 +22,23 @@ const Navbar: React.FC = () => {
             ></path>
           </svg>
         </div>
-        <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Crypto Legacy Gada</h2>
+        <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">GadaWallet</h2>
       </div>
       <div className="flex flex-1 justify-end gap-8">
-        <div className="flex items-center gap-9">
-          <Link className="text-white text-sm font-medium leading-normal hover:text-[#c19abb] transition-colors" to="/">Home</Link>
-          <Link className="text-white text-sm font-medium leading-normal hover:text-[#c19abb] transition-colors" to="/dashboard">Dashboard</Link>
-          <Link className="text-white text-sm font-medium leading-normal hover:text-[#c19abb] transition-colors" to="/add-heir">Add Heir</Link>
-          <Link className="text-white text-sm font-medium leading-normal hover:text-[#c19abb] transition-colors" to="/claim-assets">Claim Assets</Link>
+        <div className="flex items-center gap-6">
+          <Link className="text-white text-sm font-medium leading-normal hover:text-phantom-300 transition-colors" to="/">Home</Link>
+          <Link className="text-white text-sm font-medium leading-normal hover:text-phantom-300 transition-colors" to="/wallet">Wallet</Link>
+          <Link className="text-white text-sm font-medium leading-normal hover:text-phantom-300 transition-colors" to="/send">Send</Link>
+          <Link className="text-white text-sm font-medium leading-normal hover:text-phantom-300 transition-colors" to="/receive">Receive</Link>
+          <Link className="text-white text-sm font-medium leading-normal hover:text-phantom-300 transition-colors" to="/swap">Swap</Link>
+          <Link className="text-white text-sm font-medium leading-normal hover:text-phantom-300 transition-colors" to="/dashboard">Dashboard</Link>
         </div>
         <Link
-          to="/dashboard"
-          className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#bb2ea6] text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#a91f8f] transition-colors"
+          to="/wallet"
+          className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-phantom-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-phantom-700 transition-colors"
         >
-          <span className="truncate">Get Started</span>
+          <Wallet className="w-4 h-4 mr-2" />
+          <span className="truncate">Connect</span>
         </Link>
       </div>
     </header>
