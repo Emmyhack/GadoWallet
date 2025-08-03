@@ -7,26 +7,20 @@ import {
   Copy,
   Scan,
   Coins,
-  AlertCircle,
   CheckCircle,
-  Clock,
-  DollarSign,
-  TrendingUp,
   Zap,
   Shield,
-  Sparkles,
   ChevronDown,
-  Search,
   Star,
   RefreshCw
 } from 'lucide-react';
 
 const Send = () => {
-  const { connected, wallet } = useWallet();
+  const { connected } = useWallet();
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [selectedToken, setSelectedToken] = useState('SOL');
-  const [gasFee, setGasFee] = useState('0.000005');
+  const [gasFee] = useState('0.000005');
   const [isLoading, setIsLoading] = useState(false);
   const [showTokenSelector, setShowTokenSelector] = useState(false);
 

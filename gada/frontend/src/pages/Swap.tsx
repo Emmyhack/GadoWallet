@@ -6,29 +6,18 @@ import {
   ArrowLeft,
   RefreshCw,
   Settings,
-  TrendingUp,
-  TrendingDown,
-  AlertCircle,
   CheckCircle,
-  Clock,
-  DollarSign,
   Zap,
   Shield,
-  Sparkles,
   ChevronDown,
-  Search,
-  Star,
-  ExternalLink,
   BarChart3,
   Coins,
   ArrowUpDown,
-  Info,
-  Minus,
-  Plus
+  Info
 } from 'lucide-react';
 
 const Swap = () => {
-  const { connected, wallet } = useWallet();
+  const { connected } = useWallet();
   const [fromToken, setFromToken] = useState('SOL');
   const [toToken, setToToken] = useState('USDC');
   const [fromAmount, setFromAmount] = useState('');
@@ -78,10 +67,6 @@ const Swap = () => {
 
   const getTokenPrice = (symbol: string) => {
     return tokens.find(t => t.symbol === symbol)?.price || 0;
-  };
-
-  const getTokenChange = (symbol: string) => {
-    return tokens.find(t => t.symbol === symbol)?.change || '0%';
   };
 
   if (!connected) {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, Zap, TrendingUp, Lock, Globe, Smartphone, Wallet, Star, Users, CheckCircle, ArrowUpRight, Sparkles, Coins, BarChart3 } from 'lucide-react';
+import { ArrowRight, Shield, Zap, Globe, Smartphone, Wallet, ArrowUpRight, Sparkles, Coins, BarChart3 } from 'lucide-react';
 
 const LandingPageStitch = () => {
   return (

@@ -7,19 +7,11 @@ import {
   Copy,
   Share2,
   QrCode,
-  RefreshCw,
   CheckCircle,
   AlertCircle,
-  Clock,
-  DollarSign,
-  TrendingUp,
   Zap,
   Shield,
-  Sparkles,
-  Eye,
-  EyeOff,
   Star,
-  ExternalLink,
   Smartphone,
   Monitor,
   Tablet
@@ -27,10 +19,8 @@ import {
 
 const Receive = () => {
   const { connected, wallet } = useWallet();
-  const [showPrivateKey, setShowPrivateKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState('Solana');
-  const [qrCodeData, setQrCodeData] = useState('');
 
   const networks = [
     { name: 'Solana', icon: '⚡', address: wallet?.publicKey?.toString() || 'Not connected' },

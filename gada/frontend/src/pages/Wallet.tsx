@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import {
@@ -30,18 +30,17 @@ import {
   Clock,
   DollarSign,
   ArrowUpRight,
-  ArrowDownRight,
-  Sparkles
+  ArrowDownRight
 } from 'lucide-react';
 
 const Wallet = () => {
   const { connected, wallet, connect, disconnect } = useWallet();
   const [activeTab, setActiveTab] = useState('overview');
   const [showPrivateKey, setShowPrivateKey] = useState(false);
-  const [balance, setBalance] = useState('0.00');
-  const [portfolioValue, setPortfolioValue] = useState('$12,345.67');
-  const [portfolioChange, setPortfolioChange] = useState('+12.5%');
-  const [isPositive, setIsPositive] = useState(true);
+  const [balance] = useState('0.00');
+  const [portfolioValue] = useState('$12,345.67');
+  const [portfolioChange] = useState('+12.5%');
+  const [isPositive] = useState(true);
 
   const tokens = [
     {
