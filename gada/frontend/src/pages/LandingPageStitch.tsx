@@ -1,260 +1,330 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, Zap, TrendingUp, Lock, Globe, Smartphone, Wallet } from 'lucide-react';
+import { ArrowRight, Shield, Zap, TrendingUp, Lock, Globe, Smartphone, Wallet, Star, Users, CheckCircle, ArrowUpRight, Sparkles, Coins, BarChart3 } from 'lucide-react';
 
 const LandingPageStitch = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-metamask-50 via-white to-metamask-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 animate-pulse"></div>
+        <div className="absolute top-0 left-0 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-bounce"></div>
+        <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-1/2 w-72 h-72 bg-pink-500/30 rounded-full blur-3xl animate-bounce"></div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="relative z-10 flex items-center justify-between px-6 py-4 backdrop-blur-md bg-white/5 border-b border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+            <Wallet className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-white">GadaWallet</h1>
+            <p className="text-white/60 text-xs">Next-Gen DeFi</p>
+          </div>
+        </div>
+        
+        <div className="hidden md:flex items-center gap-8">
+          <Link to="/wallet" className="text-white/80 hover:text-white transition-colors">Wallet</Link>
+          <Link to="/send" className="text-white/80 hover:text-white transition-colors">Send</Link>
+          <Link to="/receive" className="text-white/80 hover:text-white transition-colors">Receive</Link>
+          <Link to="/swap" className="text-white/80 hover:text-white transition-colors">Swap</Link>
+        </div>
+
+        <Link
+          to="/wallet"
+          className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+        >
+          Launch App
+        </Link>
+      </nav>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-metamask-100 text-metamask-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Shield className="w-4 h-4" />
-              Trusted by 10M+ users worldwide
+      <section className="relative z-10 pt-20 pb-16 px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium mb-8 border border-white/20">
+            <Sparkles className="w-4 h-4" />
+            Trusted by 100K+ users worldwide
+          </div>
+          
+          <h1 className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight">
+            The Future of
+            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"> DeFi</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
+            Experience the most advanced Solana wallet with institutional-grade security, 
+            lightning-fast transactions, and seamless DeFi integration.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
+            <Link
+              to="/wallet"
+              className="group bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg inline-flex items-center gap-3 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25"
+            >
+              Get Started
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link
+              to="/dashboard"
+              className="group bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 rounded-2xl font-bold text-lg border border-white/20 transition-all duration-300 transform hover:scale-105"
+            >
+              View Demo
+              <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </Link>
+          </div>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+            <div className="text-center group">
+              <div className="text-4xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">$2.5B+</div>
+              <div className="text-white/60 text-sm">Assets Secured</div>
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-metamask-900 mb-6">
-              GadaWallet
-            </h1>
-            <p className="text-xl md:text-2xl text-metamask-700 mb-8 max-w-3xl mx-auto leading-relaxed">
-              The most secure and user-friendly Solana wallet. Manage your digital assets with confidence and style.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link
-                to="/wallet"
-                className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
-              >
-                Get Started
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                to="/dashboard"
-                className="btn-secondary text-lg px-8 py-4"
-              >
-                View Dashboard
-              </Link>
+            <div className="text-center group">
+              <div className="text-4xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">100K+</div>
+              <div className="text-white/60 text-sm">Active Users</div>
             </div>
-            
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-metamask-600">$2.5B+</div>
-                <div className="text-sm text-metamask-600">Assets Secured</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-metamask-600">10M+</div>
-                <div className="text-sm text-metamask-600">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-metamask-600">99.9%</div>
-                <div className="text-sm text-metamask-600">Uptime</div>
-              </div>
+            <div className="text-center group">
+              <div className="text-4xl font-bold text-white mb-2 group-hover:scale-110 transition-transform">99.9%</div>
+              <div className="text-white/60 text-sm">Uptime</div>
             </div>
           </div>
         </div>
       </section>
-
+      
       {/* Features Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-metamask-900 mb-4">
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-bold text-white mb-6">
               Why Choose GadaWallet?
             </h2>
-            <p className="text-xl text-metamask-700 max-w-2xl mx-auto">
-              Built with security and ease of use in mind, GadaWallet provides everything you need for managing your Solana assets.
+            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+              Built with cutting-edge technology and user experience in mind, 
+              GadaWallet provides everything you need for modern DeFi.
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="metamask-card p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-metamask-200 transition-colors">
-                <Lock className="w-8 h-8 text-metamask-600" />
+            <div className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Shield className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-metamask-900 mb-4">Secure</h3>
-              <p className="text-metamask-700 leading-relaxed">
-                Your private keys are encrypted and stored securely. We never have access to your funds.
+              <h3 className="text-2xl font-bold text-white mb-4">Institutional Security</h3>
+              <p className="text-white/70 leading-relaxed">
+                Multi-signature support, hardware wallet integration, and military-grade encryption 
+                ensure your assets are protected at the highest level.
               </p>
             </div>
             
-            <div className="metamask-card p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-metamask-200 transition-colors">
-                <Zap className="w-8 h-8 text-metamask-600" />
+            <div className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Zap className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-metamask-900 mb-4">Lightning Fast</h3>
-              <p className="text-metamask-700 leading-relaxed">
-                Lightning-fast transactions and real-time updates. Experience the speed of Solana.
+              <h3 className="text-2xl font-bold text-white mb-4">Lightning Fast</h3>
+              <p className="text-white/70 leading-relaxed">
+                Leverage Solana's high-performance blockchain for instant transactions 
+                and real-time portfolio updates.
               </p>
             </div>
             
-            <div className="metamask-card p-8 text-center group hover:scale-105 transition-transform duration-300">
-              <div className="w-16 h-16 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-metamask-200 transition-colors">
-                <Smartphone className="w-8 h-8 text-metamask-600" />
+            <div className="group bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Smartphone className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-metamask-900 mb-4">User-Friendly</h3>
-              <p className="text-metamask-700 leading-relaxed">
-                Intuitive interface designed for both beginners and advanced users.
+              <h3 className="text-2xl font-bold text-white mb-4">Cross-Platform</h3>
+              <p className="text-white/70 leading-relaxed">
+                Seamless experience across desktop, mobile, and web with 
+                synchronized data and real-time updates.
               </p>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Features Grid */}
-      <section className="py-20 bg-gradient-to-br from-metamask-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      
+      {/* Advanced Features */}
+      <section className="relative z-10 py-20 bg-gradient-to-br from-white/5 to-white/10">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-bold text-metamask-900 mb-6">
-                Everything you need in one wallet
+              <h2 className="text-5xl font-bold text-white mb-8">
+                Advanced DeFi Features
               </h2>
               <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-metamask-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-4 h-4 text-metamask-600" />
+                <div className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Globe className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-metamask-900 mb-2">Multi-Chain Support</h3>
-                    <p className="text-metamask-700">Support for Solana and other major blockchains</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">Multi-Chain Support</h3>
+                    <p className="text-white/70">Native support for Solana, Ethereum, and other major blockchains with seamless cross-chain functionality.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-metamask-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Globe className="w-4 h-4 text-metamask-600" />
+                <div className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <BarChart3 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-metamask-900 mb-2">DeFi Integration</h3>
-                    <p className="text-metamask-700">Access to all major DeFi protocols and dApps</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">Advanced Analytics</h3>
+                    <p className="text-white/70">Real-time portfolio tracking, performance metrics, and detailed transaction history with advanced filtering.</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-metamask-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-4 h-4 text-metamask-600" />
+                <div className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <Coins className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-metamask-900 mb-2">Portfolio Tracking</h3>
-                    <p className="text-metamask-700">Real-time portfolio tracking and analytics</p>
+                    <h3 className="text-xl font-semibold text-white mb-2">DeFi Integration</h3>
+                    <p className="text-white/70">Direct access to all major DeFi protocols, DEXs, and yield farming opportunities with one-click execution.</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="metamask-card p-8">
-              <div className="aspect-square bg-gradient-to-br from-metamask-100 to-metamask-200 rounded-2xl flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 bg-metamask-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <Wallet className="w-12 h-12 text-white" />
+            <div className="relative">
+              <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-white/20 rounded-3xl p-8">
+                <div className="aspect-square bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl flex items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 animate-pulse"></div>
+                  <div className="text-center relative z-10">
+                    <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                      <Wallet className="w-12 h-12 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Your Digital Vault</h3>
+                    <p className="text-white/70">Secure, fast, and reliable</p>
                   </div>
-                  <h3 className="text-xl font-bold text-metamask-900 mb-2">Your Digital Wallet</h3>
-                  <p className="text-metamask-700">Secure, fast, and reliable</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-
+      
       {/* How It Works */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-metamask-900 mb-4">
-              How It Works
+      <section className="relative z-10 py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-5xl font-bold text-white mb-6">
+              Get Started in Minutes
             </h2>
-            <p className="text-xl text-metamask-700 max-w-2xl mx-auto">
-              Get started with GadaWallet in just a few simple steps
+            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+              Experience the most intuitive onboarding process in DeFi
             </p>
           </div>
           
           <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">1</span>
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">1</span>
               </div>
-              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Connect</h3>
-              <p className="text-metamask-700">Connect your wallet securely</p>
+              <h3 className="text-xl font-semibold text-white mb-3">Connect</h3>
+              <p className="text-white/70">Connect your existing wallet or create a new one securely</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">2</span>
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">2</span>
               </div>
-              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Import</h3>
-              <p className="text-metamask-700">Import your existing assets</p>
+              <h3 className="text-xl font-semibold text-white mb-3">Import</h3>
+              <p className="text-white/70">Import your existing assets and tokens automatically</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">3</span>
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">3</span>
               </div>
-              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Manage</h3>
-              <p className="text-metamask-700">Manage and track your portfolio</p>
+              <h3 className="text-xl font-semibold text-white mb-3">Explore</h3>
+              <p className="text-white/70">Discover DeFi opportunities and manage your portfolio</p>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-metamask-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">4</span>
+            <div className="text-center group">
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-2xl">4</span>
               </div>
-              <h3 className="text-lg font-semibold text-metamask-900 mb-2">Trade</h3>
-              <p className="text-metamask-700">Send, receive, and swap tokens</p>
+              <h3 className="text-xl font-semibold text-white mb-3">Trade</h3>
+              <p className="text-white/70">Execute trades, swaps, and yield farming with confidence</p>
             </div>
           </div>
         </div>
       </section>
-
+      
       {/* CTA Section */}
-      <section className="py-20 metamask-gradient">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 leading-relaxed">
-            Join millions of users who trust GadaWallet for their Solana transactions.
-          </p>
-          <Link
-            to="/wallet"
-            className="bg-white text-metamask-600 hover:bg-metamask-50 font-bold py-4 px-8 rounded-xl inline-flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Connect Wallet
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+      <section className="relative z-10 py-20">
+        <div className="max-w-5xl mx-auto px-6 text-center">
+          <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-white/20 rounded-3xl p-12">
+            <h2 className="text-5xl font-bold text-white mb-6">
+              Ready to Experience the Future?
+            </h2>
+            <p className="text-xl text-white/80 mb-10 leading-relaxed">
+              Join thousands of users who trust GadaWallet for their DeFi journey. 
+              Start building your financial future today.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Link
+                to="/wallet"
+                className="group bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-10 py-4 rounded-2xl font-bold text-lg inline-flex items-center gap-3 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25"
+              >
+                Launch GadaWallet
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                to="/dashboard"
+                className="group bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-10 py-4 rounded-2xl font-bold text-lg border border-white/20 transition-all duration-300 transform hover:scale-105"
+              >
+                View Documentation
+                <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
-
+      
       {/* Footer */}
-      <footer className="bg-metamask-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <footer className="relative z-10 bg-black/20 backdrop-blur-md border-t border-white/10 py-16">
+        <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-bold mb-4">GadaWallet</h3>
-              <p className="text-metamask-300 text-sm">
-                The most secure and user-friendly Solana wallet for managing your digital assets.
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                  <Wallet className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">GadaWallet</h3>
+                  <p className="text-white/60 text-xs">Next-Gen DeFi</p>
+                </div>
+              </div>
+              <p className="text-white/70 text-sm leading-relaxed">
+                The most advanced Solana wallet with institutional-grade security, 
+                lightning-fast transactions, and seamless DeFi integration.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-metamask-300">
+              <h4 className="font-semibold text-white mb-6">Product</h4>
+              <ul className="space-y-3 text-sm text-white/70">
                 <li><Link to="/wallet" className="hover:text-white transition-colors">Wallet</Link></li>
                 <li><Link to="/send" className="hover:text-white transition-colors">Send</Link></li>
                 <li><Link to="/receive" className="hover:text-white transition-colors">Receive</Link></li>
                 <li><Link to="/swap" className="hover:text-white transition-colors">Swap</Link></li>
+                <li><Link to="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-metamask-300">
+              <h4 className="font-semibold text-white mb-6">Resources</h4>
+              <ul className="space-y-3 text-sm text-white/70">
+                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Tutorials</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-white mb-6">Support</h4>
+              <ul className="space-y-3 text-sm text-white/70">
                 <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-metamask-300">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-metamask-800 mt-8 pt-8 text-center">
-            <p className="text-metamask-300 text-sm">
-              © 2024 GadaWallet. All rights reserved.
+          <div className="border-t border-white/10 mt-12 pt-8 text-center">
+            <p className="text-white/60 text-sm">
+              © 2024 GadaWallet. All rights reserved. Built with ❤️ for the DeFi community.
             </p>
           </div>
         </div>

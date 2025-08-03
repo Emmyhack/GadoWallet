@@ -1,404 +1,338 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
-import { 
-  Send as SendIcon, 
-  ArrowLeft, 
-  Copy, 
-  QrCode, 
-  Coins, 
+import {
+  Send as SendIcon,
+  ArrowLeft,
+  Copy,
+  Scan,
+  Coins,
   AlertCircle,
   CheckCircle,
   Clock,
+  DollarSign,
+  TrendingUp,
+  Zap,
+  Shield,
+  Sparkles,
   ChevronDown,
-  ExternalLink
+  Search,
+  Star,
+  RefreshCw
 } from 'lucide-react';
 
-interface Token {
-  mint: string;
-  symbol: string;
-  name: string;
-  balance: string;
-  decimals: number;
-  logo?: string;
-}
-
 const Send = () => {
-  const { connected } = useWallet();
-  const [step, setStep] = useState<'input' | 'confirm' | 'success'>('input');
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  const { connected, wallet } = useWallet();
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
-  const [memo, setMemo] = useState('');
+  const [selectedToken, setSelectedToken] = useState('SOL');
+  const [gasFee, setGasFee] = useState('0.000005');
+  const [isLoading, setIsLoading] = useState(false);
   const [showTokenSelector, setShowTokenSelector] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  // Mock tokens
-  const tokens: Token[] = [
-    {
-      mint: 'So11111111111111111111111111111111111111112',
-      symbol: 'SOL',
-      name: 'Solana',
-      balance: '2.456',
-      decimals: 9,
-      logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
-    },
-    {
-      mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-      symbol: 'USDC',
-      name: 'USD Coin',
-      balance: '150.00',
-      decimals: 6,
-      logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png'
-    }
+  const tokens = [
+    { symbol: 'SOL', name: 'Solana', balance: '125.43', value: '$8,234.56', logo: null },
+    { symbol: 'USDC', name: 'USD Coin', balance: '2,500.00', value: '$2,500.00', logo: null },
+    { symbol: 'RAY', name: 'Raydium', balance: '45.67', value: '$1,234.56', logo: null }
   ];
 
-  const handleTokenSelect = (token: Token) => {
-    setSelectedToken(token);
-    setShowTokenSelector(false);
-  };
-
-  const handleContinue = () => {
-    if (!selectedToken) {
-      setError('Please select a token');
-      return;
-    }
-    if (!recipient) {
-      setError('Please enter recipient address');
-      return;
-    }
-    if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
-      return;
-    }
-    if (parseFloat(amount) > parseFloat(selectedToken.balance)) {
-      setError('Insufficient balance');
-      return;
-    }
-    setError('');
-    setStep('confirm');
-  };
+  const recentRecipients = [
+    { address: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM', name: 'Alice Wallet' },
+    { address: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU', name: 'Bob Wallet' },
+    { address: '3xZ7QvBhn4Xe1eUqPofCtnx5U2qcnnNkD5hLbJqR7sT9', name: 'Charlie Wallet' }
+  ];
 
   const handleSend = async () => {
-    setLoading(true);
+    if (!recipient || !amount) return;
+    
+    setIsLoading(true);
     // Simulate transaction
     await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-    setStep('success');
+    setIsLoading(false);
   };
 
-  const copyAddress = () => {
-    navigator.clipboard.writeText(recipient);
+  const copyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`;
-  };
-
-  const isValidAddress = (address: string) => {
-    return address.length === 44 && /^[A-Za-z0-9]+$/.test(address);
+  const selectRecipient = (address: string) => {
+    setRecipient(address);
   };
 
   if (!connected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-metamask-50 to-metamask-100 flex items-center justify-center">
-        <div className="metamask-card p-8 text-center max-w-md">
-          <div className="w-20 h-20 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <SendIcon className="w-10 h-10 text-metamask-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-12 text-center max-w-md">
+          <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <SendIcon className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-4 text-metamask-900">Wallet Not Connected</h2>
-          <p className="text-metamask-700 mb-6">Please connect your wallet to send tokens.</p>
-          <button className="btn-primary">Connect Wallet</button>
+          <h2 className="text-3xl font-bold text-white mb-4">Connect to Send</h2>
+          <p className="text-white/70 mb-8 leading-relaxed">
+            Connect your wallet to send tokens and manage your transactions securely.
+          </p>
+          <button className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25">
+            Connect Wallet
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-metamask-50 to-metamask-100">
-      <div className="max-w-2xl mx-auto p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
-        <div className="metamask-card p-6 mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <button 
-              onClick={() => window.history.back()}
-              className="btn-secondary"
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Link 
+              to="/wallet"
+              className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl transition-all duration-200 border border-white/20"
             >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
             <div>
-              <h1 className="text-2xl font-bold text-metamask-900">Send</h1>
-              <p className="text-metamask-700">Transfer tokens to another wallet</p>
+              <h1 className="text-3xl font-bold text-white">Send Tokens</h1>
+              <p className="text-white/60">Transfer tokens to another wallet securely</p>
             </div>
           </div>
         </div>
 
-        {step === 'input' && (
-          <div className="glass-card p-6 space-y-6">
-            {/* Token Selection */}
-            <div>
-              <label className="block text-sm font-medium text-phantom-900 mb-2">
-                Select Token
-              </label>
-              <div className="relative">
-                <button
-                  onClick={() => setShowTokenSelector(!showTokenSelector)}
-                  className="w-full flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200 hover:border-phantom-300"
-                >
-                  <div className="flex items-center gap-3">
-                    {selectedToken ? (
-                      <>
-                        <div className="w-8 h-8 bg-phantom-100 rounded-full flex items-center justify-center">
-                          {selectedToken.logo ? (
-                            <img src={selectedToken.logo} alt={selectedToken.symbol} className="w-5 h-5" />
-                          ) : (
-                            <Coins className="w-4 h-4 text-phantom-600" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-phantom-900">{selectedToken.symbol}</div>
-                          <div className="text-sm text-secondary-600">Balance: {selectedToken.balance}</div>
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-secondary-500">Select a token</span>
-                    )}
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-secondary-400" />
-                </button>
-
-                {showTokenSelector && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-secondary-200 rounded-lg shadow-lg z-10">
-                    {tokens.map((token, index) => (
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Form */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Recipient Address */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6">Recipient Address</h3>
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={recipient}
+                    onChange={(e) => setRecipient(e.target.value)}
+                    placeholder="Enter wallet address or scan QR code"
+                    className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                  />
+                  <button className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-200">
+                    <Scan className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                {/* Recent Recipients */}
+                <div>
+                  <h4 className="text-white font-semibold mb-3">Recent Recipients</h4>
+                  <div className="space-y-2">
+                    {recentRecipients.map((recipient, index) => (
                       <button
                         key={index}
-                        onClick={() => handleTokenSelect(token)}
-                        className="w-full flex items-center gap-3 p-4 hover:bg-phantom-50 border-b border-secondary-100 last:border-b-0"
+                        onClick={() => selectRecipient(recipient.address)}
+                        className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 flex items-center justify-between transition-all duration-200"
                       >
-                        <div className="w-8 h-8 bg-phantom-100 rounded-full flex items-center justify-center">
-                          {token.logo ? (
-                            <img src={token.logo} alt={token.symbol} className="w-5 h-5" />
-                          ) : (
-                            <Coins className="w-4 h-4 text-phantom-600" />
-                          )}
-                        </div>
                         <div className="text-left">
-                          <div className="font-semibold text-phantom-900">{token.symbol}</div>
-                          <div className="text-sm text-secondary-600">{token.name}</div>
+                          <div className="text-white font-medium">{recipient.name}</div>
+                          <div className="text-white/60 text-sm">{recipient.address.slice(0, 8)}...{recipient.address.slice(-8)}</div>
                         </div>
-                        <div className="ml-auto text-right">
-                          <div className="font-semibold text-phantom-900">{token.balance}</div>
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyAddress(recipient.address);
+                          }}
+                          className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-all duration-200"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
                       </button>
                     ))}
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Recipient Address */}
-            <div>
-              <label className="block text-sm font-medium text-phantom-900 mb-2">
-                Recipient Address
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  placeholder="Enter Solana address"
-                  className="w-full p-4 bg-white rounded-lg border border-secondary-200 focus:border-phantom-500 focus:ring-1 focus:ring-phantom-500"
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-                  <button onClick={copyAddress} className="btn-secondary p-2">
-                    <Copy className="w-4 h-4" />
-                  </button>
-                  <button className="btn-secondary p-2">
-                    <QrCode className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
-              {recipient && !isValidAddress(recipient) && (
-                <p className="text-error-500 text-sm mt-1">Invalid Solana address</p>
-              )}
             </div>
 
-            {/* Amount */}
-            <div>
-              <label className="block text-sm font-medium text-phantom-900 mb-2">
-                Amount
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full p-4 bg-white rounded-lg border border-secondary-200 focus:border-phantom-500 focus:ring-1 focus:ring-phantom-500"
-                />
-                {selectedToken && (
+            {/* Amount and Token */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6">Amount & Token</h3>
+              <div className="space-y-6">
+                {/* Token Selection */}
+                <div className="relative">
                   <button
-                    onClick={() => setAmount(selectedToken.balance)}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-phantom-600 text-sm font-medium"
+                    onClick={() => setShowTokenSelector(!showTokenSelector)}
+                    className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 text-white flex items-center justify-between transition-all duration-200 hover:bg-white/20"
                   >
-                    MAX
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        <Coins className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="font-semibold">{selectedToken}</span>
+                    </div>
+                    <ChevronDown className="w-5 h-5" />
                   </button>
-                )}
+                  
+                  {showTokenSelector && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 z-10">
+                      <div className="space-y-2">
+                        {tokens.map((token, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setSelectedToken(token.symbol);
+                              setShowTokenSelector(false);
+                            }}
+                            className="w-full bg-white/5 hover:bg-white/10 rounded-xl p-4 flex items-center justify-between transition-all duration-200"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                                <Coins className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="text-left">
+                                <div className="text-white font-semibold">{token.symbol}</div>
+                                <div className="text-white/60 text-sm">{token.name}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-white font-semibold">{token.balance}</div>
+                              <div className="text-white/60 text-sm">{token.value}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Amount Input */}
+                <div>
+                  <label className="block text-white font-semibold mb-3">Amount</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-2xl font-bold"
+                    />
+                    <button className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200">
+                      MAX
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between mt-3 text-white/60 text-sm">
+                    <span>Available: 125.43 {selectedToken}</span>
+                    <span>≈ $8,234.56 USD</span>
+                  </div>
+                </div>
               </div>
-              {selectedToken && (
-                <p className="text-secondary-600 text-sm mt-1">
-                  Available: {selectedToken.balance} {selectedToken.symbol}
-                </p>
-              )}
             </div>
 
-            {/* Memo */}
-            <div>
-              <label className="block text-sm font-medium text-phantom-900 mb-2">
-                Memo (Optional)
-              </label>
-              <input
-                type="text"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder="Add a note to this transaction"
-                className="w-full p-4 bg-white rounded-lg border border-secondary-200 focus:border-phantom-500 focus:ring-1 focus:ring-phantom-500"
-              />
+            {/* Transaction Details */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6">Transaction Details</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60">Network Fee</span>
+                  <span className="text-white font-semibold">{gasFee} SOL</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60">Total Amount</span>
+                  <span className="text-white font-semibold">
+                    {amount ? `${parseFloat(amount) + parseFloat(gasFee)} ${selectedToken}` : `0 ${selectedToken}`}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60">Estimated Time</span>
+                  <span className="text-white font-semibold">~2 seconds</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Quick Actions */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                  <div className="flex items-center gap-2">
+                    <Scan className="w-4 h-4" />
+                    Scan QR Code
+                  </div>
+                </button>
+                <button className="w-full bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Copy className="w-4 h-4" />
+                    Copy Address
+                  </div>
+                </button>
+                <button className="w-full bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4" />
+                    Save Contact
+                  </div>
+                </button>
+              </div>
             </div>
 
-            {error && (
-              <div className="flex items-center gap-2 p-4 bg-error-50 border border-error-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-error-500" />
-                <span className="text-error-700">{error}</span>
+            {/* Security Info */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Security</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-green-400" />
+                  <span className="text-white/80 text-sm">Transaction encrypted</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <span className="text-white/80 text-sm">Address verified</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Zap className="w-5 h-5 text-blue-400" />
+                  <span className="text-white/80 text-sm">Fast confirmation</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Network Status */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Network Status</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Solana Network</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-green-400 text-sm font-semibold">Online</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Block Height</span>
+                  <span className="text-white text-sm">234,567,890</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Gas Price</span>
+                  <span className="text-white text-sm">5,000 lamports</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Send Button */}
+        <div className="mt-8">
+          <button
+            onClick={handleSend}
+            disabled={!recipient || !amount || isLoading}
+            className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 disabled:from-gray-500 disabled:to-gray-600 text-white py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25 disabled:transform-none disabled:shadow-none"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-3">
+                <RefreshCw className="w-5 h-5 animate-spin" />
+                Processing Transaction...
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-3">
+                <SendIcon className="w-5 h-5" />
+                Send {amount ? `${amount} ${selectedToken}` : 'Tokens'}
               </div>
             )}
-
-            <button
-              onClick={handleContinue}
-              disabled={!selectedToken || !recipient || !amount}
-              className="w-full btn-primary"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {step === 'confirm' && (
-          <div className="glass-card p-6 space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-phantom-900 mb-2">Confirm Transaction</h2>
-              <p className="text-secondary-600">Review the details before sending</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200">
-                <span className="text-secondary-600">Token</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-phantom-100 rounded-full flex items-center justify-center">
-                    {selectedToken?.logo ? (
-                      <img src={selectedToken.logo} alt={selectedToken.symbol} className="w-4 h-4" />
-                    ) : (
-                      <Coins className="w-3 h-3 text-phantom-600" />
-                    )}
-                  </div>
-                  <span className="font-semibold text-phantom-900">{selectedToken?.symbol}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200">
-                <span className="text-secondary-600">Amount</span>
-                <span className="font-semibold text-phantom-900">
-                  {amount} {selectedToken?.symbol}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200">
-                <span className="text-secondary-600">To</span>
-                <div className="text-right">
-                  <div className="font-semibold text-phantom-900">{formatAddress(recipient)}</div>
-                  <button 
-                    onClick={() => window.open(`https://explorer.solana.com/address/${recipient}`, '_blank')}
-                    className="text-sm text-phantom-600 hover:text-phantom-700"
-                  >
-                    View on Explorer <ExternalLink className="w-3 h-3 inline" />
-                  </button>
-                </div>
-              </div>
-
-              {memo && (
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200">
-                  <span className="text-secondary-600">Memo</span>
-                  <span className="font-semibold text-phantom-900">{memo}</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200">
-                <span className="text-secondary-600">Network Fee</span>
-                <span className="font-semibold text-phantom-900">~0.000005 SOL</span>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setStep('input')}
-                className="flex-1 btn-secondary"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleSend}
-                disabled={loading}
-                className="flex-1 btn-primary"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 animate-spin" />
-                    Sending...
-                  </div>
-                ) : (
-                  'Send Transaction'
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 'success' && (
-          <div className="glass-card p-6 text-center space-y-6">
-            <div className="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="w-8 h-8 text-success-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-phantom-900 mb-2">Transaction Sent!</h2>
-              <p className="text-secondary-600">Your transaction has been submitted to the network.</p>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200">
-                <span className="text-secondary-600">Transaction ID</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm text-phantom-900">5J7X9K2M1N3P4Q5R6S7T8U9V0W1X2Y3Z4A5B6C7D8E9F0</span>
-                  <button className="btn-secondary p-1">
-                    <Copy className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setStep('input')}
-                className="flex-1 btn-secondary"
-              >
-                Send Another
-              </button>
-              <button
-                onClick={() => window.history.back()}
-                className="flex-1 btn-primary"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        )}
+          </button>
+        </div>
       </div>
     </div>
   );

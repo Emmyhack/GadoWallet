@@ -1,43 +1,62 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
-import { 
-  Download, 
-  ArrowLeft, 
-  Copy, 
+import {
+  Download,
+  ArrowLeft,
+  Copy,
   Share2,
-  ExternalLink,
+  QrCode,
+  RefreshCw,
   CheckCircle,
+  AlertCircle,
+  Clock,
+  DollarSign,
+  TrendingUp,
+  Zap,
+  Shield,
+  Sparkles,
   Eye,
   EyeOff,
-  AlertCircle
+  Star,
+  ExternalLink,
+  Smartphone,
+  Monitor,
+  Tablet
 } from 'lucide-react';
 
 const Receive = () => {
   const { connected, wallet } = useWallet();
-  const [copied, setCopied] = useState(false);
   const [showPrivateKey, setShowPrivateKey] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState('Solana');
+  const [qrCodeData, setQrCodeData] = useState('');
 
-  const copyAddress = () => {
+  const networks = [
+    { name: 'Solana', icon: '⚡', address: wallet?.publicKey?.toString() || 'Not connected' },
+    { name: 'Ethereum', icon: '🔷', address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6' },
+    { name: 'Polygon', icon: '🟣', address: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6' }
+  ];
+
+  const copyAddress = async () => {
     if (wallet?.publicKey) {
-      navigator.clipboard.writeText(wallet.publicKey.toString());
+      await navigator.clipboard.writeText(wallet.publicKey.toString());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const shareAddress = () => {
+  const shareAddress = async () => {
     if (wallet?.publicKey && navigator.share) {
-      navigator.share({
-        title: 'My Solana Address',
-        text: `Send me SOL: ${wallet.publicKey.toString()}`,
-        url: `https://explorer.solana.com/address/${wallet.publicKey.toString()}`
-      });
-    }
-  };
-
-  const viewOnExplorer = () => {
-    if (wallet?.publicKey) {
-      window.open(`https://explorer.solana.com/address/${wallet.publicKey.toString()}`, '_blank');
+      try {
+        await navigator.share({
+          title: 'My Wallet Address',
+          text: `Send tokens to: ${wallet.publicKey.toString()}`,
+          url: `https://explorer.solana.com/address/${wallet.publicKey.toString()}`
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
     }
   };
 
@@ -45,173 +64,286 @@ const Receive = () => {
     return `${address.slice(0, 8)}...${address.slice(-8)}`;
   };
 
-  // Generate QR code data URL (simplified)
-  const generateQRCode = (text: string) => {
-    // In a real implementation, you'd use a QR code library
-    // For now, we'll use a placeholder
-    return `data:image/svg+xml;base64,${btoa(`
-      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="200" height="200" fill="white"/>
-        <text x="100" y="100" text-anchor="middle" dy=".3em" font-family="monospace" font-size="8">${text}</text>
-      </svg>
-    `)}`;
-  };
-
   if (!connected) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-metamask-50 to-metamask-100 flex items-center justify-center">
-        <div className="metamask-card p-8 text-center max-w-md">
-          <div className="w-20 h-20 bg-metamask-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Download className="w-10 h-10 text-metamask-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-12 text-center max-w-md">
+          <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <Download className="w-12 h-12 text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-4 text-metamask-900">Wallet Not Connected</h2>
-          <p className="text-metamask-700 mb-6">Please connect your wallet to receive tokens.</p>
-          <button className="btn-primary">Connect Wallet</button>
+          <h2 className="text-3xl font-bold text-white mb-4">Connect to Receive</h2>
+          <p className="text-white/70 mb-8 leading-relaxed">
+            Connect your wallet to generate your unique address and QR code for receiving tokens.
+          </p>
+          <button className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25">
+            Connect Wallet
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-metamask-50 to-metamask-100">
-      <div className="max-w-2xl mx-auto p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
-        <div className="metamask-card p-6 mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <button 
-              onClick={() => window.history.back()}
-              className="btn-secondary"
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Link 
+              to="/wallet"
+              className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl transition-all duration-200 border border-white/20"
             >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
             <div>
-              <h1 className="text-2xl font-bold text-metamask-900">Receive</h1>
-              <p className="text-metamask-700">Share your address to receive tokens</p>
+              <h1 className="text-3xl font-bold text-white">Receive Tokens</h1>
+              <p className="text-white/60">Share your address to receive tokens securely</p>
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-6 space-y-6">
-          {/* QR Code */}
-          <div className="text-center">
-            <div className="inline-block p-4 bg-white rounded-lg border border-secondary-200">
-              <img 
-                src={generateQRCode(wallet?.publicKey?.toString() || '')}
-                alt="QR Code"
-                className="w-48 h-48"
-              />
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* QR Code Section */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-white mb-2">Your QR Code</h2>
+                <p className="text-white/60">Scan this QR code to send tokens to your wallet</p>
+              </div>
+              
+              <div className="flex justify-center mb-8">
+                <div className="bg-white p-8 rounded-3xl shadow-2xl">
+                  <div className="w-64 h-64 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center">
+                    <div className="text-center">
+                      <QrCode className="w-32 h-32 text-white/20" />
+                      <p className="text-white/60 text-sm mt-4">QR Code Placeholder</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-white/60 text-sm mb-4">Supported by all major wallet apps</p>
+                <div className="flex justify-center gap-6">
+                  <div className="flex items-center gap-2 text-white/60">
+                    <Smartphone className="w-4 h-4" />
+                    <span className="text-sm">Mobile</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/60">
+                    <Monitor className="w-4 h-4" />
+                    <span className="text-sm">Desktop</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/60">
+                    <Tablet className="w-4 h-4" />
+                    <span className="text-sm">Tablet</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-secondary-600 mt-2">Scan to send SOL</p>
+
+            {/* Address Section */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6">Your Wallet Address</h3>
+              
+              <div className="space-y-6">
+                {/* Network Selection */}
+                <div>
+                  <label className="block text-white font-semibold mb-3">Select Network</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {networks.map((network, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedNetwork(network.name)}
+                        className={`p-4 rounded-2xl border transition-all duration-200 ${
+                          selectedNetwork === network.name
+                            ? 'bg-gradient-to-r from-purple-500 to-blue-500 border-purple-500 text-white'
+                            : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                        }`}
+                      >
+                        <div className="text-2xl mb-2">{network.icon}</div>
+                        <div className="text-sm font-semibold">{network.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Address Display */}
+                <div>
+                  <label className="block text-white font-semibold mb-3">Address</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={networks.find(n => n.name === selectedNetwork)?.address || ''}
+                      readOnly
+                      className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                    />
+                    <button
+                      onClick={copyAddress}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl transition-all duration-200"
+                    >
+                      {copied ? <CheckCircle className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-white/60 text-sm">
+                      {formatAddress(networks.find(n => n.name === selectedNetwork)?.address || '')}
+                    </span>
+                    <button
+                      onClick={shareAddress}
+                      className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 border border-white/20"
+                    >
+                      <Share2 className="w-4 h-4 inline mr-2" />
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Security Info */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8">
+              <h3 className="text-xl font-bold text-white mb-6">Security Information</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-green-400 mt-1" />
+                    <div>
+                      <h4 className="text-white font-semibold">Address Verification</h4>
+                      <p className="text-white/60 text-sm">Always verify the address before sending tokens</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-400 mt-1" />
+                    <div>
+                      <h4 className="text-white font-semibold">Secure Connection</h4>
+                      <p className="text-white/60 text-sm">Your address is encrypted and secure</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-yellow-400 mt-1" />
+                    <div>
+                      <h4 className="text-white font-semibold">Network Compatibility</h4>
+                      <p className="text-white/60 text-sm">Ensure you're using the correct network</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Zap className="w-5 h-5 text-blue-400 mt-1" />
+                    <div>
+                      <h4 className="text-white font-semibold">Fast Transactions</h4>
+                      <p className="text-white/60 text-sm">Receive tokens in seconds</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Address Display */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-phantom-900 mb-2">
-                Your Address
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={wallet?.publicKey?.toString() || ''}
-                  readOnly
-                  className="w-full p-4 bg-white rounded-lg border border-secondary-200 font-mono text-sm"
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-                  <button 
-                    onClick={copyAddress}
-                    className={`btn-secondary p-2 ${copied ? 'text-success-600' : ''}`}
-                  >
-                    {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                  <button onClick={shareAddress} className="btn-secondary p-2">
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Quick Actions */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Quick Actions</h3>
+              <div className="space-y-3">
+                <button 
+                  onClick={copyAddress}
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+                >
+                  <div className="flex items-center gap-2">
+                    <Copy className="w-4 h-4" />
+                    Copy Address
+                  </div>
+                </button>
+                <button 
+                  onClick={shareAddress}
+                  className="w-full bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-white/20"
+                >
+                  <div className="flex items-center gap-2">
                     <Share2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    Share Address
+                  </div>
+                </button>
+                <button className="w-full bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4" />
+                    Save Contact
+                  </div>
+                </button>
               </div>
-              {copied && (
-                <p className="text-success-600 text-sm mt-1">Address copied to clipboard!</p>
-              )}
             </div>
 
-            {/* Short Address */}
-            <div className="flex items-center justify-between p-4 bg-phantom-50 rounded-lg">
-              <div>
-                <div className="text-sm text-secondary-600">Short Address</div>
-                <div className="font-mono text-phantom-900">
-                  {wallet?.publicKey && formatAddress(wallet.publicKey.toString())}
+            {/* Network Status */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Network Status</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Solana Network</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-green-400 text-sm font-semibold">Online</span>
+                  </div>
                 </div>
-              </div>
-              <button onClick={copyAddress} className="btn-secondary">
-                <Copy className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="space-y-3">
-            <button 
-              onClick={viewOnExplorer}
-              className="w-full flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200 hover:bg-phantom-50"
-            >
-              <div className="flex items-center gap-3">
-                <ExternalLink className="w-5 h-5 text-phantom-600" />
-                <span>View on Explorer</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-secondary-400" />
-            </button>
-
-            <button 
-              onClick={() => setShowPrivateKey(!showPrivateKey)}
-              className="w-full flex items-center justify-between p-4 bg-white rounded-lg border border-secondary-200 hover:bg-phantom-50"
-            >
-              <div className="flex items-center gap-3">
-                <Eye className="w-5 h-5 text-phantom-600" />
-                <span>Show Private Key</span>
-              </div>
-              <button className="text-phantom-600">
-                {showPrivateKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </button>
-          </div>
-
-          {/* Private Key Display */}
-          {showPrivateKey && (
-            <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-warning-600" />
-                <span className="font-semibold text-warning-800">Security Warning</span>
-              </div>
-              <p className="text-warning-700 text-sm mb-3">
-                Never share your private key with anyone. Anyone with access to your private key can control your wallet.
-              </p>
-              <div className="bg-white p-3 rounded border border-warning-200">
-                <div className="font-mono text-xs text-warning-800 break-all">
-                  {wallet?.publicKey ? 'Private key would be displayed here in a real implementation' : 'No private key available'}
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Block Height</span>
+                  <span className="text-white text-sm">234,567,890</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Network Fee</span>
+                  <span className="text-white text-sm">~0.000005 SOL</span>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Information */}
-          <div className="space-y-4">
-            <div className="p-4 bg-phantom-50 rounded-lg">
-              <h3 className="font-semibold text-phantom-900 mb-2">How to receive tokens</h3>
-              <ul className="text-sm text-secondary-600 space-y-1">
-                <li>• Share your address with the sender</li>
-                <li>• They can scan the QR code or copy the address</li>
-                <li>• Tokens will appear in your wallet once confirmed</li>
-                <li>• Only send SOL and SPL tokens to this address</li>
-              </ul>
+            {/* Recent Transactions */}
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">Recent Incoming</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                      <Download className="w-4 h-4 text-green-400" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold text-sm">+50.00 SOL</div>
+                      <div className="text-white/60 text-xs">2 hours ago</div>
+                    </div>
+                  </div>
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                      <Download className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold text-sm">+1,000 USDC</div>
+                      <div className="text-white/60 text-xs">1 day ago</div>
+                    </div>
+                  </div>
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                </div>
+              </div>
             </div>
 
-            <div className="p-4 bg-warning-50 rounded-lg">
-              <h3 className="font-semibold text-warning-800 mb-2">Important</h3>
-              <ul className="text-sm text-warning-700 space-y-1">
-                <li>• Only send SOL and SPL tokens to this address</li>
-                <li>• Sending other cryptocurrencies may result in permanent loss</li>
-                <li>• Double-check the address before sending</li>
-              </ul>
+            {/* Tips */}
+            <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 backdrop-blur-md border border-purple-500/30 rounded-3xl p-6">
+              <h3 className="text-lg font-bold text-white mb-4">💡 Pro Tips</h3>
+              <div className="space-y-3 text-sm">
+                <div className="text-white/80">
+                  • Double-check the address before sending
+                </div>
+                <div className="text-white/80">
+                  • Use QR codes for mobile wallets
+                </div>
+                <div className="text-white/80">
+                  • Keep your private key secure
+                </div>
+                <div className="text-white/80">
+                  • Verify network compatibility
+                </div>
+              </div>
             </div>
           </div>
         </div>
