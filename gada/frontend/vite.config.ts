@@ -4,6 +4,19 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/',
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          crypto: ['@solana/web3.js', '@solana/wallet-adapter-base']
+        }
+      }
+    }
+  },
   server: {
     headers: {
       'Content-Security-Policy': `
