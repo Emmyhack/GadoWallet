@@ -18,9 +18,7 @@
     min-height: 100vh;
   }
 
-  * {
-    @apply border-border;
-  }
+
 }
 
 @layer components {
