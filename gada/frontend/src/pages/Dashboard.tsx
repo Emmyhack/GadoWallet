@@ -1,155 +1,265 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useWallet } from '../contexts/WalletContext';
-import { useAnchorProgram } from '../lib/anchor';
-import { Plus, Download, User, Coins, Loader2, RefreshCw, Send } from 'lucide-react';
+import { 
+  Wallet, 
+  Users, 
+  Coins, 
+  Shield, 
+  Activity, 
+  TrendingUp, 
+  AlertCircle, 
+  CheckCircle,
+  Plus,
+  Clock,
+  Lock,
+  Eye,
+  EyeOff
+} from 'lucide-react';
 
-interface HeirData {
-  type: 'token' | 'coin';
-  heir: string;
-  amount: string;
-  claimed: boolean;
-  lastActive: string;
-  tokenMint?: string;
-}
+const Dashboard: React.FC = () => {
+  const [isConnected] = useState(false);
+  const [showBalance, setShowBalance] = useState(false);
+  const [heirs] = useState([
+    { id: 1, name: 'Sarah Johnson', address: '0x1234...5678', percentage: 60, status: 'active' },
+    { id: 2, name: 'Michael Chen', address: '0x8765...4321', percentage: 40, status: 'active' }
+  ]);
+  const [assets] = useState([
+    { id: 1, name: 'SOL', amount: '25.5', value: '$2,550', change: '+5.2%' },
+    { id: 2, name: 'USDC', amount: '1,000', value: '$1,000', change: '+0.1%' },
+    { id: 3, name: 'RAY', amount: '150', value: '$450', change: '+12.3%' }
+  ]);
 
-const Dashboard = () => {
-  const { connected, wallet } = useWallet();
-  const program = useAnchorProgram();
-  const [heirs, setHeirs] = useState<HeirData[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Fetch heirs data from the contract
-  const fetchHeirs = async () => {
-    if (!program || !wallet?.publicKey || !connected) return;
-    
-    setLoading(true);
-    try {
-      const owner = wallet.publicKey;
-      const heirsData: HeirData[] = [];
-
-      // For now, we'll show a placeholder since we need to know the heirs first
-      // In a real implementation, you'd store heir addresses or fetch them from events
-      console.log('Fetching heirs for owner:', owner.toString());
-      
-      // This is a placeholder - in practice you'd need to:
-      // 1. Store heir addresses when adding them
-      // 2. Or fetch from program events
-      // 3. Or maintain a separate account with heir list
-      
-      setHeirs(heirsData);
-    } catch (error) {
-      console.error('Error fetching heirs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (connected && program && wallet?.publicKey) {
-      fetchHeirs();
-    }
-  }, [connected, program, wallet?.publicKey]);
+  const totalValue = assets.reduce((sum, asset) => sum + parseFloat(asset.value.replace('$', '').replace(',', '')), 0);
 
   return (
-    <div className="space-y-12 p-4 md:p-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <h1 className="text-3xl font-bold gradient-text mb-4 md:mb-0">Dashboard</h1>
-        <div className="flex flex-wrap gap-4">
-          <Link to="/add-heir" className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add Heir
-          </Link>
-          <Link to="/claim-assets" className="btn-secondary flex items-center gap-2">
-            <Download className="w-4 h-4" /> Claim Assets
-          </Link>
-          <Link to="/update-activity" className="btn-secondary flex items-center gap-2">
-            <RefreshCw className="w-4 h-4" /> Update Activity
-          </Link>
-          <Link to="/batch-transfer" className="btn-secondary flex items-center gap-2">
-            <Send className="w-4 h-4" /> Batch Transfer
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            Welcome back, <span className="gradient-text">User</span>
+          </h1>
+          <p className="text-white/70 text-lg">
+            Manage your digital legacy and monitor your assets
+          </p>
         </div>
-      </div>
 
-      <div className="glass-card p-8 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="text-lg text-purple-600 mb-1">Connected Wallet</div>
-            <div className="font-mono text-xl text-purple-700">
-              {connected && wallet?.publicKey?.toString()}
-              {!connected && <span className="text-purple-400">Not connected</span>}
-            </div>
-          </div>
-          {connected && (
-            <div className="mt-4 md:mt-0">
-              <button 
-                onClick={fetchHeirs}
-                disabled={loading}
-                className="btn-secondary flex items-center gap-2"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Refresh
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-          <User className="w-6 h-6 text-purple-600" /> Your Heirs
-        </h2>
-        
-        {loading ? (
-          <div className="glass-card p-8 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-purple-600" />
-            <p className="text-purple-600">Loading heirs...</p>
-          </div>
-        ) : heirs.length === 0 ? (
-          <div className="glass-card p-8 text-center">
-            <Coins className="w-12 h-12 mx-auto mb-4 text-purple-400" />
-            <h3 className="text-lg font-semibold mb-2">No heirs found</h3>
-            <p className="text-purple-600 mb-4">You haven't added any heirs yet.</p>
-            <Link to="/add-heir" className="btn-primary">
-              Add Your First Heir
-            </Link>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-6">
-            {heirs.map((heir, idx) => (
-              <div key={idx} className="glass-card p-6 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  {heir.type === 'token' ? (
-                    <Coins className="w-5 h-5 text-accent-600" />
-                  ) : (
-                    <Coins className="w-5 h-5 text-purple-600" />
-                  )}
-                  <span className="font-semibold text-lg">{heir.heir.slice(0, 8)}...{heir.heir.slice(-8)}</span>
-                  <span className="ml-auto px-2 py-1 rounded glass-effect text-xs">
-                    {heir.type.toUpperCase()}
-                  </span>
+        {/* Connection Status */}
+        {!isConnected ? (
+          <div className="glass-card p-6 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-red-400" />
                 </div>
-                <div className="text-purple-600">
-                  Amount: <span className="font-mono">{heir.amount}</span>
-                </div>
-                {heir.tokenMint && (
-                  <div className="text-purple-600 text-sm">
-                    Token: <span className="font-mono">{heir.tokenMint.slice(0, 8)}...{heir.tokenMint.slice(-8)}</span>
-                  </div>
-                )}
-                <div className="text-sm">
-                  Status: {heir.claimed ? (
-                    <span className="text-green-600 font-semibold">Claimed</span>
-                  ) : (
-                    <span className="text-yellow-600 font-semibold">Pending</span>
-                  )}
-                </div>
-                <div className="text-xs text-purple-500">
-                  Last Active: {heir.lastActive}
+                <div>
+                  <h3 className="text-white font-semibold text-lg">Wallet Not Connected</h3>
+                  <p className="text-white/70">Connect your wallet to access your dashboard</p>
                 </div>
               </div>
-            ))}
+              <button className="btn-primary">
+                <Wallet className="w-5 h-5 mr-2" />
+                Connect Wallet
+              </button>
+            </div>
           </div>
+        ) : (
+          <>
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <Coins className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-green-400" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/70 text-sm">Total Value</p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl font-bold text-white">
+                        {showBalance ? `$${totalValue.toLocaleString()}` : '****'}
+                      </span>
+                      <button
+                        onClick={() => setShowBalance(!showBalance)}
+                        className="text-white/60 hover:text-white transition-colors"
+                      >
+                        {showBalance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                    <Users className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Active Heirs</p>
+                  <p className="text-2xl font-bold text-white">{heirs.length}</p>
+                </div>
+              </div>
+
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-green-400" />
+                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Plan Status</p>
+                  <p className="text-2xl font-bold text-white">Active</p>
+                </div>
+              </div>
+
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-orange-400" />
+                  </div>
+                  <Activity className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Last Activity</p>
+                  <p className="text-2xl font-bold text-white">2 days</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Assets Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">Your Assets</h3>
+                  <Link to="/batch-transfer" className="btn-secondary text-sm px-4 py-2">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Transfer
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {assets.map((asset) => (
+                    <div key={asset.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                          <Coins className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{asset.name}</p>
+                          <p className="text-white/60 text-sm">{asset.amount} tokens</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-semibold">{asset.value}</p>
+                        <p className="text-green-400 text-sm">{asset.change}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-white">Your Heirs</h3>
+                  <Link to="/add-heir" className="btn-secondary text-sm px-4 py-2">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Heir
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {heirs.map((heir) => (
+                    <div key={heir.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                          <Users className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{heir.name}</p>
+                          <p className="text-white/60 text-sm">{heir.address}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-semibold">{heir.percentage}%</p>
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          <p className="text-green-400 text-sm">Active</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="glass-card p-6">
+              <h3 className="text-xl font-semibold text-white mb-6">Quick Actions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link to="/add-heir" className="glass-card-hover p-4 rounded-xl text-center group">
+                  <Users className="w-8 h-8 text-purple-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                  <h4 className="text-white font-medium mb-1">Add Heir</h4>
+                  <p className="text-white/60 text-sm">Designate new beneficiaries</p>
+                </Link>
+
+                <Link to="/claim-assets" className="glass-card-hover p-4 rounded-xl text-center group">
+                  <Coins className="w-8 h-8 text-green-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                  <h4 className="text-white font-medium mb-1">Claim Assets</h4>
+                  <p className="text-white/60 text-sm">Access inherited assets</p>
+                </Link>
+
+                <Link to="/update-activity" className="glass-card-hover p-4 rounded-xl text-center group">
+                  <Activity className="w-8 h-8 text-blue-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                  <h4 className="text-white font-medium mb-1">Update Activity</h4>
+                  <p className="text-white/60 text-sm">Maintain account activity</p>
+                </Link>
+
+                <Link to="/batch-transfer" className="glass-card-hover p-4 rounded-xl text-center group">
+                  <TrendingUp className="w-8 h-8 text-orange-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
+                  <h4 className="text-white font-medium mb-1">Batch Transfer</h4>
+                  <p className="text-white/60 text-sm">Transfer multiple assets</p>
+                </Link>
+              </div>
+            </div>
+
+            {/* Security Status */}
+            <div className="glass-card p-6 mt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white">Security Status</h3>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-green-400 text-sm font-medium">Secure</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center space-x-3 p-3 bg-green-500/10 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <div>
+                    <p className="text-white font-medium text-sm">Wallet Connected</p>
+                    <p className="text-white/60 text-xs">Secure connection active</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-500/10 rounded-lg">
+                  <Lock className="w-5 h-5 text-green-400" />
+                  <div>
+                    <p className="text-white font-medium text-sm">Smart Contracts</p>
+                    <p className="text-white/60 text-xs">Verified and secure</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 bg-green-500/10 rounded-lg">
+                  <Shield className="w-5 h-5 text-green-400" />
+                  <div>
+                    <p className="text-white font-medium text-sm">Inheritance Plan</p>
+                    <p className="text-white/60 text-xs">Active and protected</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
