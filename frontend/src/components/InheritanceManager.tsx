@@ -93,22 +93,22 @@ export function InheritanceManager() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-          <Shield className="w-6 h-6 text-white" />
+        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+          <Shield className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Inheritance Manager</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Inheritance Manager</h2>
           <p className="text-gray-600">Designate heirs for your SOL and SPL tokens</p>
         </div>
       </div>
 
       {/* Asset Type Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-md">
         <button
           onClick={() => setActiveTab('sol')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
             activeTab === 'sol'
-              ? 'bg-white text-blue-600 shadow-sm'
+              ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
@@ -119,7 +119,7 @@ export function InheritanceManager() {
           onClick={() => setActiveTab('token')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
             activeTab === 'token'
-              ? 'bg-white text-blue-600 shadow-sm'
+              ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
@@ -129,7 +129,7 @@ export function InheritanceManager() {
       </div>
 
       {/* Form */}
-      <div className="bg-gray-50 rounded-xl p-6">
+      <div className="bg-gray-50 rounded-lg p-6">
         <form onSubmit={(e) => { e.preventDefault(); handleAddHeir(); }} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -202,7 +202,7 @@ export function InheritanceManager() {
         </form>
 
         {message && (
-          <div className={`mt-4 p-3 rounded-lg ${
+          <div className={`mt-4 p-3 rounded-md ${
             message.includes('Error') 
               ? 'bg-red-50 text-red-700 border border-red-200' 
               : 'bg-green-50 text-green-700 border border-green-200'
@@ -213,9 +213,9 @@ export function InheritanceManager() {
       </div>
 
       {/* Information Card */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">How it works</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h3 className="font-semibold text-gray-900 mb-2">How it works</h3>
+        <ul className="text-sm text-gray-700 space-y-1">
           <li>• Heirs can claim assets after 1 year of owner inactivity</li>
           <li>• Owners can update their activity to prevent premature claims</li>
           <li>• Multiple heirs can be designated for different assets</li>

@@ -131,17 +131,17 @@ export function ClaimAssets() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-          <Gift className="w-6 h-6 text-white" />
+        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+          <Gift className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Claim Assets</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Claim Assets</h2>
           <p className="text-gray-600">Claim inherited SOL and tokens after inactivity period</p>
         </div>
       </div>
 
       {/* Search Section */}
-      <div className="bg-gray-50 rounded-xl p-6">
+      <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Search for Claimable Assets</h3>
         
         <div className="flex space-x-4">
@@ -183,7 +183,7 @@ export function ClaimAssets() {
 
       {/* Message Display */}
       {message && (
-        <div className={`p-4 rounded-lg ${
+        <div className={`p-4 rounded-md ${
           message.includes('Error') 
             ? 'bg-red-50 text-red-700 border border-red-200' 
             : 'bg-green-50 text-green-700 border border-green-200'
@@ -205,13 +205,13 @@ export function ClaimAssets() {
           <h3 className="text-lg font-semibold text-gray-900">Claimable Assets</h3>
           
           {claimableAssets.map((asset) => (
-            <div key={asset.id} className="bg-white rounded-xl border border-gray-200 p-6">
+            <div key={asset.id} className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   {asset.type === 'sol' ? (
-                    <Coins className="w-6 h-6 text-yellow-600" />
+                    <Coins className="w-6 h-6 text-gray-600" />
                   ) : (
-                    <Token className="w-6 h-6 text-blue-600" />
+                    <Token className="w-6 h-6 text-gray-600" />
                   )}
                   <div>
                     <h4 className="font-semibold text-gray-900">
@@ -230,8 +230,8 @@ export function ClaimAssets() {
                       <span className="text-sm font-medium">Claimable</span>
                     </div>
                   ) : (
-                    <div className="flex items-center space-x-2 text-orange-600">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                       <span className="text-sm font-medium">Not Yet Claimable</span>
                     </div>
                   )}
@@ -286,9 +286,9 @@ export function ClaimAssets() {
 
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-          <h3 className="font-semibold text-purple-900 mb-2">Claiming Process</h3>
-          <ul className="text-sm text-purple-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-2">Claiming Process</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
             <li>• Assets can be claimed after 1 year of owner inactivity</li>
             <li>• Only designated heirs can claim assets</li>
             <li>• Claims require wallet signature</li>
@@ -296,9 +296,9 @@ export function ClaimAssets() {
           </ul>
         </div>
 
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <h3 className="font-semibold text-orange-900 mb-2">Requirements</h3>
-          <ul className="text-sm text-orange-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-2">Requirements</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
             <li>• Must be designated as an heir</li>
             <li>• Owner must be inactive for 1 year</li>
             <li>• Assets must not be already claimed</li>

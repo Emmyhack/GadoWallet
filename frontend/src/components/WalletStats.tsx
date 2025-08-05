@@ -67,7 +67,7 @@ export function WalletStats() {
   if (!publicKey) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
           <Wallet className="w-8 h-8 text-gray-400" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">No Wallet Connected</h3>
@@ -79,7 +79,7 @@ export function WalletStats() {
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-gray-600">Loading wallet statistics...</p>
       </div>
     );
@@ -88,7 +88,7 @@ export function WalletStats() {
   if (!stats) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
           <BarChart3 className="w-8 h-8 text-red-500" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Stats</h3>
@@ -100,17 +100,17 @@ export function WalletStats() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center">
-          <BarChart3 className="w-6 h-6 text-white" />
+        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+          <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Wallet Statistics</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Wallet Statistics</h2>
           <p className="text-gray-600">Overview of your wallet and inheritance status</p>
         </div>
       </div>
 
       {/* Wallet Address */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Wallet Information</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -126,45 +126,45 @@ export function WalletStats() {
 
       {/* Key Statistics */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">{formatSOL(stats.balance)}</span>
+            <span className="text-2xl font-semibold text-gray-900">{formatSOL(stats.balance)}</span>
           </div>
           <h4 className="font-semibold text-gray-900 mb-1">SOL Balance</h4>
           <p className="text-sm text-gray-600">Current wallet balance</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">{stats.heirsCount}</span>
+            <span className="text-2xl font-semibold text-gray-900">{stats.heirsCount}</span>
           </div>
           <h4 className="font-semibold text-gray-900 mb-1">Total Heirs</h4>
           <p className="text-sm text-gray-600">Designated beneficiaries</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">{formatSOL(stats.totalInheritance)}</span>
+            <span className="text-2xl font-semibold text-gray-900">{formatSOL(stats.totalInheritance)}</span>
           </div>
           <h4 className="font-semibold text-gray-900 mb-1">Total Inheritance</h4>
           <p className="text-sm text-gray-600">SOL designated for heirs</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Activity className="w-5 h-5 text-orange-600" />
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+              <Activity className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">{stats.activeHeirs}</span>
+            <span className="text-2xl font-semibold text-gray-900">{stats.activeHeirs}</span>
           </div>
           <h4 className="font-semibold text-gray-900 mb-1">Active Heirs</h4>
           <p className="text-sm text-gray-600">Currently claimable</p>
@@ -172,7 +172,7 @@ export function WalletStats() {
       </div>
 
       {/* Activity Timeline */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
@@ -184,7 +184,7 @@ export function WalletStats() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">Heir Designation</p>
               <p className="text-xs text-gray-600">3 heirs designated for inheritance</p>
@@ -192,7 +192,7 @@ export function WalletStats() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">Inheritance Setup</p>
               <p className="text-xs text-gray-600">2.5 SOL allocated for inheritance</p>
@@ -202,7 +202,7 @@ export function WalletStats() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gray-50 rounded-xl p-6">
+      <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <button className="btn-secondary flex items-center justify-center space-x-2">
@@ -224,9 +224,9 @@ export function WalletStats() {
 
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-          <h3 className="font-semibold text-indigo-900 mb-2">Wallet Security</h3>
-          <ul className="text-sm text-indigo-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-2">Wallet Security</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
             <li>• All transactions require wallet signature</li>
             <li>• Private keys never leave your wallet</li>
             <li>• Inheritance contracts are immutable</li>
@@ -234,9 +234,9 @@ export function WalletStats() {
           </ul>
         </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-          <h3 className="font-semibold text-green-900 mb-2">Inheritance Status</h3>
-          <ul className="text-sm text-green-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-2">Inheritance Status</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
             <li>• {stats.heirsCount} heirs designated</li>
             <li>• {formatSOL(stats.totalInheritance)} SOL allocated</li>
             <li>• {stats.activeHeirs} heirs can claim</li>

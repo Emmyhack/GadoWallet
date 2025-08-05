@@ -49,11 +49,11 @@ export function Dashboard() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center py-16">
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-              <Shield className="w-10 h-10 text-white" />
+            <div className="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center">
+              <Shield className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-semibold text-gray-900 mb-4">
             Welcome to Gada Wallet
           </h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
@@ -61,25 +61,25 @@ export function Dashboard() {
             Secure your SOL and SPL tokens with designated heirs and ensure 
             your digital assets are protected for future generations.
           </p>
-          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-md mx-auto">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               Key Features
             </h3>
             <ul className="space-y-3 text-left">
               <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
                 <span className="text-gray-700">Designate heirs for your assets</span>
               </li>
               <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
                 <span className="text-gray-700">Batch transfer to multiple recipients</span>
               </li>
               <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
                 <span className="text-gray-700">Time-based inheritance claims</span>
               </li>
               <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
                 <span className="text-gray-700">Activity monitoring and updates</span>
               </li>
             </ul>
@@ -100,9 +100,9 @@ export function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-4 py-3 rounded-md font-medium transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-blue-600 text-white shadow-lg'
+                    ? 'bg-gray-900 text-white shadow-sm'
                     : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
@@ -115,7 +115,7 @@ export function Dashboard() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6">
           {activeTab === 'inheritance' && <InheritanceManager />}
           {activeTab === 'transfer' && <BatchTransfer />}

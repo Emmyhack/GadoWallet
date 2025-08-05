@@ -54,11 +54,11 @@ export function ActivityManager() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
-          <Clock className="w-6 h-6 text-white" />
+        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+          <Clock className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Activity Manager</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Activity Manager</h2>
           <p className="text-gray-600">Update your activity status to prevent inheritance claims</p>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function ActivityManager() {
       {/* Activity Status */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* SOL Activity */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">SOL Activity</h3>
             <div className="flex items-center space-x-2">
@@ -83,7 +83,7 @@ export function ActivityManager() {
             
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Inactivity Period:</span>
-              <span className="font-medium text-orange-600">1 year</span>
+              <span className="font-medium text-gray-900">1 year</span>
             </div>
 
             <button
@@ -107,7 +107,7 @@ export function ActivityManager() {
         </div>
 
         {/* Token Activity */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Token Activity</h3>
             <div className="flex items-center space-x-2">
@@ -124,7 +124,7 @@ export function ActivityManager() {
             
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Inactivity Period:</span>
-              <span className="font-medium text-orange-600">1 year</span>
+              <span className="font-medium text-gray-900">1 year</span>
             </div>
 
             <button
@@ -150,7 +150,7 @@ export function ActivityManager() {
 
       {/* Message Display */}
       {message && (
-        <div className={`p-4 rounded-lg ${
+        <div className={`p-4 rounded-md ${
           message.includes('Error') 
             ? 'bg-red-50 text-red-700 border border-red-200' 
             : 'bg-green-50 text-green-700 border border-green-200'
@@ -168,9 +168,9 @@ export function ActivityManager() {
 
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <h3 className="font-semibold text-blue-900 mb-2">Activity Updates</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-2">Activity Updates</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
             <li>• Update activity to reset the inactivity timer</li>
             <li>• Prevents heirs from claiming assets prematurely</li>
             <li>• Activity updates are recorded on-chain</li>
@@ -178,9 +178,9 @@ export function ActivityManager() {
           </ul>
         </div>
 
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <h3 className="font-semibold text-orange-900 mb-2">Inactivity Period</h3>
-          <ul className="text-sm text-orange-800 space-y-1">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-900 mb-2">Inactivity Period</h3>
+          <ul className="text-sm text-gray-700 space-y-1">
             <li>• Default inactivity period: 1 year</li>
             <li>• Heirs can claim after inactivity period</li>
             <li>• Activity updates reset the timer</li>
@@ -190,7 +190,7 @@ export function ActivityManager() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gray-50 rounded-xl p-6">
+      <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <button
