@@ -1,9 +1,9 @@
-import { Program, AnchorProvider, web3, utils, BN } from '@project-serum/anchor';
+import { Program, AnchorProvider, web3, BN } from '@project-serum/anchor';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useMemo } from 'react';
 
 // Real Gada IDL
-const IDL = {
+const IDL: any = {
   "version": "0.1.0",
   "name": "gada",
   "instructions": [
@@ -254,11 +254,11 @@ const IDL = {
             "type": "u64"
           },
           {
-            "name": "last_active_time",
+            "name": "lastActiveTime",
             "type": "i64"
           },
           {
-            "name": "is_claimed",
+            "name": "isClaimed",
             "type": "bool"
           },
           {
@@ -282,7 +282,7 @@ const IDL = {
             "type": "publicKey"
           },
           {
-            "name": "token_mint",
+            "name": "tokenMint",
             "type": "publicKey"
           },
           {
@@ -290,11 +290,11 @@ const IDL = {
             "type": "u64"
           },
           {
-            "name": "last_active_time",
+            "name": "lastActiveTime",
             "type": "i64"
           },
           {
-            "name": "is_claimed",
+            "name": "isClaimed",
             "type": "bool"
           },
           {
@@ -324,9 +324,6 @@ const IDL = {
   ]
 };
 
-// Program ID from your IDL
-const PROGRAM_ID = new web3.PublicKey("Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5");
-
 export type Gada = Program<typeof IDL>;
 
 export function useAnchorProgram(): Gada | undefined {
@@ -334,7 +331,9 @@ export function useAnchorProgram(): Gada | undefined {
   const wallet = useWallet();
 
   return useMemo(() => {
-    if (!wallet) return undefined;
+    if (!wallet || !connection || !wallet.connected) {
+      return undefined;
+    }
 
     const provider = new AnchorProvider(
       connection,
@@ -342,35 +341,33 @@ export function useAnchorProgram(): Gada | undefined {
       { commitment: 'confirmed' }
     );
 
-    return new Program(IDL, PROGRAM_ID, provider);
+    return new Program(IDL, 'Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5', provider);
   }, [connection, wallet]);
 }
 
-// Helper functions for PDA derivation
 export function getCoinHeirPDA(owner: web3.PublicKey, heir: web3.PublicKey): [web3.PublicKey, number] {
   return web3.PublicKey.findProgramAddressSync(
     [
-      Buffer.from("coin_heir"),
+      Buffer.from('coin_heir'),
       owner.toBuffer(),
       heir.toBuffer(),
     ],
-    PROGRAM_ID
+    new web3.PublicKey('Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5')
   );
 }
 
 export function getTokenHeirPDA(owner: web3.PublicKey, heir: web3.PublicKey, tokenMint: web3.PublicKey): [web3.PublicKey, number] {
   return web3.PublicKey.findProgramAddressSync(
     [
-      Buffer.from("token_heir"),
+      Buffer.from('token_heir'),
       owner.toBuffer(),
       heir.toBuffer(),
       tokenMint.toBuffer(),
     ],
-    PROGRAM_ID
+    new web3.PublicKey('Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5')
   );
 }
 
-// Contract interaction functions
 export async function addCoinHeir(
   program: Gada,
   heir: web3.PublicKey,
@@ -461,7 +458,39 @@ export async function claimHeirTokenAssets(
       ownerTokenAccount: ownerTokenAccount,
       heirTokenAccount: heirTokenAccount,
       authority: authority,
-      tokenProgram: web3.TokenProgram.programId,
+      tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
     })
     .rpc();
-} 
+}
+
+export async function batchTransferCoins(
+  program: Gada,
+  toAccount: web3.PublicKey,
+  amounts: BN[]
+) {
+  return await program.methods
+    .batchTransferCoins(amounts)
+    .accounts({
+      fromAccount: program.provider.publicKey!,
+      toAccount: toAccount,
+      systemProgram: web3.SystemProgram.programId,
+    })
+    .rpc();
+}
+
+export async function batchTransferTokens(
+  program: Gada,
+  fromTokenAccount: web3.PublicKey,
+  toTokenAccount: web3.PublicKey,
+  amounts: BN[]
+) {
+  return await program.methods
+    .batchTransferTokens(amounts)
+    .accounts({
+      fromTokenAccount: fromTokenAccount,
+      toTokenAccount: toTokenAccount,
+      authority: program.provider.publicKey!,
+      tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+    })
+    .rpc();
+}
