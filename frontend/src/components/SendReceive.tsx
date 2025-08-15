@@ -6,7 +6,7 @@ import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, cre
 import { Send, Download, Coins } from 'lucide-react';
 
 export function SendReceive() {
-  const { publicKey, signTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
 
   const [tab, setTab] = useState<'sol' | 'token'>('sol');
@@ -32,8 +32,7 @@ export function SendReceive() {
           toPubkey: recipient,
           lamports: Math.floor(parseFloat(amount) * LAMPORTS_PER_SOL),
         }));
-        const signed = await signTransaction!(tx);
-        const sig = await connection.sendRawTransaction(signed.serialize());
+        const sig = await sendTransaction!(tx, connection);
         await connection.confirmTransaction(sig, 'confirmed');
         setMessage('SOL sent successfully');
       } else {
@@ -48,8 +47,7 @@ export function SendReceive() {
         const tokenAmount = Math.floor(parseFloat(amount));
         ix.push(createTransferInstruction(fromAta, toAta, publicKey, tokenAmount));
         const tx = new Transaction().add(...(ix as any));
-        const signed = await signTransaction!(tx);
-        const sig = await connection.sendRawTransaction(signed.serialize());
+        const sig = await sendTransaction!(tx, connection);
         await connection.confirmTransaction(sig, 'confirmed');
         setMessage('Tokens sent successfully');
       }
