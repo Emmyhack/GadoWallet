@@ -81,43 +81,28 @@ export function Dashboard() {
 
   if (!connected) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center py-16">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-gray-900 rounded-lg flex items-center justify-center">
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-500 via-indigo-500 to-purple-600 opacity-20" />
+        <div className="container mx-auto px-4 py-20 relative">
+          <div className="max-w-3xl mx-auto text-center animate-fade-in">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-xl mb-6">
               <Shield className="w-8 h-8 text-white" />
             </div>
-          </div>
-          <h2 className="text-3xl font-semibold text-gray-900 mb-4">
-            Welcome to Gada Wallet
-          </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Connect your wallet to start managing your digital inheritance. 
-            Secure your SOL and SPL tokens with designated heirs and ensure 
-            your digital assets are protected for future generations.
-          </p>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-md mx-auto">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Key Features
-            </h3>
-            <ul className="space-y-3 text-left">
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                <span className="text-gray-700">Designate heirs for your assets</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                <span className="text-gray-700">Batch transfer to multiple recipients</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                <span className="text-gray-700">Time-based inheritance claims</span>
-              </li>
-              <li className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                <span className="text-gray-700">Activity monitoring and updates</span>
-              </li>
-            </ul>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Gada Wallet</h2>
+            <p className="text-lg md:text-xl text-gray-700 dark:text-gray-200 mb-8">Secure digital inheritance and everyday wallet in one sleek, professional interface.</p>
+            <div className="bg-white/80 dark:bg-gray-800/70 backdrop-blur rounded-2xl shadow-lg border border-white/30 p-8">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Why Gada</h3>
+              <ul className="grid md:grid-cols-2 gap-3 text-left">
+                <li className="flex items-center space-x-2 text-gray-800 dark:text-gray-200"><span className="w-1.5 h-1.5 rounded-full bg-indigo-600" /> <span>Designate heirs for SOL & SPL tokens</span></li>
+                <li className="flex items-center space-x-2 text-gray-800 dark:text-gray-200"><span className="w-1.5 h-1.5 rounded-full bg-indigo-600" /> <span>Batch transfers with ease</span></li>
+                <li className="flex items-center space-x-2 text-gray-800 dark:text-gray-200"><span className="w-1.5 h-1.5 rounded-full bg-indigo-600" /> <span>Time-based, on-chain claims</span></li>
+                <li className="flex items-center space-x-2 text-gray-800 dark:text-gray-200"><span className="w-1.5 h-1.5 rounded-full bg-indigo-600" /> <span>Portfolio, send/receive, activity</span></li>
+              </ul>
+              <div className="mt-8 flex items-center justify-center space-x-3">
+                <a href="#" className="btn-primary bg-gradient-to-r from-sky-600 to-indigo-600">Connect Wallet</a>
+                <a href="#features" className="btn-secondary">Learn More</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
