@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import QRCode from 'qrcode';
-import { Download } from 'lucide-react';
 
 export function Receive() {
   const { publicKey } = useWallet();

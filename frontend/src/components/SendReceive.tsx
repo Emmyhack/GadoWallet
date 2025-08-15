@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
-import { web3, BN } from '@project-serum/anchor';
+import { web3 } from '@project-serum/anchor';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from '@solana/spl-token';
 import { Send, Download, Coins } from 'lucide-react';
 
