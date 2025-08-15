@@ -1,5 +1,5 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Shield, Users, Zap } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { useState } from 'react';
 import i18n from '../lib/i18n';
 
