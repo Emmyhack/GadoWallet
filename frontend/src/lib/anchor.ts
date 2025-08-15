@@ -494,3 +494,57 @@ export async function batchTransferTokens(
     })
     .rpc();
 }
+
+export async function listCoinHeirsByOwner(program: Gada, owner: web3.PublicKey) {
+  return await (program as any).account.coinHeir.all([
+    { memcmp: { offset: 8, bytes: owner.toBase58() } },
+  ]);
+}
+
+export async function listCoinHeirsByHeir(program: Gada, heir: web3.PublicKey) {
+  return await (program as any).account.coinHeir.all([
+    { memcmp: { offset: 8 + 32, bytes: heir.toBase58() } },
+  ]);
+}
+
+export async function listCoinHeirsByOwnerAndHeir(
+  program: Gada,
+  owner: web3.PublicKey,
+  heir: web3.PublicKey,
+) {
+  return await (program as any).account.coinHeir.all([
+    { memcmp: { offset: 8, bytes: owner.toBase58() } },
+    { memcmp: { offset: 8 + 32, bytes: heir.toBase58() } },
+  ]);
+}
+
+export async function listTokenHeirsByOwner(program: Gada, owner: web3.PublicKey) {
+  return await (program as any).account.tokenHeir.all([
+    { memcmp: { offset: 8, bytes: owner.toBase58() } },
+  ]);
+}
+
+export async function listTokenHeirsByHeir(program: Gada, heir: web3.PublicKey) {
+  return await (program as any).account.tokenHeir.all([
+    { memcmp: { offset: 8 + 32, bytes: heir.toBase58() } },
+  ]);
+}
+
+export async function listTokenHeirsByOwnerAndHeir(
+  program: Gada,
+  owner: web3.PublicKey,
+  heir: web3.PublicKey,
+) {
+  return await (program as any).account.tokenHeir.all([
+    { memcmp: { offset: 8, bytes: owner.toBase58() } },
+    { memcmp: { offset: 8 + 32, bytes: heir.toBase58() } },
+  ]);
+}
+
+export const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
+
+export function isHeirClaimable(lastActiveTimeSeconds: number, isClaimed: boolean): boolean {
+  if (isClaimed) return false;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return nowSeconds - lastActiveTimeSeconds > ONE_YEAR_SECONDS;
+}

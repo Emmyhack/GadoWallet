@@ -18,19 +18,38 @@ export function ActivityManager() {
       setMessage('');
 
       if (type === 'sol') {
-        // For SOL activity update, we need to find existing coin heirs
-        // This is a simplified implementation
-        setMessage('SOL activity update requires existing coin heir accounts');
-        return;
+        const heirs = await (program as any).account.coinHeir.all([
+          { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+        ]);
+        if (!heirs.length) {
+          setMessage('No SOL heirs found for your wallet. Add one first.');
+        } else {
+          for (const h of heirs) {
+            await program.methods.updateCoinActivity().accounts({
+              coinHeir: h.publicKey,
+              owner: publicKey,
+            }).rpc();
+          }
+          setLastUpdateTime(new Date());
+          setMessage('SOL activity updated successfully!');
+        }
       } else {
-        // For token activity update, we need to find existing token heirs
-        // This is a simplified implementation
-        setMessage('Token activity update requires existing token heir accounts');
-        return;
+        const heirs = await (program as any).account.tokenHeir.all([
+          { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+        ]);
+        if (!heirs.length) {
+          setMessage('No token heirs found for your wallet. Add one first.');
+        } else {
+          for (const h of heirs) {
+            await program.methods.updateActivity().accounts({
+              tokenHeir: h.publicKey,
+              owner: publicKey,
+            }).rpc();
+          }
+          setLastUpdateTime(new Date());
+          setMessage('Token activity updated successfully!');
+        }
       }
-
-      setLastUpdateTime(new Date());
-      setMessage('Activity updated successfully!');
     } catch (error) {
       console.error('Error updating activity:', error);
       setMessage('Error updating activity. Please try again.');

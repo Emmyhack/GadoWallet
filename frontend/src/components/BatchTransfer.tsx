@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useAnchorProgram } from '../lib/anchor';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Send, Plus, Trash2, Coins, Coins as Token } from 'lucide-react';
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction } from '@solana/spl-token';
 
 interface Recipient {
   id: string;
@@ -13,6 +14,7 @@ interface Recipient {
 export function BatchTransfer() {
   const program = useAnchorProgram();
   const { publicKey } = useWallet();
+  const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'sol' | 'token'>('sol');
   const [recipients, setRecipients] = useState<Recipient[]>([
@@ -56,28 +58,56 @@ export function BatchTransfer() {
       }
 
       if (activeTab === 'sol') {
-        // For SOL transfers, we'll use the first recipient as the target
-        // In a real implementation, you'd need to handle multiple recipients differently
-        const firstRecipient = validRecipients[0];
-        const toAddress = new web3.PublicKey(firstRecipient.address);
-        const amount = new BN(parseFloat(firstRecipient.amount) * 1e9); // Convert SOL to lamports
-
-        await program.methods
-          .batchTransferCoins([amount])
-          .accounts({
-            fromAccount: publicKey,
-            toAccount: toAddress,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .rpc();
-        
-        setMessage('SOL batch transfer completed successfully!');
+        for (const recipient of validRecipients) {
+          const toAddress = new web3.PublicKey(recipient.address);
+          const amount = new BN(parseFloat(recipient.amount) * 1e9);
+          await program.methods
+            .batchTransferCoins([amount])
+            .accounts({
+              fromAccount: publicKey,
+              toAccount: toAddress,
+              systemProgram: web3.SystemProgram.programId,
+            })
+            .rpc();
+        }
+        setMessage('SOL transfers completed successfully!');
       } else {
-        // For token transfers
-        // Note: This is a simplified implementation
-        // In a real scenario, you'd need to handle token accounts properly
-        setMessage('Token batch transfer functionality requires proper token account setup');
-        return;
+        if (!tokenMint) {
+          setMessage('Please provide a token mint address');
+          return;
+        }
+        const mintPk = new web3.PublicKey(tokenMint);
+        for (const recipient of validRecipients) {
+          const toOwner = new web3.PublicKey(recipient.address);
+          const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
+          const toTokenAccount = await getAssociatedTokenAddress(mintPk, toOwner);
+
+          const ix: web3.TransactionInstruction[] = [];
+          const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
+          if (!toAccountInfo) {
+            ix.push(
+              createAssociatedTokenAccountInstruction(
+                publicKey,
+                toTokenAccount,
+                toOwner,
+                mintPk
+              )
+            );
+          }
+
+          const amount = new BN(parseFloat(recipient.amount));
+          await program.methods
+            .batchTransferTokens([amount])
+            .accounts({
+              fromTokenAccount,
+              toTokenAccount,
+              authority: publicKey,
+              tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+            })
+            .preInstructions(ix)
+            .rpc();
+        }
+        setMessage('Token transfers completed successfully!');
       }
 
       // Reset form

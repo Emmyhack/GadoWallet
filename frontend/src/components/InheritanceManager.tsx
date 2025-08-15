@@ -24,21 +24,21 @@ export function InheritanceManager() {
       const heirPubkey = new web3.PublicKey(heirAddress);
       const amountBN = new BN(parseFloat(amount) * 1e9); // Convert SOL to lamports
 
-      if (activeTab === 'sol') {
-        await program.methods
-          .addCoinHeir(amountBN)
-          .accounts({
-            coinHeir: web3.PublicKey.findProgramAddressSync(
-              [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
-              program.programId
-            )[0],
-            owner: publicKey,
-            heir: heirPubkey,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .rpc();
-        setMessage('SOL heir added successfully!');
-      } else {
+             if (activeTab === 'sol') {
+         await program.methods
+           .addCoinHeir(amountBN)
+           .accounts({
+             coinHeir: web3.PublicKey.findProgramAddressSync(
+               [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
+               program.programId
+             )[0],
+             owner: publicKey,
+             heir: heirPubkey,
+             systemProgram: web3.SystemProgram.programId,
+           })
+           .rpc();
+         setMessage(`SOL heir added successfully for ${(parseFloat(amount)).toFixed(9)} SOL!`);
+       } else {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
         await program.methods
           .addTokenHeir(amountBN)
