@@ -9,6 +9,8 @@ import { Shield, Send, Clock, Gift, BarChart3, Wallet, Activity as ActivityIcon 
 import { Portfolio } from './Portfolio';
 import { SendReceive } from './SendReceive';
 import { Transactions } from './Transactions';
+import { Receive } from './Receive';
+import { SignMessage } from './SignMessage';
 
 export function Dashboard() {
   const { connected } = useWallet();
@@ -62,6 +64,18 @@ export function Dashboard() {
       name: 'Transactions',
       icon: ActivityIcon,
       description: 'Recent activity'
+    },
+    {
+      id: 'receive',
+      name: 'Receive',
+      icon: Send,
+      description: 'Show address and QR'
+    },
+    {
+      id: 'sign',
+      name: 'Sign Msg',
+      icon: Shield,
+      description: 'Sign an arbitrary message'
     }
   ];
 
@@ -146,6 +160,8 @@ export function Dashboard() {
           {activeTab === 'stats' && <WalletStats />}
           {activeTab === 'send' && <SendReceive />}
           {activeTab === 'txs' && <Transactions />}
+          {activeTab === 'receive' && <Receive />}
+          {activeTab === 'sign' && <SignMessage />}
         </div>
       </div>
     </div>
