@@ -1,7 +1,9 @@
 import { Shield, Send, Gift, BarChart3 } from 'lucide-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useTranslation } from 'react-i18next';
 
 export function Landing() {
+  const { t } = useTranslation();
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -20,7 +22,7 @@ export function Landing() {
             </p>
             <div className="flex items-center space-x-3">
               <WalletMultiButton className="bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600 hover:from-violet-500 hover:to-rose-500 text-white font-medium py-2.5 px-4 rounded-md" />
-              <a href="#features" className="btn-secondary">Explore Features</a>
+              <a href="#features" className="btn-secondary">{t('exploreFeatures')}</a>
             </div>
           </div>
           <div className="md:justify-self-end">
@@ -30,28 +32,28 @@ export function Landing() {
                   <div className="w-8 h-8 rounded-md bg-gradient-to-br from-sky-500 to-indigo-500 text-white flex items-center justify-center mb-3">
                     <Shield className="w-5 h-5" />
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white">Inheritance</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{t('inheritance')}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">Designate heirs & claim after inactivity</div>
                 </div>
                 <div className="card">
                   <div className="w-8 h-8 rounded-md bg-gradient-to-br from-rose-500 to-fuchsia-500 text-white flex items-center justify-center mb-3">
                     <Send className="w-5 h-5" />
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white">Send/Receive</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{t('sendReceive')}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">SOL and tokens with ATA support</div>
                 </div>
                 <div className="card">
                   <div className="w-8 h-8 rounded-md bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center mb-3">
                     <Gift className="w-5 h-5" />
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white">Claim Assets</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{t('claimAssets')}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">Time-based, on-chain safety</div>
                 </div>
                 <div className="card">
                   <div className="w-8 h-8 rounded-md bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center mb-3">
                     <BarChart3 className="w-5 h-5" />
                   </div>
-                  <div className="font-semibold text-gray-900 dark:text-white">Portfolio</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{t('statistics')}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">Balance, tokens, transactions</div>
                 </div>
               </div>
