@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useAnchorProgram } from '../lib/anchor';
+import { useAnchorProgram, listCoinHeirsByOwnerAndHeir, listTokenHeirsByOwnerAndHeir, isHeirClaimable } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { web3 } from '@project-serum/anchor';
+import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Gift, Search, AlertTriangle, CheckCircle, Coins, Coins as Token } from 'lucide-react';
 
 interface ClaimableAsset {
@@ -23,36 +24,40 @@ export function ClaimAssets() {
   const [claimableAssets, setClaimableAssets] = useState<ClaimableAsset[]>([]);
 
   const handleSearchAssets = async () => {
-    if (!publicKey || !searchAddress) return;
+    if (!program || !publicKey || !searchAddress) return;
 
     try {
       setIsLoading(true);
       setMessage('');
 
-      // This is a simplified implementation
-      // In a real scenario, you would query the blockchain for actual heir accounts
-      const mockAssets: ClaimableAsset[] = [
-        {
-          id: '1',
-          type: 'sol',
-          owner: searchAddress,
-          amount: '0.5',
-          lastActiveTime: '2023-01-01T00:00:00Z',
-          isClaimable: true
-        },
-        {
-          id: '2',
-          type: 'token',
-          owner: searchAddress,
-          amount: '100',
-          lastActiveTime: '2023-01-01T00:00:00Z',
-          isClaimable: false,
-          tokenMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-        }
+      const ownerPk = new web3.PublicKey(searchAddress);
+      const [coinHeirs, tokenHeirs] = await Promise.all([
+        listCoinHeirsByOwnerAndHeir(program, ownerPk, publicKey),
+        listTokenHeirsByOwnerAndHeir(program, ownerPk, publicKey),
+      ]);
+
+      const assets: ClaimableAsset[] = [
+        ...coinHeirs.map((c: any) => ({
+          id: c.publicKey.toBase58(),
+          type: 'sol' as const,
+          owner: c.account.owner.toBase58(),
+          amount: (Number(c.account.amount) / 1e9).toString(),
+          lastActiveTime: new Date(c.account.lastActiveTime.toNumber() * 1000).toISOString(),
+          isClaimable: isHeirClaimable(c.account.lastActiveTime.toNumber(), c.account.isClaimed),
+        })),
+        ...tokenHeirs.map((t: any) => ({
+          id: t.publicKey.toBase58(),
+          type: 'token' as const,
+          owner: t.account.owner.toBase58(),
+          amount: t.account.amount.toString(),
+          lastActiveTime: new Date(t.account.lastActiveTime.toNumber() * 1000).toISOString(),
+          isClaimable: isHeirClaimable(t.account.lastActiveTime.toNumber(), t.account.isClaimed),
+          tokenMint: t.account.tokenMint.toBase58(),
+        })),
       ];
 
-      setClaimableAssets(mockAssets);
-      setMessage('Assets found! Check the list below.');
+      setClaimableAssets(assets);
+      setMessage(assets.length ? 'Assets found! Check the list below.' : 'No claimable assets found.');
     } catch (error) {
       console.error('Error searching assets:', error);
       setMessage('Error searching for assets. Please try again.');
@@ -86,16 +91,41 @@ export function ClaimAssets() {
         
         setMessage('SOL assets claimed successfully!');
       } else {
-        // Claim token assets
         if (!asset.tokenMint) {
           setMessage('Token mint address is required for token claims');
           return;
         }
+        const ownerPk = new web3.PublicKey(asset.owner);
+        const mintPk = new web3.PublicKey(asset.tokenMint);
+        const ownerTokenAccount = await getAssociatedTokenAddress(mintPk, ownerPk);
+        const heirTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
 
-        // This is a simplified implementation
-        // In a real scenario, you'd need proper token account handling
-        setMessage('Token claim functionality requires proper token account setup');
-        return;
+        // Authority must be allowed to transfer from owner's token account. In this program,
+        // 'authority' is a generic AccountInfo expected to sign; we use ownerPk which cannot sign here.
+        // Practically, the owner must approve or asset must be held by a PDA. This front-end will
+        // attempt with ownerPk as authority only if the connected wallet equals owner.
+        if (publicKey.toBase58() !== ownerPk.toBase58()) {
+          setMessage('Token claim requires owner to authorize transfers. Ask owner to sign or use SOL claim.');
+          return;
+        }
+
+        await program.methods
+          .claimHeirTokenAssets()
+          .accounts({
+            tokenHeir: web3.PublicKey.findProgramAddressSync(
+              [Buffer.from('token_heir'), ownerPk.toBuffer(), publicKey.toBuffer(), mintPk.toBuffer()],
+              program.programId
+            )[0],
+            owner: ownerPk,
+            heir: publicKey,
+            ownerTokenAccount,
+            heirTokenAccount,
+            authority: ownerPk,
+            tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+          })
+          .rpc();
+
+        setMessage('Token assets claimed successfully!');
       }
 
       // Remove claimed asset from list

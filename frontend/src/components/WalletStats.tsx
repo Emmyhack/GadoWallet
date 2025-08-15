@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { useAnchorProgram, listCoinHeirsByOwner, listTokenHeirsByOwner, isHeirClaimable } from '../lib/anchor';
 import { BarChart3, Wallet, Shield, Users, TrendingUp, Activity } from 'lucide-react';
 
 interface WalletStatsData {
@@ -15,31 +16,59 @@ interface WalletStatsData {
 export function WalletStats() {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const program = useAnchorProgram();
   const [stats, setStats] = useState<WalletStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!publicKey || !connection) return;
+      if (!publicKey || !connection || !program) return;
 
       try {
         setIsLoading(true);
 
-        // Get wallet balance
         const balance = await connection.getBalance(publicKey);
         const balanceInSOL = balance / LAMPORTS_PER_SOL;
 
-        // Mock data for demonstration
-        // In a real implementation, you would query the blockchain for actual data
-        const mockStats: WalletStatsData = {
-          balance: balanceInSOL,
-          heirsCount: 3,
-          totalInheritance: 2.5,
-          lastActivity: new Date().toISOString(),
-          activeHeirs: 2
-        };
+        const [coinHeirs, tokenHeirs] = await Promise.all([
+          listCoinHeirsByOwner(program, publicKey),
+          listTokenHeirsByOwner(program, publicKey),
+        ]);
 
-        setStats(mockStats);
+        const allHeirs = [
+          ...coinHeirs.map((c: any) => ({
+            type: 'sol' as const,
+            lastActiveTime: c.account.lastActiveTime.toNumber(),
+            isClaimed: c.account.isClaimed,
+            amount: Number(c.account.amount) / 1e9,
+          })),
+          ...tokenHeirs.map((t: any) => ({
+            type: 'token' as const,
+            lastActiveTime: t.account.lastActiveTime.toNumber(),
+            isClaimed: t.account.isClaimed,
+            amount: Number(t.account.amount),
+          })),
+        ];
+
+        const heirsCount = allHeirs.length;
+        const totalInheritance = allHeirs
+          .filter(h => h.type === 'sol')
+          .reduce((sum, h) => sum + (h.amount || 0), 0);
+
+        const lastActivitySeconds = Math.max(
+          0,
+          ...allHeirs.map(h => h.lastActiveTime)
+        );
+
+        const activeHeirs = allHeirs.filter(h => isHeirClaimable(h.lastActiveTime, h.isClaimed)).length;
+
+        setStats({
+          balance: balanceInSOL,
+          heirsCount,
+          totalInheritance,
+          lastActivity: lastActivitySeconds ? new Date(lastActivitySeconds * 1000).toISOString() : new Date().toISOString(),
+          activeHeirs,
+        });
       } catch (error) {
         console.error('Error fetching wallet stats:', error);
       } finally {
