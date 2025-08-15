@@ -5,13 +5,22 @@ import { BatchTransfer } from './BatchTransfer';
 import { ActivityManager } from './ActivityManager';
 import { ClaimAssets } from './ClaimAssets';
 import { WalletStats } from './WalletStats';
-import { Shield, Send, Clock, Gift, BarChart3 } from 'lucide-react';
+import { Shield, Send, Clock, Gift, BarChart3, Wallet, Activity as ActivityIcon } from 'lucide-react';
+import { Portfolio } from './Portfolio';
+import { SendReceive } from './SendReceive';
+import { Transactions } from './Transactions';
 
 export function Dashboard() {
   const { connected } = useWallet();
   const [activeTab, setActiveTab] = useState('inheritance');
 
   const tabs = [
+    {
+      id: 'portfolio',
+      name: 'Wallet',
+      icon: Wallet,
+      description: 'View balances and token holdings'
+    },
     {
       id: 'inheritance',
       name: 'Inheritance',
@@ -41,6 +50,18 @@ export function Dashboard() {
       name: 'Statistics',
       icon: BarChart3,
       description: 'View wallet statistics'
+    },
+    {
+      id: 'send',
+      name: 'Send/Receive',
+      icon: Send,
+      description: 'Send SOL or tokens'
+    },
+    {
+      id: 'txs',
+      name: 'Transactions',
+      icon: ActivityIcon,
+      description: 'Recent activity'
     }
   ];
 
@@ -117,11 +138,14 @@ export function Dashboard() {
       {/* Tab Content */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6">
+          {activeTab === 'portfolio' && <Portfolio />}
           {activeTab === 'inheritance' && <InheritanceManager />}
           {activeTab === 'transfer' && <BatchTransfer />}
           {activeTab === 'activity' && <ActivityManager />}
           {activeTab === 'claim' && <ClaimAssets />}
           {activeTab === 'stats' && <WalletStats />}
+          {activeTab === 'send' && <SendReceive />}
+          {activeTab === 'txs' && <Transactions />}
         </div>
       </div>
     </div>
