@@ -25,7 +25,7 @@ export function Header() {
 
           {/* Controls */}
           <div className="flex items-center space-x-3">
-            <select defaultValue={i18n.language} onChange={(e) => i18n.changeLanguage(e.target.value)} className="text-sm bg-white/10 border border-white/20 rounded-md px-2 py-1 focus:outline-none">
+            <select defaultValue={i18n.language} onChange={(e) => i18n.changeLanguage(e.target.value)} className="text-sm bg-black/30 text-white border border-white/20 rounded-md px-2 py-1 focus:outline-none">
               <option value="en">EN</option>
               <option value="es">ES</option>
               <option value="yo">Yorùbá</option>
@@ -34,7 +34,7 @@ export function Header() {
               <option value="zh">中文</option>
             </select>
 
-            <select value={gradient} onChange={(e) => setGradient(e.target.value as any)} className="text-sm bg-white/10 border border-white/20 rounded-md px-2 py-1 focus:outline-none">
+            <select value={gradient} onChange={(e) => setGradient(e.target.value as any)} className="text-sm bg-black/30 text-white border border-white/20 rounded-md px-2 py-1 focus:outline-none">
               <option value="brand">Brand</option>
               <option value="ocean">Ocean</option>
               <option value="sunset">Sunset</option>
