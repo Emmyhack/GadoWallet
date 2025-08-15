@@ -12,71 +12,73 @@ import { Transactions } from './Transactions';
 import { Receive } from './Receive';
 import { SignMessage } from './SignMessage';
 import { Landing } from './Landing';
+import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
   const { connected } = useWallet();
   const [activeTab, setActiveTab] = useState('inheritance');
+  const { t } = useTranslation();
 
   const tabs = [
     {
       id: 'portfolio',
-      name: 'Wallet',
+      name: t('wallet'),
       icon: Wallet,
-      description: 'View balances and token holdings'
+      description: t('wallet')
     },
     {
       id: 'inheritance',
-      name: 'Inheritance',
+      name: t('inheritance'),
       icon: Shield,
-      description: 'Manage heirs and inheritance settings'
+      description: t('inheritance')
     },
     {
       id: 'transfer',
-      name: 'Batch Transfer',
+      name: t('batchTransfer'),
       icon: Send,
-      description: 'Send SOL and tokens to multiple recipients'
+      description: t('batchTransfer')
     },
     {
       id: 'activity',
-      name: 'Activity',
+      name: t('activity'),
       icon: Clock,
-      description: 'Update your activity status'
+      description: t('activity')
     },
     {
       id: 'claim',
-      name: 'Claim Assets',
+      name: t('claimAssets'),
       icon: Gift,
-      description: 'Claim inherited assets'
+      description: t('claimAssets')
     },
     {
       id: 'stats',
-      name: 'Statistics',
+      name: t('statistics'),
       icon: BarChart3,
-      description: 'View wallet statistics'
+      description: t('statistics')
     },
     {
       id: 'send',
-      name: 'Send/Receive',
+      name: t('sendReceive'),
       icon: Send,
-      description: 'Send SOL or tokens'
+      description: t('sendReceive')
     },
     {
       id: 'txs',
-      name: 'Transactions',
+      name: t('transactions'),
       icon: ActivityIcon,
-      description: 'Recent activity'
+      description: t('transactions')
     },
     {
       id: 'receive',
-      name: 'Receive',
+      name: t('receive'),
       icon: Send,
-      description: 'Show address and QR'
+      description: t('receive')
     },
     {
       id: 'sign',
-      name: 'Sign Msg',
+      name: t('signMessage'),
       icon: Shield,
-      description: 'Sign an arbitrary message'
+      description: t('signMessage')
     }
   ];
 
@@ -98,7 +100,7 @@ export function Dashboard() {
                 className={`flex items-center space-x-2 px-4 py-3 rounded-md font-medium transition-all duration-200 ${
                   activeTab === tab.id
                     ? 'bg-gray-900 text-white shadow-sm'
-                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                    : 'bg-white/80 dark:bg-gray-900/60 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:bg-white/90 dark:hover:bg-gray-900'
                 }`}
               >
                 <Icon className="w-5 h-5" />
@@ -110,7 +112,7 @@ export function Dashboard() {
       </div>
 
       {/* Tab Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="rounded-2xl shadow-sm border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur overflow-hidden">
         <div className="p-6">
           {activeTab === 'portfolio' && <Portfolio />}
           {activeTab === 'inheritance' && <InheritanceManager />}

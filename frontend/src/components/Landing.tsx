@@ -5,8 +5,8 @@ export function Landing() {
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl animate-float" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl animate-float" />
       </div>
 
       <section className="relative container mx-auto px-4 py-20">
