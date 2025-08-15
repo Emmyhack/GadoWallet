@@ -21,7 +21,7 @@ const GRADIENT_MAP: Record<GradientPalette, string> = {
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>('light');
+  const [mode, setMode] = useState<ThemeMode>('dark');
   const [gradient, setGradient] = useState<GradientPalette>('brand');
 
   useEffect(() => {

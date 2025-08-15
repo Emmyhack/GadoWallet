@@ -29,10 +29,7 @@ export function Header() {
               <option value="en">EN</option>
               <option value="es">ES</option>
             </select>
-            <select value={mode} onChange={(e) => setMode(e.target.value as any)} className="text-sm bg-white/10 border border-white/20 rounded-md px-2 py-1 focus:outline-none">
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
+
             <select value={gradient} onChange={(e) => setGradient(e.target.value as any)} className="text-sm bg-white/10 border border-white/20 rounded-md px-2 py-1 focus:outline-none">
               <option value="brand">Brand</option>
               <option value="ocean">Ocean</option>

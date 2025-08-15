@@ -91,8 +91,68 @@ export function Landing() {
         </div>
       </section>
 
-      <footer id="faq" className="relative container mx-auto px-4 py-12">
-        <div className="text-center text-sm text-gray-600 dark:text-gray-400">© {new Date().getFullYear()} Gada Wallet. Non-custodial. Open-source.</div>
+      <section id="security" className="relative container mx-auto px-4 py-12">
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur p-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Security & Trust</h2>
+          <div className="grid md:grid-cols-3 gap-6 text-gray-800 dark:text-gray-200">
+            <div className="animate-fade-in">
+              <div className="font-semibold mb-1">Non-custodial</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Your keys stay in your wallet. All actions require signatures.</div>
+            </div>
+            <div className="animate-fade-in" style={{ animationDelay: '80ms' }}>
+              <div className="font-semibold mb-1">On-chain logic</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Inheritance, claims, and activity checks enforced by program.</div>
+            </div>
+            <div className="animate-fade-in" style={{ animationDelay: '160ms' }}>
+              <div className="font-semibold mb-1">Open-source</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Transparent codebase with community-driven improvements.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="stats" className="relative container mx-auto px-4 py-12">
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur p-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">Why users choose Gada</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="card text-center">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">1K+</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Transactions processed</div>
+            </div>
+            <div className="card text-center">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">500+</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Heir designations</div>
+            </div>
+            <div className="card text-center">
+              <div className="text-3xl font-bold text-gray-900 dark:text-white">99.9%</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Uptime & reliability</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="relative container mx-auto px-4 py-12">
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur p-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">FAQ</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="font-semibold text-gray-900 dark:text-white">How do claims work?</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">If the owner is inactive for the set period, designated heirs can claim assets using on-chain verification.</div>
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900 dark:text-white">Which wallets are supported?</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Phantom and Solflare out of the box; more can be enabled via Wallet Adapter.</div>
+            </div>
+            <div>
+              <div className="font-semibold text-gray-900 dark:text-white">Are my assets safe?</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Yes. Gada does not custody assets; all logic is executed by audited on-chain programs.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="relative container mx-auto px-4 py-12">
+        <div className="text-center text-sm text-gray-500 dark:text-gray-400">© {new Date().getFullYear()} Gada Wallet. Non-custodial. Open-source.</div>
       </footer>
     </div>
   );
