@@ -5,8 +5,8 @@ export function Landing() {
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-sky-400 via-indigo-500 to-purple-600 opacity-20 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-fuchsia-400 via-rose-500 to-orange-500 opacity-20 blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl" />
       </div>
 
       <section className="relative container mx-auto px-4 py-20">
@@ -19,7 +19,7 @@ export function Landing() {
               Gada Wallet combines professional wallet features with secure digital inheritance. Manage assets, send and receive, and protect your legacy.
             </p>
             <div className="flex items-center space-x-3">
-              <WalletMultiButton className="bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-medium py-2.5 px-4 rounded-md" />
+              <WalletMultiButton className="bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600 hover:from-violet-500 hover:to-rose-500 text-white font-medium py-2.5 px-4 rounded-md" />
               <a href="#features" className="btn-secondary">Explore Features</a>
             </div>
           </div>

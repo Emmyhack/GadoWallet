@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 export type ThemeMode = 'light' | 'dark';
-export type GradientPalette = 'ocean' | 'sunset' | 'forest';
+export type GradientPalette = 'brand' | 'ocean' | 'sunset' | 'forest';
 
 interface ThemeContextValue {
   mode: ThemeMode;
@@ -14,6 +14,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 const GRADIENT_MAP: Record<GradientPalette, string> = {
+  brand: 'from-violet-600 via-fuchsia-600 to-rose-600',
   ocean: 'from-sky-500 via-indigo-500 to-purple-600',
   sunset: 'from-rose-500 via-fuchsia-500 to-indigo-500',
   forest: 'from-emerald-500 via-teal-500 to-cyan-500',
@@ -21,7 +22,7 @@ const GRADIENT_MAP: Record<GradientPalette, string> = {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>('light');
-  const [gradient, setGradient] = useState<GradientPalette>('ocean');
+  const [gradient, setGradient] = useState<GradientPalette>('brand');
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', mode === 'dark');
