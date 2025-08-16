@@ -60,24 +60,28 @@ cd gada/frontend && yarn dev
 ```
 Open http://localhost:5173 in your browser.
 
-## Testing the Inheritance Delay (2 days)
-For faster testing, the program supports a feature flag that reduces the inactivity period from 365 days to 2 days.
+## Per-heir Inactivity Period
+When adding an heir (SOL or SPL), you can now set the inactivity period (in days) per heir. This value is stored on-chain with the heir record and is used to determine when the heir can claim.
 
-- Build with the short delay:
+- In the UI: fill "Inactivity (days)" when adding an heir.
+- Program API (Anchor):
+  - `add_coin_heir(amount: u64, inactivity_period_seconds: i64)`
+  - `add_token_heir(amount: u64, inactivity_period_seconds: i64)`
+
+## Testing Inheritance Sooner
+For testing, set a small inactivity value (e.g., 2 days) when adding the heir. No special build flags are required.
+
+If you prefer, there is also a legacy feature flag for short default periods during development:
 ```bash
 cd gada
 anchor build -- --features short-claim-delay
-```
-- Deploy as usual:
-```bash
 anchor deploy
 ```
-This build only affects the inactivity threshold used in the claim instructions.
 
 ## Usage
 - Connect a wallet (Phantom or Solflare)
 - Add heirs for SOL or SPL tokens with amounts
-- Perform batch transfers
+- Choose an inactivity period per heir (in days)
 - Heirs can claim assets after the inactivity period
 - Owners can update their activity at any time
 
