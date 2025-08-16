@@ -1,6 +1,13 @@
 gada/target/
 gada/node_modules/
+frontend/node_modules/
+gada/frontend/node_modules/
+frontend/dist/
+gada/frontend/dist/
+.env
+.env.*
 test-ledger/rocksdb/
 test-ledger/snapshot/
 test-ledger/snapshot-*.tar.zst
 test-ledger/genesis.*
+.DS_Store
