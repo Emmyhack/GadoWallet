@@ -137,98 +137,98 @@ export function WalletStats() {
           <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{t('walletStatistics')}</h2>
-          <p className="text-gray-600">{t('walletStatsOverview')}</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('walletStatistics')}</h2>
+          <p className="text-gray-600 dark:text-gray-300">{t('walletStatsOverview')}</p>
         </div>
       </div>
 
       {/* Wallet Address */}
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('walletInformation')}</h3>
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('walletInformation')}</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600">{t('addressLabel')}</span>
-            <span className="font-mono text-sm text-gray-900 break-all">{publicKey.toString()}</span>
+            <span className="text-gray-600 dark:text-gray-300">{t('addressLabel')}</span>
+            <span className="font-mono text-sm text-gray-900 dark:text-white break-all">{publicKey.toString()}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600">{t('balanceLabel')}</span>
-            <span className="font-semibold text-gray-900">{formatSOL(stats.balance)} SOL</span>
+            <span className="text-gray-600 dark:text-gray-300">{t('balanceLabel')}</span>
+            <span className="font-semibold text-gray-900 dark:text-white">{formatSOL(stats.balance)} SOL</span>
           </div>
         </div>
       </div>
 
       {/* Key Statistics */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </div>
-            <span className="text-2xl font-semibold text-gray-900">{formatSOL(stats.balance)}</span>
+            <span className="text-2xl font-semibold text-gray-900 dark:text-white">{formatSOL(stats.balance)}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">{t('solBalance')}</h4>
-          <p className="text-sm text-gray-600">{t('currentWalletBalance')}</p>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{t('solBalance')}</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t('currentWalletBalance')}</p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </div>
-            <span className="text-2xl font-semibold text-gray-900">{stats.heirsCount}</span>
+            <span className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.heirsCount}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">{t('totalHeirsLabel')}</h4>
-          <p className="text-sm text-gray-600">{t('designatedBeneficiaries')}</p>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{t('totalHeirsLabel')}</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t('designatedBeneficiaries')}</p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+              <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </div>
-            <span className="text-2xl font-semibold text-gray-900">{formatSOL(stats.totalInheritance)}</span>
+            <span className="text-2xl font-semibold text-gray-900 dark:text-white">{formatSOL(stats.totalInheritance)}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">{t('totalInheritanceLabel')}</h4>
-          <p className="text-sm text-gray-600">{t('solDesignatedForHeirs')}</p>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{t('totalInheritanceLabel')}</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t('solDesignatedForHeirs')}</p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Activity className="w-5 h-5 text-gray-600" />
+            <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+              <Activity className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </div>
-            <span className="text-2xl font-semibold text-gray-900">{stats.activeHeirs}</span>
+            <span className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.activeHeirs}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">{t('activeHeirsLabel')}</h4>
-          <p className="text-sm text-gray-600">{t('currentlyClaimable')}</p>
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{t('activeHeirsLabel')}</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{t('currentlyClaimable')}</p>
         </div>
       </div>
 
       {/* Activity Timeline */}
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recentActivity')}</h3>
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('recentActivity')}</h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{t('walletActivityUpdated')}</p>
-              <p className="text-xs text-gray-600">{getTimeSinceLastActivity(stats.lastActivity)}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{t('walletActivityUpdated')}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300">{getTimeSinceLastActivity(stats.lastActivity)}</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{t('heirDesignation')}</p>
-              <p className="text-xs text-gray-600">{t('heirsDesignatedForInheritance', { count: 3 })}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{t('heirDesignation')}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300">{t('heirsDesignatedForInheritance', { count: 3 })}</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{t('inheritanceSetup')}</p>
-              <p className="text-xs text-gray-600">{t('solAllocatedForInheritance', { amount: '2.5' })}</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{t('inheritanceSetup')}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300">{t('inheritanceContractDeployed')}</p>
             </div>
           </div>
         </div>

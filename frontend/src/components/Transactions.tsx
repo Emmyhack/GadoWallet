@@ -53,7 +53,7 @@ export function Transactions() {
   if (!publicKey) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">{t('connectWalletToSeeActivity')}</p>
+        <p className="text-gray-600 dark:text-gray-300">{t('connectWalletToSeeActivity')}</p>
       </div>
     );
   }
@@ -65,25 +65,25 @@ export function Transactions() {
           <Activity className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{t('transactions')}</h2>
-          <p className="text-gray-600">{t('recentSolTransactions')}</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('transactions')}</h2>
+          <p className="text-gray-600 dark:text-gray-300">{t('recentSolTransactions')}</p>
         </div>
       </div>
 
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-white/70 to-white/40 dark:from-gray-900/50 dark:to-gray-900/30 backdrop-blur">
-          <h3 className="text-sm font-semibold text-gray-900">{t('latestActivity')}</h3>
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{t('latestActivity')}</h3>
         </div>
-        <div className="divide-y divide-gray-100">
-          {loading && <div className="p-4 text-sm text-gray-500">{t('loading')}</div>}
-          {!loading && rows.length === 0 && <div className="p-4 text-sm text-gray-500">{t('noTransactionsFound')}</div>}
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          {loading && <div className="p-4 text-sm text-gray-500 dark:text-gray-400">{t('loading')}</div>}
+          {!loading && rows.length === 0 && <div className="p-4 text-sm text-gray-500 dark:text-gray-400">{t('noTransactionsFound')}</div>}
           {rows.map((r) => (
-            <a key={r.signature} href={`https://explorer.solana.com/tx/${r.signature}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 transition-colors">
+            <a key={r.signature} href={`https://explorer.solana.com/tx/${r.signature}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               <div className="p-4 grid md:grid-cols-4 gap-2 items-center">
-                <div className="text-xs text-gray-500 truncate">{r.signature}</div>
-                <div className={`text-xs ${r.err ? 'text-red-600' : 'text-green-600'}`}>{r.err ? t('failed') : t('success')}</div>
-                <div className="text-sm text-gray-900">{r.lamports === null ? '—' : r.lamports.toFixed(6)} {t('sol')}</div>
-                <div className="text-xs text-gray-500">{r.date}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{r.signature}</div>
+                <div className={`text-xs ${r.err ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{r.err ? t('failed') : t('success')}</div>
+                <div className="text-sm text-gray-900 dark:text-white">{r.lamports === null ? '—' : r.lamports.toFixed(6)} {t('sol')}</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{r.date}</div>
               </div>
             </a>
           ))}
