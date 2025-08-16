@@ -1,99 +1,82 @@
-# Gada Wallet: Secure Digital Inheritance on Solana
+# Gada Wallet
 
-Gada Wallet is a decentralized application (DApp) that enables users to securely manage and transfer their Solana (SOL) and SPL tokens to designated heirs. Built with a custom Solana smart contract (Anchor framework) and a modern React/TypeScript frontend, Gada Wallet ensures your digital assets are protected and can be inherited according to your wishes.
+Gada Wallet is a decentralized application (DApp) for managing Solana (SOL) and SPL token inheritance. Users can designate heirs, set inactivity periods, and allow heirs to claim assets securely after the configured timeframe. The project consists of a Solana smart contract built with Anchor and modern React/TypeScript frontends.
 
----
+## Features
+- Secure inheritance with inactivity-based claims
+- Batch transfers for SOL and SPL tokens
+- Support for multiple heirs
+- Owner activity updates to prevent premature claims
+- Modern UI with wallet integration (Phantom, Solflare)
 
-## 🚀 Features
-- **Secure Inheritance:** Designate heirs for your SOL and SPL tokens. Assets are claimable by heirs after a period of owner inactivity.
-- **Batch Transfers:** Efficiently send SOL or SPL tokens to multiple recipients in a single transaction.
-- **Time-Based Claims:** Heirs can only claim assets after a set period of owner inactivity (default: 1 year).
-- **Multiple Heirs:** Add multiple heirs for different assets.
-- **Activity Updates:** Owners can update their activity to prevent premature claims.
-- **Modern UI:** Intuitive, responsive frontend with wallet integration (Phantom, Solflare).
+## Architecture
+- Smart Contract: Solana program written in Rust using Anchor (Devnet)
+- Frontend: React + TypeScript + Vite + Tailwind CSS
 
----
+## Prerequisites
+- Node.js (v20 or later)
+- Yarn or npm
+- Solana CLI
+- Anchor CLI
+- Rust toolchain
 
-## 🏗️ Architecture
-- **Smart Contract:** Solana program written in Rust using Anchor, deployed to Devnet.
-- **Frontend:** React + TypeScript + Vite + Tailwind CSS, using @coral-xyz/anchor for contract interaction.
-
----
-
-## 📦 Prerequisites
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [Yarn](https://classic.yarnpkg.com/en/docs/install/) or npm
-- [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools)
-- [Anchor CLI](https://book.anchor-lang.com/getting_started/installation.html)
-- [Rust](https://www.rust-lang.org/tools/install)
-
----
-
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Emmyhack/gada-Wallet.git
-cd gada-Wallet
+git clone https://github.com/Emmyhack/GadaWallet.git
+cd GadaWallet
 ```
 
 ### 2. Install Dependencies
-#### Backend (Smart Contract)
+#### Backend (smart contract)
 ```bash
 cd gada
 yarn install
 ```
-#### Frontend
+#### Frontends
 ```bash
-cd frontend
-yarn install
+cd frontend && yarn install
+cd ../gada/frontend && yarn install
 ```
 
-### 3. Build & Deploy the Smart Contract
-- Configure your Solana CLI to devnet or localnet:
-  ```bash
-  solana config set --url devnet
-  ```
-- Deploy the contract:
-  ```bash
-  anchor build
-  anchor deploy
-  ```
-- The program ID should match `Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5` (see `Anchor.toml`).
-
-### 4. Run the Frontend
+### 3. Build and Deploy the Smart Contract
+- Configure Solana CLI to devnet:
 ```bash
-cd gada/frontend
-yarn dev
+solana config set --url devnet
 ```
-Visit [http://localhost:5173](http://localhost:5173) in your browser.
+- Build and deploy:
+```bash
+anchor build
+anchor deploy
+```
+- Ensure the program ID matches `Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5` (see `Anchor.toml`).
 
----
+### 4. Run the Frontends
+```bash
+cd frontend && yarn dev
+# or
+cd gada/frontend && yarn dev
+```
+Open http://localhost:5173 in your browser.
 
-## 📝 Usage
-- **Connect Wallet:** Use Phantom or Solflare to connect.
-- **Add Heir:** Specify an heir's address and amount for SOL or SPL tokens.
-- **Batch Transfer:** Send assets to multiple recipients in one go.
-- **Claim Assets:** Heirs can claim assets after inactivity period.
-- **Update Activity:** Owners can reset their activity timer.
+## Usage
+- Connect a wallet (Phantom or Solflare)
+- Add heirs for SOL or SPL tokens with amounts
+- Perform batch transfers
+- Heirs can claim assets after the inactivity period
+- Owners can update their activity at any time
 
----
+## Security
+- CSP enforced in development and production
+- External links use `rel="noopener noreferrer"`
+- Strict TypeScript settings; no `eval` or unsafe HTML injection
+- Rust release builds enable overflow checks and abort on panic
 
-## 🛠️ Smart Contract Overview
-- **add_token_heir / add_coin_heir:** Register an heir for SPL tokens or SOL.
-- **batch_transfer_tokens / batch_transfer_coins:** Batch send tokens or SOL from your wallet.
-- **claim_heir_token_assets / claim_heir_coin_assets:** Heir claims assets after inactivity.
-- **update_activity / update_coin_activity:** Owner updates activity to prevent claims.
+See `SECURITY.md` for reporting guidelines and details.
 
-All transfers require wallet signatures. The contract never has custody of your funds; it only enforces logic for inheritance and batch transfers.
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss your proposal.
 
----
-
-## 🤝 Contributing
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## 📄 License
-This project is licensed under the MIT License. # gada-Wallet
-# GadaWallet
+## License
+MIT License.

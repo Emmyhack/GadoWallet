@@ -40,6 +40,7 @@ pub mod gada {
 
     pub fn update_activity(ctx: Context<UpdateActivity>) -> Result<()> {
         let token_heir = &mut ctx.accounts.token_heir;
+        require_keys_eq!(token_heir.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
         token_heir.last_active_time = Clock::get()?.unix_timestamp;
         msg!("Activity updated");
         Ok(())
@@ -47,6 +48,7 @@ pub mod gada {
 
     pub fn update_coin_activity(ctx: Context<UpdateCoinActivity>) -> Result<()> {
         let coin_heir = &mut ctx.accounts.coin_heir;
+        require_keys_eq!(coin_heir.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
         coin_heir.last_active_time = Clock::get()?.unix_timestamp;
         msg!("Coin activity updated");
         Ok(())
@@ -57,6 +59,10 @@ pub mod gada {
         amounts: Vec<u64>
     ) -> Result<()> {
         require!(amounts.len() <= 10, ErrorCode::TooManyTransfers);
+        // Ensure authority is owner of `from_token_account`
+        require_keys_eq!(ctx.accounts.from_token_account.owner, ctx.accounts.authority.key(), ErrorCode::Unauthorized);
+        // Ensure token account mints match
+        require_keys_eq!(ctx.accounts.from_token_account.mint, ctx.accounts.to_token_account.mint, ErrorCode::InvalidMint);
         
         for (i, &amount) in amounts.iter().enumerate() {
             if amount > 0 {
@@ -111,6 +117,14 @@ pub mod gada {
             current_timestamp - token_heir.last_active_time > one_year_in_seconds,
             ErrorCode::OwnerStillActive
         );
+        // Ensure the signer is the recorded heir
+        require_keys_eq!(ctx.accounts.heir.key(), token_heir.heir, ErrorCode::Unauthorized);
+        // Validate token accounts
+        require_keys_eq!(ctx.accounts.owner.key(), token_heir.owner, ErrorCode::Unauthorized);
+        require_keys_eq!(ctx.accounts.owner_token_account.owner, token_heir.owner, ErrorCode::Unauthorized);
+        require_keys_eq!(ctx.accounts.heir_token_account.owner, ctx.accounts.heir.key(), ErrorCode::Unauthorized);
+        require_keys_eq!(ctx.accounts.owner_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.heir_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.owner_token_account.to_account_info(),
@@ -138,9 +152,23 @@ pub mod gada {
             current_timestamp - coin_heir.last_active_time > one_year_in_seconds,
             ErrorCode::OwnerStillActive
         );
+        // Ensure the signer is the recorded heir
+        require_keys_eq!(ctx.accounts.heir_account.key(), coin_heir.heir, ErrorCode::Unauthorized);
+        // Ensure the provided owner account matches record
+        require_keys_eq!(ctx.accounts.owner_account.key(), coin_heir.owner, ErrorCode::Unauthorized);
 
-        **ctx.accounts.owner_account.to_account_info().try_borrow_mut_lamports()? -= coin_heir.amount;
-        **ctx.accounts.heir_account.to_account_info().try_borrow_mut_lamports()? += coin_heir.amount;
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.owner_account.key(),
+            &ctx.accounts.heir_account.key(),
+            coin_heir.amount,
+        );
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.owner_account.to_account_info(),
+                ctx.accounts.heir_account.to_account_info(),
+            ],
+        )?;
         
         coin_heir.is_claimed = true;
         msg!("Coin inheritance claimed: {}", coin_heir.amount);
@@ -287,4 +315,8 @@ pub enum ErrorCode {
     AlreadyClaimed,
     #[msg("Too many transfers in batch (max 10).")]
     TooManyTransfers,
+    #[msg("Unauthorized operation.")]
+    Unauthorized,
+    #[msg("Invalid token mint.")]
+    InvalidMint,
 }
