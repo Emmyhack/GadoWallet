@@ -84,7 +84,7 @@ export function Landing() {
 
       <section id="how" className="relative container mx-auto px-4 py-12">
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur p-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('whyGada')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('whyGado')}</h2>
           <ol className="grid md:grid-cols-3 gap-6 list-decimal list-inside text-gray-800 dark:text-gray-200">
             <li>{t('connectWallet')}</li>
             <li>{t('updateActivitySub')}</li>
@@ -106,7 +106,7 @@ export function Landing() {
               <div className="text-sm text-gray-600 dark:text-gray-300">{t('updatesPreventPrematureClaims')}</div>
             </div>
             <div className="animate-fade-in" style={{ animationDelay: '160ms' }}>
-              <div className="font-semibold mb-1">{t('whyGada')}</div>
+              <div className="font-semibold mb-1">{t('whyGado')}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">{t('inheritanceStatus')}</div>
             </div>
           </div>
@@ -115,7 +115,7 @@ export function Landing() {
 
       <section id="stats" className="relative container mx-auto px-4 py-12">
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur p-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('whyGada')}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6">{t('whyGado')}</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="card text-center">
               <div className="text-3xl font-bold text-gray-900 dark:text-white">{t('transactions')}</div>
@@ -154,7 +154,7 @@ export function Landing() {
       </section>
 
       <footer className="relative container mx-auto px-4 py-12">
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400">© {new Date().getFullYear()} Gada Wallet.</div>
+        <div className="text-center text-sm text-gray-500 dark:text-gray-400">© {new Date().getFullYear()} Gado Wallet.</div>
       </footer>
     </div>
   );

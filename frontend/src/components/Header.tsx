@@ -12,11 +12,11 @@ export function Header() {
           {/* Logo and Brand */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-md overflow-hidden">
-              <img src="/logo.png" alt="Gada Wallet Logo" className="w-8 h-8 object-contain" />
+              <img src="/logo.png" alt="Gado Wallet Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-semibold">
-                Gada Wallet
+                Gado Wallet
               </h1>
               <p className="text-xs text-white/80">{i18n.t('tagline')}</p>
             </div>

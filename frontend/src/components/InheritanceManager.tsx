@@ -108,7 +108,7 @@ export function InheritanceManager() {
         </div>
         <div>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('inheritance')}</h2>
-          <p className="text-gray-600 dark:text-gray-300">{t('whyGada')}</p>
+          <p className="text-gray-600 dark:text-gray-300">{t('whyGado')}</p>
         </div>
       </div>
 
@@ -239,7 +239,7 @@ export function InheritanceManager() {
       </div>
 
       <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur border border-gray-200 dark:border-white/10 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('whyGada')}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('whyGado')}</h3>
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li>• {t('designateHeirs') || 'Designate heirs for your assets'}</li>
           <li>• {t('batchTransfer') || 'Batch transfers'}</li>
