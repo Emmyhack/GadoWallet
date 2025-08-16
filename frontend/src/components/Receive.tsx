@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import QRCode from 'qrcode';
+import { useTranslation } from 'react-i18next';
 
 export function Receive() {
   const { publicKey } = useWallet();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const render = async () => {
@@ -24,7 +26,7 @@ export function Receive() {
   if (!publicKey) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Connect your wallet to receive funds</p>
+        <p className="text-gray-600">{t('connectWalletToReceiveFunds')}</p>
       </div>
     );
   }
@@ -32,16 +34,18 @@ export function Receive() {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">Receive SOL / Tokens</h3>
+        <h3 className="font-semibold text-gray-900 mb-3">{t('receiveSolTokens')}</h3>
         <div className="grid md:grid-cols-2 gap-6 items-center">
           <div className="space-y-2">
-            <div className="text-xs text-gray-500">Your Address</div>
+            <div className="text-xs text-gray-500">{t('yourAddress')}</div>
             <div className="font-mono text-sm break-all text-gray-900">{publicKey.toBase58()}</div>
-            <button onClick={copy} className="btn-secondary mt-2">Copy Address</button>
+            <button onClick={copy} className="btn-secondary mt-2">{t('copyAddress')}</button>
           </div>
           <div className="flex items-center justify-center">
-            <div className="p-3 rounded-lg border gradient-border bg-white">
-              <canvas ref={canvasRef} className="block" width={200} height={200} />
+            <div className="p-3 rounded-lg border bg-white bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600">
+              <div className="rounded-md p-0.5 bg-white">
+                <canvas ref={canvasRef} className="block" width={200} height={200} />
+              </div>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { Wallet, Coins } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ParsedTokenHolding {
   mint: string;
@@ -16,6 +17,7 @@ export function Portfolio() {
   const [solBalance, setSolBalance] = useState<number | null>(null);
   const [tokens, setTokens] = useState<ParsedTokenHolding[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -57,11 +59,11 @@ export function Portfolio() {
   if (!publicKey) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-gradient-to-br from-gray-900 to-gray-700 rounded-lg flex items-center justify-center mx-auto mb-4 animate-fade-in">
+        <div className="w-16 h-16 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-lg flex items-center justify-center mx-auto mb-4 animate-fade-in">
           <Wallet className="w-8 h-8 text-white" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Wallet Connected</h3>
-        <p className="text-gray-600">Connect your wallet to view your portfolio</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noWalletConnected')}</h3>
+        <p className="text-gray-600">{t('connectWalletToViewStats')}</p>
       </div>
     );
   }
@@ -69,12 +71,12 @@ export function Portfolio() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center space-x-3 mb-2">
-        <div className="w-8 h-8 bg-gradient-to-br from-gray-900 to-gray-700 rounded-md flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
           <Wallet className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Wallet</h2>
-          <p className="text-gray-600">Overview of your SOL and token holdings</p>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('wallet')}</h2>
+          <p className="text-gray-600">{t('walletStatsOverview')}</p>
         </div>
       </div>
 
@@ -84,7 +86,7 @@ export function Portfolio() {
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Wallet className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-xs text-gray-500">SOL Balance</span>
+            <span className="text-xs text-gray-500">{t('solBalance')}</span>
           </div>
           <div className="text-3xl font-semibold text-gray-900">
             {isLoading || solBalance === null ? '—' : solBalance.toFixed(4)}
@@ -96,7 +98,7 @@ export function Portfolio() {
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Coins className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-xs text-gray-500">Token Count</span>
+            <span className="text-xs text-gray-500">{t('tokenCount')}</span>
           </div>
           <div className="text-3xl font-semibold text-gray-900">
             {isLoading ? '—' : tokens.length}
@@ -108,7 +110,7 @@ export function Portfolio() {
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Coins className="w-5 h-5 text-gray-600" />
             </div>
-            <span className="text-xs text-gray-500">Top Token</span>
+            <span className="text-xs text-gray-500">{t('topToken')}</span>
           </div>
           <div className="text-sm text-gray-900 break-all">
             {isLoading || tokens.length === 0 ? '—' : tokens[0].mint}
@@ -118,24 +120,24 @@ export function Portfolio() {
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-          <h3 className="text-sm font-semibold text-gray-900">SPL Token Holdings</h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('splTokenHoldings')}</h3>
         </div>
         <div className="divide-y divide-gray-100">
           {isLoading && (
-            <div className="p-4 text-sm text-gray-500">Loading tokens...</div>
+            <div className="p-4 text-sm text-gray-500">{t('loadingTokens')}</div>
           )}
           {!isLoading && tokens.length === 0 && (
-            <div className="p-4 text-sm text-gray-500">No tokens found</div>
+            <div className="p-4 text-sm text-gray-500">{t('noTokensFound')}</div>
           )}
-          {tokens.map((t) => (
-            <div key={t.mint} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+          {tokens.map((token) => (
+            <div key={token.mint} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
               <div className="min-w-0 pr-4">
-                <div className="text-sm font-medium text-gray-900 break-all">{t.mint}</div>
-                <div className="text-xs text-gray-500 break-all">ATA: {t.ata}</div>
+                <div className="text-sm font-medium text-gray-900 break-all">{token.mint}</div>
+                <div className="text-xs text-gray-500 break-all">{t('ataLabel')} {token.ata}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-semibold text-gray-900">{t.amount}</div>
-                <div className="text-xs text-gray-500">decimals: {t.decimals}</div>
+                <div className="text-sm font-semibold text-gray-900">{token.amount}</div>
+                <div className="text-xs text-gray-500">{t('decimalsLabel')} {token.decimals}</div>
               </div>
             </div>
           ))}

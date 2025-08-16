@@ -4,6 +4,7 @@ import { useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useAnchorProgram, listCoinHeirsByOwner, listTokenHeirsByOwner, isHeirClaimable } from '../lib/anchor';
 import { BarChart3, Wallet, Shield, Users, TrendingUp, Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WalletStatsData {
   balance: number;
@@ -19,6 +20,7 @@ export function WalletStats() {
   const program = useAnchorProgram();
   const [stats, setStats] = useState<WalletStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -99,8 +101,8 @@ export function WalletStats() {
         <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
           <Wallet className="w-8 h-8 text-gray-400" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Wallet Connected</h3>
-        <p className="text-gray-600">Connect your wallet to view statistics</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noWalletConnected')}</h3>
+        <p className="text-gray-600">{t('connectWalletToViewStats')}</p>
       </div>
     );
   }
@@ -109,7 +111,7 @@ export function WalletStats() {
     return (
       <div className="text-center py-8">
         <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading wallet statistics...</p>
+        <p className="text-gray-600">{t('loadingWalletStats')}</p>
       </div>
     );
   }
@@ -120,8 +122,8 @@ export function WalletStats() {
         <div className="w-16 h-16 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
           <BarChart3 className="w-8 h-8 text-red-500" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Stats</h3>
-        <p className="text-gray-600">Please try again later</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('unableToLoadStats')}</h3>
+        <p className="text-gray-600">{t('pleaseTryAgainLater')}</p>
       </div>
     );
   }
@@ -129,25 +131,25 @@ export function WalletStats() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
           <BarChart3 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Wallet Statistics</h2>
-          <p className="text-gray-600">Overview of your wallet and inheritance status</p>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('walletStatistics')}</h2>
+          <p className="text-gray-600">{t('walletStatsOverview')}</p>
         </div>
       </div>
 
       {/* Wallet Address */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Wallet Information</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('walletInformation')}</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-gray-600">Address:</span>
+            <span className="text-gray-600">{t('addressLabel')}</span>
             <span className="font-mono text-sm text-gray-900 break-all">{publicKey.toString()}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-gray-600">Balance:</span>
+            <span className="text-gray-600">{t('balanceLabel')}</span>
             <span className="font-semibold text-gray-900">{formatSOL(stats.balance)} SOL</span>
           </div>
         </div>
@@ -162,8 +164,8 @@ export function WalletStats() {
             </div>
             <span className="text-2xl font-semibold text-gray-900">{formatSOL(stats.balance)}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">SOL Balance</h4>
-          <p className="text-sm text-gray-600">Current wallet balance</p>
+          <h4 className="font-semibold text-gray-900 mb-1">{t('solBalance')}</h4>
+          <p className="text-sm text-gray-600">{t('currentWalletBalance')}</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -173,8 +175,8 @@ export function WalletStats() {
             </div>
             <span className="text-2xl font-semibold text-gray-900">{stats.heirsCount}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">Total Heirs</h4>
-          <p className="text-sm text-gray-600">Designated beneficiaries</p>
+          <h4 className="font-semibold text-gray-900 mb-1">{t('totalHeirsLabel')}</h4>
+          <p className="text-sm text-gray-600">{t('designatedBeneficiaries')}</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -184,8 +186,8 @@ export function WalletStats() {
             </div>
             <span className="text-2xl font-semibold text-gray-900">{formatSOL(stats.totalInheritance)}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">Total Inheritance</h4>
-          <p className="text-sm text-gray-600">SOL designated for heirs</p>
+          <h4 className="font-semibold text-gray-900 mb-1">{t('totalInheritanceLabel')}</h4>
+          <p className="text-sm text-gray-600">{t('solDesignatedForHeirs')}</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -195,19 +197,19 @@ export function WalletStats() {
             </div>
             <span className="text-2xl font-semibold text-gray-900">{stats.activeHeirs}</span>
           </div>
-          <h4 className="font-semibold text-gray-900 mb-1">Active Heirs</h4>
-          <p className="text-sm text-gray-600">Currently claimable</p>
+          <h4 className="font-semibold text-gray-900 mb-1">{t('activeHeirsLabel')}</h4>
+          <p className="text-sm text-gray-600">{t('currentlyClaimable')}</p>
         </div>
       </div>
 
       {/* Activity Timeline */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recentActivity')}</h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Wallet Activity Updated</p>
+              <p className="text-sm font-medium text-gray-900">{t('walletActivityUpdated')}</p>
               <p className="text-xs text-gray-600">{getTimeSinceLastActivity(stats.lastActivity)}</p>
             </div>
           </div>
@@ -215,16 +217,16 @@ export function WalletStats() {
           <div className="flex items-center space-x-4">
             <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Heir Designation</p>
-              <p className="text-xs text-gray-600">3 heirs designated for inheritance</p>
+              <p className="text-sm font-medium text-gray-900">{t('heirDesignation')}</p>
+              <p className="text-xs text-gray-600">{t('heirsDesignatedForInheritance', { count: 3 })}</p>
             </div>
           </div>
           
           <div className="flex items-center space-x-4">
             <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Inheritance Setup</p>
-              <p className="text-xs text-gray-600">2.5 SOL allocated for inheritance</p>
+              <p className="text-sm font-medium text-gray-900">{t('inheritanceSetup')}</p>
+              <p className="text-xs text-gray-600">{t('solAllocatedForInheritance', { amount: '2.5' })}</p>
             </div>
           </div>
         </div>
@@ -232,21 +234,21 @@ export function WalletStats() {
 
       {/* Quick Actions */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('quickActionsTitle')}</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <button className="btn-secondary flex items-center justify-center space-x-2">
             <TrendingUp className="w-4 h-4" />
-            <span>View History</span>
+            <span>{t('viewHistory')}</span>
           </button>
           
           <button className="btn-secondary flex items-center justify-center space-x-2">
             <Users className="w-4 h-4" />
-            <span>Manage Heirs</span>
+            <span>{t('manageHeirs')}</span>
           </button>
           
           <button className="btn-secondary flex items-center justify-center space-x-2">
             <Activity className="w-4 h-4" />
-            <span>Update Activity</span>
+            <span>{t('updateActivityAction')}</span>
           </button>
         </div>
       </div>
@@ -254,22 +256,22 @@ export function WalletStats() {
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Wallet Security</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('walletSecurity')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
-            <li>• All transactions require wallet signature</li>
-            <li>• Private keys never leave your wallet</li>
-            <li>• Inheritance contracts are immutable</li>
-            <li>• Activity updates prevent premature claims</li>
+            <li>• {t('allTransactionsRequireSignature')}</li>
+            <li>• {t('keysNeverLeaveWallet')}</li>
+            <li>• {t('contractsImmutable')}</li>
+            <li>• {t('updatesPreventPrematureClaims')}</li>
           </ul>
         </div>
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Inheritance Status</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('inheritanceStatus')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
-            <li>• {stats.heirsCount} heirs designated</li>
-            <li>• {formatSOL(stats.totalInheritance)} SOL allocated</li>
-            <li>• {stats.activeHeirs} heirs can claim</li>
-            <li>• Last activity: {getTimeSinceLastActivity(stats.lastActivity)}</li>
+            <li>• {t('heirsDesignatedForInheritance', { count: stats.heirsCount })}</li>
+            <li>• {t('solAllocatedForInheritance', { amount: formatSOL(stats.totalInheritance) })}</li>
+            <li>• {stats.activeHeirs} {t('activeHeirsLabel').toLowerCase()}</li>
+            <li>• {t('lastUpdate')} {getTimeSinceLastActivity(stats.lastActivity)}</li>
           </ul>
         </div>
       </div>

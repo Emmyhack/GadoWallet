@@ -4,6 +4,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Send, Plus, Trash2, Coins, Coins as Token } from 'lucide-react';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction } from '@solana/spl-token';
+import { useTranslation } from 'react-i18next';
 
 interface Recipient {
   id: string;
@@ -15,6 +16,7 @@ export function BatchTransfer() {
   const program = useAnchorProgram();
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'sol' | 'token'>('sol');
   const [recipients, setRecipients] = useState<Recipient[]>([
@@ -22,6 +24,7 @@ export function BatchTransfer() {
   ]);
   const [tokenMint, setTokenMint] = useState('');
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
 
   const addRecipient = () => {
     if (recipients.length < 10) {
@@ -48,12 +51,14 @@ export function BatchTransfer() {
     try {
       setIsLoading(true);
       setMessage('');
+      setIsError(false);
 
       // Filter out empty recipients
       const validRecipients = recipients.filter(r => r.address && r.amount);
       
       if (validRecipients.length === 0) {
-        setMessage('Please add at least one recipient');
+        setMessage(t('pleaseAddRecipient'));
+        setIsError(true);
         return;
       }
 
@@ -70,10 +75,12 @@ export function BatchTransfer() {
             })
             .rpc();
         }
-        setMessage('SOL transfers completed successfully!');
+        setMessage(t('solTransfersCompleted'));
+        setIsError(false);
       } else {
         if (!tokenMint) {
-          setMessage('Please provide a token mint address');
+          setMessage(t('tokenMintRequired'));
+          setIsError(true);
           return;
         }
         const mintPk = new web3.PublicKey(tokenMint);
@@ -107,7 +114,8 @@ export function BatchTransfer() {
             .preInstructions(ix)
             .rpc();
         }
-        setMessage('Token transfers completed successfully!');
+        setMessage(t('tokenTransfersCompleted'));
+        setIsError(false);
       }
 
       // Reset form
@@ -115,7 +123,8 @@ export function BatchTransfer() {
       setTokenMint('');
     } catch (error) {
       console.error('Error in batch transfer:', error);
-      setMessage('Error performing batch transfer. Please check your inputs and try again.');
+      setMessage(t('errorBatchTransfer'));
+      setIsError(true);
     } finally {
       setIsLoading(false);
     }
@@ -155,12 +164,12 @@ export function BatchTransfer() {
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
           <Send className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Batch Transfer</h2>
-          <p className="text-gray-600">Send SOL and tokens to multiple recipients</p>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('batchTransfer')}</h2>
+          <p className="text-gray-600">{t('batchTransferSubtitle')}</p>
         </div>
       </div>
 
@@ -175,7 +184,7 @@ export function BatchTransfer() {
           }`}
         >
           <Coins className="w-4 h-4" />
-          <span>SOL</span>
+          <span>{t('sol')}</span>
         </button>
         <button
           onClick={() => setActiveTab('token')}
@@ -186,7 +195,7 @@ export function BatchTransfer() {
           }`}
         >
           <Token className="w-4 h-4" />
-          <span>SPL Token</span>
+          <span>{t('splToken')}</span>
         </button>
       </div>
 
@@ -194,17 +203,17 @@ export function BatchTransfer() {
       {activeTab === 'token' && (
         <div className="bg-gray-50 rounded-lg p-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Token Mint Address
+            {t('tokenMintAddress')}
           </label>
           <input
             type="text"
             value={tokenMint}
             onChange={(e) => setTokenMint(e.target.value)}
-            placeholder="Enter token mint address"
+            placeholder={t('tokenMintAddress') || ''}
             className="input-field"
           />
           {tokenMint && !isValidAddress(tokenMint) && (
-            <p className="text-red-500 text-sm mt-1">Invalid token mint address</p>
+            <p className="text-red-500 text-sm mt-1">{t('invalidTokenMint')}</p>
           )}
         </div>
       )}
@@ -212,14 +221,14 @@ export function BatchTransfer() {
       {/* Recipients */}
       <div className="bg-gray-50 rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Recipients</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('recipients')}</h3>
           <button
             onClick={addRecipient}
             disabled={recipients.length >= 10}
             className="btn-secondary flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Recipient</span>
+            <span>{t('addRecipient')}</span>
           </button>
         </div>
 
@@ -228,34 +237,34 @@ export function BatchTransfer() {
             <div key={recipient.id} className="flex items-center space-x-4 p-4 bg-white rounded-lg border border-gray-200">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Wallet Address
+                  {t('walletAddress')}
                 </label>
                 <input
                   type="text"
                   value={recipient.address}
                   onChange={(e) => updateRecipient(recipient.id, 'address', e.target.value)}
-                  placeholder="Enter wallet address"
+                  placeholder={t('enterWalletAddress') || ''}
                   className="input-field"
                 />
                 {recipient.address && !isValidAddress(recipient.address) && (
-                  <p className="text-red-500 text-sm mt-1">Invalid address</p>
+                  <p className="text-red-500 text-sm mt-1">{t('invalidAddress')}</p>
                 )}
               </div>
               
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Amount ({activeTab === 'sol' ? 'SOL' : 'Tokens'})
+                  {t('amountLabel')} ({activeTab === 'sol' ? t('sol') : t('splToken')})
                 </label>
                 <input
                   type="number"
                   value={recipient.amount}
                   onChange={(e) => updateRecipient(recipient.id, 'amount', e.target.value)}
-                  placeholder={`Enter amount`}
+                  placeholder={activeTab === 'sol' ? (t('amountInSol') || '') : (t('rawTokenAmount') || '')}
                   step="0.000000001"
                   className="input-field"
                 />
                 {recipient.amount && !isValidAmount(recipient.amount) && (
-                  <p className="text-red-500 text-sm mt-1">Invalid amount</p>
+                  <p className="text-red-500 text-sm mt-1">{t('invalidAmount')}</p>
                 )}
               </div>
 
@@ -274,24 +283,24 @@ export function BatchTransfer() {
         <button
           onClick={handleBatchTransfer}
           disabled={!isFormValid() || isLoading}
-          className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600"
         >
           {isLoading ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Processing Transfer...</span>
+              <span>{t('processingTransfer')}</span>
             </>
           ) : (
             <>
               <Send className="w-4 h-4" />
-              <span>Send Batch Transfer</span>
+              <span>{t('sendBatchTransfer')}</span>
             </>
           )}
         </button>
 
         {message && (
           <div className={`mt-4 p-3 rounded-md ${
-            message.includes('Error') 
+            isError 
               ? 'bg-red-50 text-red-700 border border-red-200' 
               : 'bg-green-50 text-green-700 border border-green-200'
           }`}>
@@ -302,12 +311,12 @@ export function BatchTransfer() {
 
       {/* Information Card */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-900 mb-2">Batch Transfer Info</h3>
+        <h3 className="font-semibold text-gray-900 mb-2">{t('batchTransferInfo')}</h3>
         <ul className="text-sm text-gray-700 space-y-1">
-          <li>• Send to up to 10 recipients in a single transaction</li>
-          <li>• Reduce transaction fees by batching transfers</li>
-          <li>• All transfers require wallet signature</li>
-          <li>• Recipients must have valid Solana addresses</li>
+          <li>• {t('sendUpTo10Recipients')}</li>
+          <li>• {t('reduceFeesByBatching')}</li>
+          <li>• {t('transfersRequireSignature')}</li>
+          <li>• {t('recipientsMustHaveValidAddresses')}</li>
         </ul>
       </div>
     </div>
