@@ -78,7 +78,7 @@ export function Transactions() {
           {loading && <div className="p-4 text-sm text-gray-500">{t('loading')}</div>}
           {!loading && rows.length === 0 && <div className="p-4 text-sm text-gray-500">{t('noTransactionsFound')}</div>}
           {rows.map((r) => (
-            <a key={r.signature} href={`https://explorer.solana.com/tx/${r.signature}?cluster=devnet`} target="_blank" rel="noreferrer" className="block hover:bg-gray-50 transition-colors">
+            <a key={r.signature} href={`https://explorer.solana.com/tx/${r.signature}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 transition-colors">
               <div className="p-4 grid md:grid-cols-4 gap-2 items-center">
                 <div className="text-xs text-gray-500 truncate">{r.signature}</div>
                 <div className={`text-xs ${r.err ? 'text-red-600' : 'text-green-600'}`}>{r.err ? t('failed') : t('success')}</div>

@@ -21,10 +21,10 @@ export default defineConfig({
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        script-src 'self' 'unsafe-inline';
         style-src 'self' 'unsafe-inline';
-        img-src 'self' data: https:;
-        connect-src 'self' https://api.devnet.solana.com https://api.mainnet-beta.solana.com;
+        img-src 'self' data: https: https://drive.google.com https://lh3.googleusercontent.com;
+        connect-src 'self' https://api.devnet.solana.com https://api.mainnet-beta.solana.com https://explorer.solana.com;
         frame-src 'none';
         object-src 'none';
         base-uri 'self';
