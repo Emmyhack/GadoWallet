@@ -32,13 +32,13 @@ export function InheritanceManager() {
         await program.methods
           .addCoinHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
-            coinHeir: web3.PublicKey.findProgramAddressSync(
+            coin_heir: web3.PublicKey.findProgramAddressSync(
               [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
               program.programId
             )[0],
             owner: publicKey,
             heir: heirPubkey,
-            systemProgram: web3.SystemProgram.programId,
+            system_program: web3.SystemProgram.programId,
           })
           .rpc();
         setMessage(t('claimAssets'));
@@ -47,14 +47,14 @@ export function InheritanceManager() {
         await program.methods
           .addTokenHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
-            tokenHeir: web3.PublicKey.findProgramAddressSync(
+            token_heir: web3.PublicKey.findProgramAddressSync(
               [Buffer.from('token_heir'), publicKey.toBuffer(), heirPubkey.toBuffer(), tokenMintPubkey.toBuffer()],
               program.programId
             )[0],
             owner: publicKey,
             heir: heirPubkey,
-            tokenMint: tokenMintPubkey,
-            systemProgram: web3.SystemProgram.programId,
+            token_mint: tokenMintPubkey,
+            system_program: web3.SystemProgram.programId,
           })
           .rpc();
         setMessage(t('claimAssets'));

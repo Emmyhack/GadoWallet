@@ -69,9 +69,9 @@ export function BatchTransfer() {
           await program.methods
             .batchTransferCoins([amount])
             .accounts({
-              fromAccount: publicKey,
-              toAccount: toAddress,
-              systemProgram: web3.SystemProgram.programId,
+              from_account: publicKey,
+              to_account: toAddress,
+              system_program: web3.SystemProgram.programId,
             })
             .rpc();
         }
@@ -106,10 +106,10 @@ export function BatchTransfer() {
           await program.methods
             .batchTransferTokens([amount])
             .accounts({
-              fromTokenAccount,
-              toTokenAccount,
+              from_token_account: fromTokenAccount,
+              to_token_account: toTokenAccount,
               authority: publicKey,
-              tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+              token_program: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
             })
             .preInstructions(ix)
             .rpc();

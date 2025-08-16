@@ -20,7 +20,7 @@ export function ActivityManager() {
       setMessage('');
 
       if (type === 'sol') {
-        const heirs = await (program as any).account.coinHeir.all([
+        const heirs = await (program as any).account.coin_heir.all([
           { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
         ]);
         if (!heirs.length) {
@@ -28,7 +28,7 @@ export function ActivityManager() {
         } else {
           for (const h of heirs) {
             await program.methods.updateCoinActivity().accounts({
-              coinHeir: h.publicKey,
+              coin_heir: h.publicKey,
               owner: publicKey,
             }).rpc();
           }
@@ -36,7 +36,7 @@ export function ActivityManager() {
           setMessage(t('solUpdated') || '');
         }
       } else {
-        const heirs = await (program as any).account.tokenHeir.all([
+        const heirs = await (program as any).account.token_heir.all([
           { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
         ]);
         if (!heirs.length) {
@@ -44,7 +44,7 @@ export function ActivityManager() {
         } else {
           for (const h of heirs) {
             await program.methods.updateActivity().accounts({
-              tokenHeir: h.publicKey,
+              token_heir: h.publicKey,
               owner: publicKey,
             }).rpc();
           }

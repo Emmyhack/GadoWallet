@@ -90,12 +90,12 @@ export function ClaimAssets() {
         await program.methods
           .claimHeirCoinAssets()
           .accounts({
-            coinHeir: web3.PublicKey.findProgramAddressSync(
+            coin_heir: web3.PublicKey.findProgramAddressSync(
               [Buffer.from('coin_heir'), ownerAccount.toBuffer(), publicKey.toBuffer()],
               program.programId
             )[0],
-            ownerAccount: ownerAccount,
-            heirAccount: publicKey,
+            owner_account: ownerAccount,
+            heir_account: publicKey,
           })
           .rpc();
         
@@ -122,16 +122,16 @@ export function ClaimAssets() {
         await program.methods
           .claimHeirTokenAssets()
           .accounts({
-            tokenHeir: web3.PublicKey.findProgramAddressSync(
+            token_heir: web3.PublicKey.findProgramAddressSync(
               [Buffer.from('token_heir'), ownerPk.toBuffer(), publicKey.toBuffer(), mintPk.toBuffer()],
               program.programId
             )[0],
             owner: ownerPk,
             heir: publicKey,
-            ownerTokenAccount,
-            heirTokenAccount,
+            owner_token_account: ownerTokenAccount,
+            heir_token_account: heirTokenAccount,
             authority: ownerPk,
-            tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+            token_program: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
           })
           .rpc();
 
