@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Key } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function SignMessage() {
   const { publicKey, signMessage } = useWallet();
@@ -8,6 +9,7 @@ export function SignMessage() {
   const [sig, setSig] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const onSign = async () => {
     if (!publicKey || !signMessage) return;
@@ -26,21 +28,20 @@ export function SignMessage() {
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center space-x-3 mb-2">
-        <div className="w-8 h-8 bg-gradient-to-br from-gray-900 to-gray-700 rounded-md flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
           <Key className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Sign Message</h2>
-          <p className="text-gray-600">Sign an arbitrary message with your wallet</p>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('signMessage')}</h2>
+          <p className="text-gray-600">{t('signMessage')}</p>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-        <textarea value={msg} onChange={(e) => setMsg(e.target.value)} className="input-field" rows={4} placeholder="Enter message to sign" />
-
-        <button onClick={onSign} disabled={!msg || loading || !signMessage} className="btn-primary w-full mt-4 bg-gradient-to-r from-gray-900 to-gray-700">
-          {loading ? 'Signing...' : 'Sign Message'}
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('signMessage')}</label>
+        <textarea value={msg} onChange={(e) => setMsg(e.target.value)} className="input-field" rows={4} placeholder={t('signMessage') || ''} />
+        <button onClick={onSign} disabled={!msg || loading || !signMessage} className="btn-primary w-full mt-4 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600">
+          {loading ? t('updating') : t('signMessage')}
         </button>
 
         {sig && (

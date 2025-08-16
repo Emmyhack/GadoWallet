@@ -19,7 +19,7 @@ export function Header() {
               <h1 className="text-xl font-semibold">
                 Gada Wallet
               </h1>
-              <p className="text-xs text-white/80">Secure Digital Inheritance</p>
+              <p className="text-xs text-white/80">{i18n.t('tagline')}</p>
             </div>
           </div>
 

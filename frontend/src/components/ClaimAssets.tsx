@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { web3 } from '@project-serum/anchor';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Gift, Search, AlertTriangle, CheckCircle, Coins, Coins as Token } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ClaimableAsset {
   id: string;
@@ -18,6 +19,7 @@ interface ClaimableAsset {
 export function ClaimAssets() {
   const program = useAnchorProgram();
   const { publicKey } = useWallet();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [searchAddress, setSearchAddress] = useState('');
@@ -57,10 +59,10 @@ export function ClaimAssets() {
       ];
 
       setClaimableAssets(assets);
-      setMessage(assets.length ? 'Assets found! Check the list below.' : 'No claimable assets found.');
+      setMessage(assets.length ? t('assetsFound') : t('noClaimableAssets'));
     } catch (error) {
       console.error('Error searching assets:', error);
-      setMessage('Error searching for assets. Please try again.');
+      setMessage(t('errorSearchingAssets'));
     } finally {
       setIsLoading(false);
     }
@@ -89,10 +91,10 @@ export function ClaimAssets() {
           })
           .rpc();
         
-        setMessage('SOL assets claimed successfully!');
+        setMessage(t('solClaimedSuccess'));
       } else {
         if (!asset.tokenMint) {
-          setMessage('Token mint address is required for token claims');
+          setMessage(t('tokenMintRequired'));
           return;
         }
         const ownerPk = new web3.PublicKey(asset.owner);
@@ -105,7 +107,7 @@ export function ClaimAssets() {
         // Practically, the owner must approve or asset must be held by a PDA. This front-end will
         // attempt with ownerPk as authority only if the connected wallet equals owner.
         if (publicKey.toBase58() !== ownerPk.toBase58()) {
-          setMessage('Token claim requires owner to authorize transfers. Ask owner to sign or use SOL claim.');
+          setMessage(t('tokenClaimRequiresOwnerAuth'));
           return;
         }
 
@@ -125,14 +127,14 @@ export function ClaimAssets() {
           })
           .rpc();
 
-        setMessage('Token assets claimed successfully!');
+        setMessage(t('tokenClaimedSuccess'));
       }
 
       // Remove claimed asset from list
       setClaimableAssets(prev => prev.filter(a => a.id !== asset.id));
     } catch (error) {
       console.error('Error claiming asset:', error);
-      setMessage('Error claiming asset. Please try again.');
+      setMessage(t('errorClaimingAsset'));
     } finally {
       setIsLoading(false);
     }
@@ -165,29 +167,29 @@ export function ClaimAssets() {
           <Gift className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Claim Assets</h2>
-          <p className="text-gray-600">Claim inherited SOL and tokens after inactivity period</p>
+          <h2 className="text-2xl font-semibold text-gray-900">{t('claimAssets')}</h2>
+          <p className="text-gray-600">{t('claimAssetsSubtitle')}</p>
         </div>
       </div>
 
       {/* Search Section */}
       <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Search for Claimable Assets</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('searchClaimableAssets')}</h3>
         
         <div className="flex space-x-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Owner Wallet Address
+              {t('ownerWalletAddress')}
             </label>
             <input
               type="text"
               value={searchAddress}
               onChange={(e) => setSearchAddress(e.target.value)}
-              placeholder="Enter the owner's wallet address"
+              placeholder={t('enterOwnerWalletAddress') || ''}
               className="input-field"
             />
             {searchAddress && !isValidAddress(searchAddress) && (
-              <p className="text-red-500 text-sm mt-1">Invalid wallet address</p>
+              <p className="text-red-500 text-sm mt-1">{t('invalidWalletAddress')}</p>
             )}
           </div>
           
@@ -199,12 +201,12 @@ export function ClaimAssets() {
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Searching...</span>
+                <span>{t('searching')}</span>
               </>
             ) : (
               <>
                 <Search className="w-4 h-4" />
-                <span>Search</span>
+                <span>{t('search')}</span>
               </>
             )}
           </button>
@@ -232,7 +234,7 @@ export function ClaimAssets() {
       {/* Claimable Assets List */}
       {claimableAssets.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Claimable Assets</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('claimableAssets')}</h3>
           
           {claimableAssets.map((asset) => (
             <div key={asset.id} className="bg-white rounded-lg border border-gray-200 p-6">
@@ -245,10 +247,10 @@ export function ClaimAssets() {
                   )}
                   <div>
                     <h4 className="font-semibold text-gray-900">
-                      {asset.type === 'sol' ? 'SOL' : 'SPL Token'}
+                      {asset.type === 'sol' ? t('sol') : t('splToken')}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      Amount: {asset.amount} {asset.type === 'sol' ? 'SOL' : 'tokens'}
+                      {t('amount')}: {asset.amount} {asset.type === 'sol' ? t('sol') : t('splToken')}
                     </p>
                   </div>
                 </div>
@@ -257,12 +259,12 @@ export function ClaimAssets() {
                   {asset.isClaimable ? (
                     <div className="flex items-center space-x-2 text-green-600">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium">Claimable</span>
+                      <span className="text-sm font-medium">{t('claimable')}</span>
                     </div>
                   ) : (
                     <div className="flex items-center space-x-2 text-gray-600">
                       <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      <span className="text-sm font-medium">Not Yet Claimable</span>
+                      <span className="text-sm font-medium">{t('notYetClaimable')}</span>
                     </div>
                   )}
                 </div>
@@ -270,23 +272,23 @@ export function ClaimAssets() {
 
               <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <span className="text-sm text-gray-600">Owner:</span>
+                  <span className="text-sm text-gray-600">{t('owner')}:</span>
                   <p className="text-sm font-mono text-gray-900 break-all">{asset.owner}</p>
                 </div>
                 
                 <div>
-                  <span className="text-sm text-gray-600">Last Active:</span>
+                  <span className="text-sm text-gray-600">{t('lastActiveShort')}:</span>
                   <p className="text-sm text-gray-900">{formatDate(asset.lastActiveTime)}</p>
                 </div>
                 
                 <div>
-                  <span className="text-sm text-gray-600">Days Since Inactivity:</span>
-                  <p className="text-sm text-gray-900">{getTimeSinceInactivity(asset.lastActiveTime)} days</p>
+                  <span className="text-sm text-gray-600">{t('daysSinceInactivity')}:</span>
+                  <p className="text-sm text-gray-900">{getTimeSinceInactivity(asset.lastActiveTime)} {t('daysAgo')}</p>
                 </div>
                 
                 {asset.tokenMint && (
                   <div>
-                    <span className="text-sm text-gray-600">Token Mint:</span>
+                    <span className="text-sm text-gray-600">{t('tokenMint')}:</span>
                     <p className="text-sm font-mono text-gray-900 break-all">{asset.tokenMint}</p>
                   </div>
                 )}
@@ -300,12 +302,12 @@ export function ClaimAssets() {
                 {isLoading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Claiming...</span>
+                    <span>{t('claiming')}</span>
                   </>
                 ) : (
                   <>
                     <Gift className="w-4 h-4" />
-                    <span>Claim {asset.type === 'sol' ? 'SOL' : 'Tokens'}</span>
+                    <span>{asset.type === 'sol' ? t('claimSol') : t('claimTokens')}</span>
                   </>
                 )}
               </button>
@@ -317,22 +319,22 @@ export function ClaimAssets() {
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Claiming Process</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('claimingProcess')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
-            <li>• Assets can be claimed after 1 year of owner inactivity</li>
-            <li>• Only designated heirs can claim assets</li>
-            <li>• Claims require wallet signature</li>
-            <li>• Assets are transferred directly to heir's wallet</li>
+            <li>• {t('canClaimAfterYear')}</li>
+            <li>• {t('onlyDesignatedHeirs')}</li>
+            <li>• {t('claimsRequireSignature')}</li>
+            <li>• {t('assetsTransferredDirectly')}</li>
           </ul>
         </div>
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">Requirements</h3>
+          <h3 className="font-semibold text-gray-900 mb-2">{t('requirements')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
-            <li>• Must be designated as an heir</li>
-            <li>• Owner must be inactive for 1 year</li>
-            <li>• Assets must not be already claimed</li>
-            <li>• Valid Solana wallet connection required</li>
+            <li>• {t('mustBeDesignatedHeir')}</li>
+            <li>• {t('ownerInactiveOneYear')}</li>
+            <li>• {t('assetsNotAlreadyClaimed')}</li>
+            <li>• {t('validWalletRequired')}</li>
           </ul>
         </div>
       </div>
