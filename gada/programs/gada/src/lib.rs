@@ -4,6 +4,13 @@ use anchor_lang::solana_program::clock::Clock;
 
 declare_id!("Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5");
 
+// Inactivity period for inheritance claims. Default: 365 days. With
+// feature `short-claim-delay`, use 2 days for testing.
+#[cfg(feature = "short-claim-delay")]
+const INACTIVITY_PERIOD_SECONDS: i64 = 2 * 24 * 60 * 60; // 2 days
+#[cfg(not(feature = "short-claim-delay"))]
+const INACTIVITY_PERIOD_SECONDS: i64 = 365 * 24 * 60 * 60; // 365 days
+
 #[program]
 pub mod gada {
     use super::*;
@@ -110,11 +117,10 @@ pub mod gada {
     pub fn claim_heir_token_assets(ctx: Context<ClaimHeirTokenAssets>) -> Result<()> {
         let token_heir = &mut ctx.accounts.token_heir;
         let current_timestamp = Clock::get()?.unix_timestamp;
-        let one_year_in_seconds = 365 * 24 * 60 * 60;
 
         require!(!token_heir.is_claimed, ErrorCode::AlreadyClaimed);
         require!(
-            current_timestamp - token_heir.last_active_time > one_year_in_seconds,
+            current_timestamp - token_heir.last_active_time > INACTIVITY_PERIOD_SECONDS,
             ErrorCode::OwnerStillActive
         );
         // Ensure the signer is the recorded heir
@@ -145,11 +151,10 @@ pub mod gada {
     pub fn claim_heir_coin_assets(ctx: Context<ClaimHeirCoinAssets>) -> Result<()> {
         let coin_heir = &mut ctx.accounts.coin_heir;
         let current_timestamp = Clock::get()?.unix_timestamp;
-        let one_year_in_seconds = 365 * 24 * 60 * 60;
 
         require!(!coin_heir.is_claimed, ErrorCode::AlreadyClaimed);
         require!(
-            current_timestamp - coin_heir.last_active_time > one_year_in_seconds,
+            current_timestamp - coin_heir.last_active_time > INACTIVITY_PERIOD_SECONDS,
             ErrorCode::OwnerStillActive
         );
         // Ensure the signer is the recorded heir

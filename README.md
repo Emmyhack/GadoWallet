@@ -60,6 +60,20 @@ cd gada/frontend && yarn dev
 ```
 Open http://localhost:5173 in your browser.
 
+## Testing the Inheritance Delay (2 days)
+For faster testing, the program supports a feature flag that reduces the inactivity period from 365 days to 2 days.
+
+- Build with the short delay:
+```bash
+cd gada
+anchor build -- --features short-claim-delay
+```
+- Deploy as usual:
+```bash
+anchor deploy
+```
+This build only affects the inactivity threshold used in the claim instructions.
+
 ## Usage
 - Connect a wallet (Phantom or Solflare)
 - Add heirs for SOL or SPL tokens with amounts
