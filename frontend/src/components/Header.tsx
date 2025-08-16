@@ -1,5 +1,4 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Shield } from 'lucide-react';
 import i18n from '../lib/i18n';
 import { useTheme } from '../lib/theme';
 
@@ -12,8 +11,8 @@ export function Header() {
         <div className="flex items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-md">
-              <Shield className="w-5 h-5 text-white" />
+            <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-md overflow-hidden">
+              <img src="https://drive.google.com/uc?id=1muO2wk7sBufIn3SSBtUOY4BRDfGsDHh8" alt="Gada Wallet Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-semibold">
