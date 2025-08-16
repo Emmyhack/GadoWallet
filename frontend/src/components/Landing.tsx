@@ -15,7 +15,7 @@ export function Landing() {
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 items-center">
           <div className="animate-fade-in">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-4">
-              {t('wallet')}
+              Your Web3 Wallet for Life & Legacy
             </h1>
             <p className="text-lg md:text-xl text-gray-700 dark:text-gray-200 mb-8">
               {t('walletStatsOverview')}
