@@ -177,22 +177,22 @@ export function BatchTransfer() {
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-md">
         <button
           onClick={() => setActiveTab('sol')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
             activeTab === 'sol'
               ? 'bg-white/80 dark:bg-gray-900/60 text-gray-900 dark:text-white shadow-sm backdrop-blur'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-          }`
+          }`}
         >
           <Coins className="w-4 h-4" />
           <span>{t('sol')}</span>
         </button>
         <button
           onClick={() => setActiveTab('token')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
             activeTab === 'token'
               ? 'bg-white/80 dark:bg-gray-900/60 text-gray-900 dark:text-white shadow-sm backdrop-blur'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-          }`
+          }`}
         >
           <Token className="w-4 h-4" />
           <span>{t('splToken')}</span>
