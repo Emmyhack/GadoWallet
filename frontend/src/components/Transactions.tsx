@@ -70,7 +70,7 @@ export function Transactions() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
           <h3 className="text-sm font-semibold text-gray-900">{t('latestActivity')}</h3>
         </div>

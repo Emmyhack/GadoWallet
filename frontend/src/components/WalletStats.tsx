@@ -143,7 +143,7 @@ export function WalletStats() {
       </div>
 
       {/* Wallet Address */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('walletInformation')}</h3>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -159,7 +159,7 @@ export function WalletStats() {
 
       {/* Key Statistics */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Wallet className="w-5 h-5 text-gray-600" />
@@ -170,7 +170,7 @@ export function WalletStats() {
           <p className="text-sm text-gray-600">{t('currentWalletBalance')}</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-gray-600" />
@@ -181,7 +181,7 @@ export function WalletStats() {
           <p className="text-sm text-gray-600">{t('designatedBeneficiaries')}</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Shield className="w-5 h-5 text-gray-600" />
@@ -192,7 +192,7 @@ export function WalletStats() {
           <p className="text-sm text-gray-600">{t('solDesignatedForHeirs')}</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Activity className="w-5 h-5 text-gray-600" />
@@ -205,7 +205,7 @@ export function WalletStats() {
       </div>
 
       {/* Activity Timeline */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recentActivity')}</h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-4">

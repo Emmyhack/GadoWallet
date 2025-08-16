@@ -245,7 +245,7 @@ export function ClaimAssets() {
           <h3 className="text-lg font-semibold text-gray-900">{t('claimableAssets')}</h3>
           
           {claimableAssets.map((asset) => (
-            <div key={asset.id} className="bg-white rounded-lg border border-gray-200 p-6">
+            <div key={asset.id} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   {asset.type === 'sol' ? (
