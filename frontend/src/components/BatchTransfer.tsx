@@ -168,13 +168,13 @@ export function BatchTransfer() {
           <Send className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{t('batchTransfer')}</h2>
-          <p className="text-gray-600">{t('batchTransferSubtitle')}</p>
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('batchTransfer')}</h2>
+          <p className="text-gray-600 dark:text-gray-300">{t('batchTransferSubtitle')}</p>
         </div>
       </div>
 
       {/* Asset Type Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-md">
+      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-md">
         <button
           onClick={() => setActiveTab('sol')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
@@ -202,7 +202,7 @@ export function BatchTransfer() {
       {/* Token Mint Input */}
       {activeTab === 'token' && (
         <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             {t('tokenMintAddress')}
           </label>
           <input
@@ -221,7 +221,7 @@ export function BatchTransfer() {
       {/* Recipients */}
       <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">{t('recipients')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('recipients')}</h3>
           <button
             onClick={addRecipient}
             disabled={recipients.length >= 10}
@@ -236,7 +236,7 @@ export function BatchTransfer() {
           {recipients.map((recipient) => (
             <div key={recipient.id} className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200 dark:border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   {t('walletAddress')}
                 </label>
                 <input
@@ -252,7 +252,7 @@ export function BatchTransfer() {
               </div>
               
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   {t('amountLabel')} ({activeTab === 'sol' ? t('sol') : t('splToken')})
                 </label>
                 <input
@@ -271,7 +271,7 @@ export function BatchTransfer() {
               {recipients.length > 1 && (
                 <button
                   onClick={() => removeRecipient(recipient.id)}
-                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -301,8 +301,8 @@ export function BatchTransfer() {
         {message && (
           <div className={`mt-4 p-3 rounded-md ${
             isError 
-              ? 'bg-red-50 text-red-700 border border-red-200' 
-              : 'bg-green-50 text-green-700 border border-green-200'
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800' 
+              : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
           }`}>
             {message}
           </div>
@@ -311,8 +311,8 @@ export function BatchTransfer() {
 
       {/* Information Card */}
       <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
-        <h3 className="font-semibold text-gray-900 mb-2">{t('batchTransferInfo')}</h3>
-        <ul className="text-sm text-gray-700 space-y-1">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('batchTransferInfo')}</h3>
+        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li>• {t('sendUpTo10Recipients')}</li>
           <li>• {t('reduceFeesByBatching')}</li>
           <li>• {t('transfersRequireSignature')}</li>
