@@ -125,7 +125,7 @@ describe("gada", () => {
     const amount = new anchor.BN(500000000); // 500 tokens
 
     await program.methods
-      .addTokenHeir(amount)
+      .addTokenHeir(amount, new anchor.BN(2 * 24 * 60 * 60))
       .accounts({
         tokenHeir: tokenHeirPda,
         owner: owner.publicKey,
@@ -150,7 +150,7 @@ describe("gada", () => {
     const amount = new anchor.BN(LAMPORTS_PER_SOL / 2); // 0.5 SOL
 
     await program.methods
-      .addCoinHeir(amount)
+      .addCoinHeir(amount, new anchor.BN(2 * 24 * 60 * 60))
       .accounts({
         coinHeir: coinHeirPda,
         owner: owner.publicKey,
