@@ -14,6 +14,7 @@ export function InheritanceManager() {
   const [heirAddress, setHeirAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [tokenMint, setTokenMint] = useState('');
+  const [inactivityDays, setInactivityDays] = useState('365');
   const [message, setMessage] = useState('');
 
   const handleAddHeir = async () => {
@@ -25,10 +26,11 @@ export function InheritanceManager() {
 
       const heirPubkey = new web3.PublicKey(heirAddress);
       const amountBN = new BN(parseFloat(amount) * 1e9); // Convert SOL to lamports
+      const inactivitySeconds = Math.max(1, Math.floor(parseFloat(inactivityDays || '0') * 24 * 60 * 60));
 
       if (activeTab === 'sol') {
         await program.methods
-          .addCoinHeir(amountBN)
+          .addCoinHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
             coinHeir: web3.PublicKey.findProgramAddressSync(
               [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
@@ -43,7 +45,7 @@ export function InheritanceManager() {
       } else {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
         await program.methods
-          .addTokenHeir(amountBN)
+          .addTokenHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
             tokenHeir: web3.PublicKey.findProgramAddressSync(
               [Buffer.from('token_heir'), publicKey.toBuffer(), heirPubkey.toBuffer(), tokenMintPubkey.toBuffer()],
@@ -61,6 +63,7 @@ export function InheritanceManager() {
       setHeirAddress('');
       setAmount('');
       setTokenMint('');
+      setInactivityDays('365');
     } catch (error) {
       console.error('Error adding heir:', error);
       setMessage('Error');
@@ -83,10 +86,16 @@ export function InheritanceManager() {
     return !isNaN(num) && num > 0;
   };
 
+  const isValidDays = (days: string) => {
+    const num = parseFloat(days);
+    return !isNaN(num) && num > 0;
+  };
+
   const isFormValid = () => {
-    if (!heirAddress || !amount) return false;
+    if (!heirAddress || !amount || !inactivityDays) return false;
     if (!isValidAddress(heirAddress)) return false;
     if (!isValidAmount(amount)) return false;
+    if (!isValidDays(inactivityDays)) return false;
     if (activeTab === 'token' && (!tokenMint || !isValidAddress(tokenMint))) return false;
     return true;
   };
@@ -178,6 +187,24 @@ export function InheritanceManager() {
             />
             {amount && !isValidAmount(amount) && (
               <p className="text-red-500 text-sm mt-1">{t('invalidAmount')}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              Inactivity (days)
+            </label>
+            <input
+              type="number"
+              value={inactivityDays}
+              onChange={(e) => setInactivityDays(e.target.value)}
+              placeholder="e.g. 365"
+              min={1}
+              step={1}
+              className="input-field"
+            />
+            {inactivityDays && !isValidDays(inactivityDays) && (
+              <p className="text-red-500 text-sm mt-1">Enter a valid number of days</p>
             )}
           </div>
 

@@ -45,7 +45,11 @@ export function ClaimAssets() {
           owner: c.account.owner.toBase58(),
           amount: (Number(c.account.amount) / 1e9).toString(),
           lastActiveTime: new Date(c.account.lastActiveTime.toNumber() * 1000).toISOString(),
-          isClaimable: isHeirClaimable(c.account.lastActiveTime.toNumber(), c.account.isClaimed),
+          isClaimable: isHeirClaimable(
+            c.account.lastActiveTime.toNumber(),
+            c.account.isClaimed,
+            c.account.inactivityPeriodSeconds?.toNumber?.() ?? c.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
+          ),
         })),
         ...tokenHeirs.map((t: any) => ({
           id: t.publicKey.toBase58(),
@@ -53,7 +57,11 @@ export function ClaimAssets() {
           owner: t.account.owner.toBase58(),
           amount: t.account.amount.toString(),
           lastActiveTime: new Date(t.account.lastActiveTime.toNumber() * 1000).toISOString(),
-          isClaimable: isHeirClaimable(t.account.lastActiveTime.toNumber(), t.account.isClaimed),
+          isClaimable: isHeirClaimable(
+            t.account.lastActiveTime.toNumber(),
+            t.account.isClaimed,
+            t.account.inactivityPeriodSeconds?.toNumber?.() ?? t.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
+          ),
           tokenMint: t.account.tokenMint.toBase58(),
         })),
       ];

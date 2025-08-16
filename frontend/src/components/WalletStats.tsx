@@ -42,12 +42,14 @@ export function WalletStats() {
             type: 'sol' as const,
             lastActiveTime: c.account.lastActiveTime.toNumber(),
             isClaimed: c.account.isClaimed,
+            inactivitySeconds: c.account.inactivityPeriodSeconds?.toNumber?.() ?? c.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
             amount: Number(c.account.amount) / 1e9,
           })),
           ...tokenHeirs.map((t: any) => ({
             type: 'token' as const,
             lastActiveTime: t.account.lastActiveTime.toNumber(),
             isClaimed: t.account.isClaimed,
+            inactivitySeconds: t.account.inactivityPeriodSeconds?.toNumber?.() ?? t.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
             amount: Number(t.account.amount),
           })),
         ];
@@ -62,7 +64,7 @@ export function WalletStats() {
           ...allHeirs.map(h => h.lastActiveTime)
         );
 
-        const activeHeirs = allHeirs.filter(h => isHeirClaimable(h.lastActiveTime, h.isClaimed)).length;
+        const activeHeirs = allHeirs.filter(h => isHeirClaimable(h.lastActiveTime, h.isClaimed, h.inactivitySeconds)).length;
 
         setStats({
           balance: balanceInSOL,

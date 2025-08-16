@@ -17,222 +17,88 @@ const IDL = {
     {
       "name": "add_coin_heir",
       "accounts": [
-        {
-          "name": "coin_heir",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "heir",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "system_program",
-          "isMut": false,
-          "isSigner": false
-        }
+        { "name": "coin_heir", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "heir", "isMut": false, "isSigner": false },
+        { "name": "system_program", "isMut": false, "isSigner": false }
       ],
       "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
+        { "name": "amount", "type": "u64" },
+        { "name": "inactivity_period_seconds", "type": "i64" }
       ]
     },
     {
       "name": "add_token_heir",
       "accounts": [
-        {
-          "name": "token_heir",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "heir",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "token_mint",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "system_program",
-          "isMut": false,
-          "isSigner": false
-        }
+        { "name": "token_heir", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": true, "isSigner": true },
+        { "name": "heir", "isMut": false, "isSigner": false },
+        { "name": "token_mint", "isMut": false, "isSigner": false },
+        { "name": "system_program", "isMut": false, "isSigner": false }
       ],
       "args": [
-        {
-          "name": "amount",
-          "type": "u64"
-        }
+        { "name": "amount", "type": "u64" },
+        { "name": "inactivity_period_seconds", "type": "i64" }
       ]
     },
     {
       "name": "update_activity",
       "accounts": [
-        {
-          "name": "token_heir",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
-          "isSigner": true
-        }
+        { "name": "token_heir", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": true }
       ],
       "args": []
     },
     {
       "name": "update_coin_activity",
       "accounts": [
-        {
-          "name": "coin_heir",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
-          "isSigner": true
-        }
+        { "name": "coin_heir", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": true }
       ],
       "args": []
     },
     {
       "name": "batch_transfer_tokens",
       "accounts": [
-        {
-          "name": "from_token_account",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "to_token_account",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "token_program",
-          "isMut": false,
-          "isSigner": false
-        }
+        { "name": "from_token_account", "isMut": true, "isSigner": false },
+        { "name": "to_token_account", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": true },
+        { "name": "token_program", "isMut": false, "isSigner": false }
       ],
       "args": [
-        {
-          "name": "amounts",
-          "type": {
-            "vec": "u64"
-          }
-        }
+        { "name": "amounts", "type": { "vec": "u64" } }
       ]
     },
     {
       "name": "batch_transfer_coins",
       "accounts": [
-        {
-          "name": "from_account",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "to_account",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "system_program",
-          "isMut": false,
-          "isSigner": false
-        }
+        { "name": "from_account", "isMut": true, "isSigner": true },
+        { "name": "to_account", "isMut": true, "isSigner": false },
+        { "name": "system_program", "isMut": false, "isSigner": false }
       ],
       "args": [
-        {
-          "name": "amounts",
-          "type": {
-            "vec": "u64"
-          }
-        }
+        { "name": "amounts", "type": { "vec": "u64" } }
       ]
     },
     {
       "name": "claim_heir_coin_assets",
       "accounts": [
-        {
-          "name": "coin_heir",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner_account",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "heir_account",
-          "isMut": true,
-          "isSigner": true
-        }
+        { "name": "coin_heir", "isMut": true, "isSigner": false },
+        { "name": "owner_account", "isMut": true, "isSigner": false },
+        { "name": "heir_account", "isMut": true, "isSigner": true }
       ],
       "args": []
     },
     {
       "name": "claim_heir_token_assets",
       "accounts": [
-        {
-          "name": "token_heir",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "owner",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "heir",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "owner_token_account",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "heir_token_account",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "token_program",
-          "isMut": false,
-          "isSigner": false
-        }
+        { "name": "token_heir", "isMut": true, "isSigner": false },
+        { "name": "owner", "isMut": false, "isSigner": false },
+        { "name": "heir", "isMut": false, "isSigner": true },
+        { "name": "owner_token_account", "isMut": true, "isSigner": false },
+        { "name": "heir_token_account", "isMut": true, "isSigner": false },
+        { "name": "authority", "isMut": false, "isSigner": false },
+        { "name": "token_program", "isMut": false, "isSigner": false }
       ],
       "args": []
     }
@@ -243,30 +109,13 @@ const IDL = {
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "owner",
-            "type": "publicKey"
-          },
-          {
-            "name": "heir",
-            "type": "publicKey"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "last_active_time",
-            "type": "i64"
-          },
-          {
-            "name": "is_claimed",
-            "type": "bool"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          }
+          { "name": "owner", "type": "publicKey" },
+          { "name": "heir", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "last_active_time", "type": "i64" },
+          { "name": "is_claimed", "type": "bool" },
+          { "name": "inactivity_period_seconds", "type": "i64" },
+          { "name": "bump", "type": "u8" }
         ]
       }
     },
@@ -275,54 +124,22 @@ const IDL = {
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "owner",
-            "type": "publicKey"
-          },
-          {
-            "name": "heir",
-            "type": "publicKey"
-          },
-          {
-            "name": "token_mint",
-            "type": "publicKey"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "last_active_time",
-            "type": "i64"
-          },
-          {
-            "name": "is_claimed",
-            "type": "bool"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          }
+          { "name": "owner", "type": "publicKey" },
+          { "name": "heir", "type": "publicKey" },
+          { "name": "token_mint", "type": "publicKey" },
+          { "name": "amount", "type": "u64" },
+          { "name": "last_active_time", "type": "i64" },
+          { "name": "is_claimed", "type": "bool" },
+          { "name": "inactivity_period_seconds", "type": "i64" },
+          { "name": "bump", "type": "u8" }
         ]
       }
     }
   ],
   "errors": [
-    {
-      "code": 6000,
-      "name": "OwnerStillActive",
-      "msg": "Owner is still active."
-    },
-    {
-      "code": 6001,
-      "name": "AlreadyClaimed",
-      "msg": "Assets have already been claimed."
-    },
-    {
-      "code": 6002,
-      "name": "TooManyTransfers",
-      "msg": "Too many transfers in batch (max 10)."
-    }
+    { "code": 6000, "name": "OwnerStillActive", "msg": "Owner is still active." },
+    { "code": 6001, "name": "AlreadyClaimed", "msg": "Assets have already been claimed." },
+    { "code": 6002, "name": "TooManyTransfers", "msg": "Too many transfers in batch (max 10)." }
   ]
 } as any; // Type assertion to bypass strict typing
 
@@ -380,12 +197,13 @@ export async function initialize(program: any) {
 export async function addCoinHeir(
   program: any,
   heir: web3.PublicKey,
-  amount: BN
+  amount: BN,
+  inactivityPeriodSeconds: number
 ) {
   const [coinHeirPDA] = getCoinHeirPDA(program.provider.publicKey!, heir);
   
   return await (program as any).methods
-    .addCoinHeir(amount)
+    .addCoinHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
       coinHeir: coinHeirPDA,
       owner: program.provider.publicKey!,
@@ -399,12 +217,13 @@ export async function addTokenHeir(
   program: any,
   heir: web3.PublicKey,
   tokenMint: web3.PublicKey,
-  amount: BN
+  amount: BN,
+  inactivityPeriodSeconds: number
 ) {
   const [tokenHeirPDA] = getTokenHeirPDA(program.provider.publicKey!, heir, tokenMint);
   
   return await (program as any).methods
-    .addTokenHeir(amount)
+    .addTokenHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
       tokenHeir: tokenHeirPDA,
       owner: program.provider.publicKey!,
@@ -502,4 +321,10 @@ export async function claimHeirTokenAssets(
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
+} 
+
+export function isHeirClaimable(lastActiveTimeSeconds: number, isClaimed: boolean, inactivitySeconds: number): boolean {
+  if (isClaimed) return false;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  return nowSeconds - lastActiveTimeSeconds > inactivitySeconds;
 } 

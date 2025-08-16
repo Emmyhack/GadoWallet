@@ -20,7 +20,8 @@ pub mod gada {
         Ok(())
     }
 
-    pub fn add_token_heir(ctx: Context<AddTokenHeir>, amount: u64) -> Result<()> {
+    pub fn add_token_heir(ctx: Context<AddTokenHeir>, amount: u64, inactivity_period_seconds: i64) -> Result<()> {
+        require!(inactivity_period_seconds > 0, ErrorCode::InvalidInactivityPeriod);
         let token_heir = &mut ctx.accounts.token_heir;
         token_heir.owner = *ctx.accounts.owner.key;
         token_heir.heir = *ctx.accounts.heir.key;
@@ -28,20 +29,23 @@ pub mod gada {
         token_heir.amount = amount;
         token_heir.last_active_time = Clock::get()?.unix_timestamp;
         token_heir.is_claimed = false;
+        token_heir.inactivity_period_seconds = inactivity_period_seconds;
         token_heir.bump = ctx.bumps.token_heir;
-        msg!("Token heir added: {} tokens", amount);
+        msg!("Token heir added: {} tokens, inactivity {}s", amount, inactivity_period_seconds);
         Ok(())
     }
 
-    pub fn add_coin_heir(ctx: Context<AddCoinHeir>, amount: u64) -> Result<()> {
+    pub fn add_coin_heir(ctx: Context<AddCoinHeir>, amount: u64, inactivity_period_seconds: i64) -> Result<()> {
+        require!(inactivity_period_seconds > 0, ErrorCode::InvalidInactivityPeriod);
         let coin_heir = &mut ctx.accounts.coin_heir;
         coin_heir.owner = *ctx.accounts.owner.key;
         coin_heir.heir = *ctx.accounts.heir.key;
         coin_heir.amount = amount;
         coin_heir.last_active_time = Clock::get()?.unix_timestamp;
         coin_heir.is_claimed = false;
+        coin_heir.inactivity_period_seconds = inactivity_period_seconds;
         coin_heir.bump = ctx.bumps.coin_heir;
-        msg!("Coin heir added: {} lamports", amount);
+        msg!("Coin heir added: {} lamports, inactivity {}s", amount, inactivity_period_seconds);
         Ok(())
     }
 
@@ -120,7 +124,7 @@ pub mod gada {
 
         require!(!token_heir.is_claimed, ErrorCode::AlreadyClaimed);
         require!(
-            current_timestamp - token_heir.last_active_time > INACTIVITY_PERIOD_SECONDS,
+            current_timestamp - token_heir.last_active_time > token_heir.inactivity_period_seconds,
             ErrorCode::OwnerStillActive
         );
         // Ensure the signer is the recorded heir
@@ -154,7 +158,7 @@ pub mod gada {
 
         require!(!coin_heir.is_claimed, ErrorCode::AlreadyClaimed);
         require!(
-            current_timestamp - coin_heir.last_active_time > INACTIVITY_PERIOD_SECONDS,
+            current_timestamp - coin_heir.last_active_time > coin_heir.inactivity_period_seconds,
             ErrorCode::OwnerStillActive
         );
         // Ensure the signer is the recorded heir
@@ -291,11 +295,12 @@ pub struct TokenHeir {
     pub amount: u64,
     pub last_active_time: i64,
     pub is_claimed: bool,
+    pub inactivity_period_seconds: i64,
     pub bump: u8,
 }
 
 impl TokenHeir {
-    pub const SPACE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 1 + 1;
+    pub const SPACE: usize = 8 + 32 + 32 + 32 + 8 + 8 + 1 + 8 + 1;
 }
 
 #[account]
@@ -305,11 +310,12 @@ pub struct CoinHeir {
     pub amount: u64,
     pub last_active_time: i64,
     pub is_claimed: bool,
+    pub inactivity_period_seconds: i64,
     pub bump: u8,
 }
 
 impl CoinHeir {
-    pub const SPACE: usize = 8 + 32 + 32 + 8 + 8 + 1 + 1;
+    pub const SPACE: usize = 8 + 32 + 32 + 8 + 8 + 1 + 8 + 1;
 }
 
 #[error_code]
@@ -324,4 +330,6 @@ pub enum ErrorCode {
     Unauthorized,
     #[msg("Invalid token mint.")]
     InvalidMint,
+    #[msg("Invalid inactivity period.")]
+    InvalidInactivityPeriod,
 }

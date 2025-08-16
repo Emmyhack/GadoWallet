@@ -12,6 +12,7 @@ const AddHeir = () => {
   const [heir, setHeir] = useState('');
   const [amount, setAmount] = useState('');
   const [tokenMint, setTokenMint] = useState('');
+  const [inactivityDays, setInactivityDays] = useState('365');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -27,18 +28,20 @@ const AddHeir = () => {
     try {
       const heirPubkey = new web3.PublicKey(heir);
       const amountBN = new BN(parseFloat(amount) * (type === 'coin' ? 1e9 : 1)); // Convert to lamports for SOL
+      const inactivitySeconds = Math.max(1, Math.floor(parseFloat(inactivityDays || '0') * 24 * 60 * 60));
 
       if (type === 'coin') {
-        await addCoinHeir(program, heirPubkey, amountBN);
+        await addCoinHeir(program, heirPubkey, amountBN, inactivitySeconds);
       } else {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
-        await addTokenHeir(program, heirPubkey, tokenMintPubkey, amountBN);
+        await addTokenHeir(program, heirPubkey, tokenMintPubkey, amountBN, inactivitySeconds);
       }
 
       setSuccess(true);
       setHeir('');
       setAmount('');
       setTokenMint('');
+      setInactivityDays('365');
     } catch (err) {
       console.error('Error adding heir:', err);
       setError(err instanceof Error ? err.message : 'Failed to add heir');
@@ -105,6 +108,20 @@ const AddHeir = () => {
             required
             min={0}
             step={type === 'token' ? 1 : 0.0001}
+            disabled={!connected}
+          />
+        </div>
+        <div>
+          <label className="block mb-1 font-medium">Inactivity (days)</label>
+          <input
+            type="number"
+            className="input-field"
+            value={inactivityDays}
+            onChange={e => setInactivityDays(e.target.value)}
+            placeholder="e.g. 365"
+            required
+            min={1}
+            step={1}
             disabled={!connected}
           />
         </div>
