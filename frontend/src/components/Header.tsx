@@ -12,7 +12,7 @@ export function Header() {
           {/* Logo and Brand */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-8 h-8 bg-white/10 rounded-md overflow-hidden">
-              <img src="https://drive.google.com/uc?export=view&id=1nXOWl2J3IwZ_Rr0Na7572CwJVVi9BROD" alt="Gada Wallet Logo" className="w-8 h-8 object-contain" loading="lazy" decoding="async" referrerPolicy="no-referrer" />
+              <img src="/logo.png" alt="Gada Wallet Logo" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h1 className="text-xl font-semibold">
