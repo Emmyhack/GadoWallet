@@ -118,8 +118,8 @@ export function Portfolio() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-white/70 to-white/40 dark:from-gray-900/50 dark:to-gray-900/30 backdrop-blur">
           <h3 className="text-sm font-semibold text-gray-900">{t('splTokenHoldings')}</h3>
         </div>
         <div className="divide-y divide-gray-100">

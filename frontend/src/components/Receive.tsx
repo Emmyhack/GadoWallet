@@ -33,7 +33,7 @@ export function Receive() {
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
         <h3 className="font-semibold text-gray-900 mb-3">{t('receiveSolTokens')}</h3>
         <div className="grid md:grid-cols-2 gap-6 items-center">
           <div className="space-y-2">
@@ -42,7 +42,7 @@ export function Receive() {
             <button onClick={copy} className="btn-secondary mt-2">{t('copyAddress')}</button>
           </div>
           <div className="flex items-center justify-center">
-            <div className="p-3 rounded-lg border bg-white bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600">
+            <div className="p-3 rounded-lg border bg-white/80 dark:bg-gray-900/60 backdrop-blur bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600">
               <div className="rounded-md p-0.5 bg-white">
                 <canvas ref={canvasRef} className="block" width={200} height={200} />
               </div>

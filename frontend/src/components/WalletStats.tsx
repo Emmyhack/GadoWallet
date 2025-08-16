@@ -235,7 +235,7 @@ export function WalletStats() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gray-50 rounded-lg p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('quickActionsTitle')}</h3>
         <div className="grid md:grid-cols-3 gap-4">
           <button className="btn-secondary flex items-center justify-center space-x-2">
@@ -257,7 +257,7 @@ export function WalletStats() {
 
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
           <h3 className="font-semibold text-gray-900 mb-2">{t('walletSecurity')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
             <li>• {t('allTransactionsRequireSignature')}</li>
@@ -267,7 +267,7 @@ export function WalletStats() {
           </ul>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
           <h3 className="font-semibold text-gray-900 mb-2">{t('inheritanceStatus')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
             <li>• {t('heirsDesignatedForInheritance', { count: stats.heirsCount })}</li>

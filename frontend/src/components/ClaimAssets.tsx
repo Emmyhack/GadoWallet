@@ -181,7 +181,7 @@ export function ClaimAssets() {
       </div>
 
       {/* Search Section */}
-      <div className="bg-gray-50 rounded-lg p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('searchClaimableAssets')}</h3>
         
         <div className="flex space-x-4">
@@ -326,7 +326,7 @@ export function ClaimAssets() {
 
       {/* Information Cards */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
           <h3 className="font-semibold text-gray-900 mb-2">{t('claimingProcess')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
             <li>• {t('canClaimAfterYear')}</li>
@@ -336,7 +336,7 @@ export function ClaimAssets() {
           </ul>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
           <h3 className="font-semibold text-gray-900 mb-2">{t('requirements')}</h3>
           <ul className="text-sm text-gray-700 space-y-1">
             <li>• {t('mustBeDesignatedHeir')}</li>
