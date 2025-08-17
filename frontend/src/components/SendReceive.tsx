@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 import { web3 } from '@project-serum/anchor';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from '@solana/spl-token';
 import { Send, Download, Coins } from 'lucide-react';
@@ -22,6 +22,26 @@ export function SendReceive() {
     try { new PublicKey(addr); return true; } catch { return false; }
   };
 
+  const estimatePriorityFee = async (fallback: number): Promise<number> => {
+    try {
+      const getFees = (connection as any).getRecentPrioritizationFees;
+      if (typeof getFees === 'function') {
+        const fees = await getFees();
+        if (Array.isArray(fees) && fees.length) {
+          const values = fees
+            .map((f: any) => (typeof f?.prioritizationFee === 'number' ? f.prioritizationFee : 0))
+            .filter((n: number) => n > 0)
+            .sort((a: number, b: number) => a - b);
+          if (values.length) {
+            const p75 = values[Math.floor(values.length * 0.75)];
+            return Math.max(fallback, Math.floor(p75 * 2));
+          }
+        }
+      }
+    } catch {}
+    return fallback;
+  };
+
   const onSend = async () => {
     if (!publicKey) return;
     setMessage('');
@@ -30,66 +50,113 @@ export function SendReceive() {
     const isSolTransfer = tab === 'sol';
     try {
       const recipient = new PublicKey(toAddress);
-      // Use latest blockhash so we can confirm with a strategy (avoids default 30s timeout path)
-      const latestBlockhash = await connection.getLatestBlockhash('confirmed');
-      if (isSolTransfer) {
-        const tx = new Transaction().add(SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: recipient,
-          lamports: Math.floor(parseFloat(amount) * LAMPORTS_PER_SOL),
-        }));
-        tx.recentBlockhash = latestBlockhash.blockhash;
-        tx.feePayer = publicKey;
-        const sig = await sendTransaction!(tx, connection, { preflightCommitment: 'confirmed' });
-        lastSignature = sig;
-        await connection.confirmTransaction({
-          signature: sig,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-        }, 'confirmed');
-        setMessage(t('solSentSuccess'));
-      } else {
-        const mintPk = new PublicKey(mint);
-        const fromAta = await getAssociatedTokenAddress(mintPk, publicKey);
-        const toAta = await getAssociatedTokenAddress(mintPk, recipient);
-        const ix: web3.TransactionInstruction[] = [];
-        const toInfo = await connection.getAccountInfo(toAta);
-        if (!toInfo) {
-          ix.push(createAssociatedTokenAccountInstruction(publicKey, toAta, recipient, mintPk));
+      const fallbackPriority = isSolTransfer ? 100_000 : 400_000;
+      let priorityFeeMicroLamports = await estimatePriorityFee(fallbackPriority);
+      let computeUnitLimit = isSolTransfer ? 200_000 : 600_000;
+
+      const buildTx = async () => {
+        if (isSolTransfer) {
+          const priorityIxs = [
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFeeMicroLamports }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnitLimit }),
+          ];
+          const tx = new Transaction().add(
+            ...priorityIxs,
+            SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: recipient,
+              lamports: Math.floor(parseFloat(amount) * LAMPORTS_PER_SOL),
+            }),
+          );
+          tx.feePayer = publicKey;
+          return tx;
+        } else {
+          const mintPk = new PublicKey(mint);
+          const fromAta = await getAssociatedTokenAddress(mintPk, publicKey);
+          const toAta = await getAssociatedTokenAddress(mintPk, recipient);
+          const ix: web3.TransactionInstruction[] = [];
+          const toInfo = await connection.getAccountInfo(toAta);
+          if (!toInfo) {
+            ix.push(createAssociatedTokenAccountInstruction(publicKey, toAta, recipient, mintPk));
+          }
+          const tokenAmount = Math.floor(parseFloat(amount));
+          ix.push(createTransferInstruction(fromAta, toAta, publicKey, tokenAmount));
+          const priorityIxs = [
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFeeMicroLamports }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnitLimit }),
+          ];
+          const tx = new Transaction().add(...priorityIxs, ...(ix as any));
+          tx.feePayer = publicKey;
+          return tx;
         }
-        const tokenAmount = Math.floor(parseFloat(amount));
-        ix.push(createTransferInstruction(fromAta, toAta, publicKey, tokenAmount));
-        const tx = new Transaction().add(...(ix as any));
-        tx.recentBlockhash = latestBlockhash.blockhash;
-        tx.feePayer = publicKey;
-        const sig = await sendTransaction!(tx, connection, { preflightCommitment: 'confirmed' });
+      };
+
+      const sendOpts = { preflightCommitment: 'processed' as const, skipPreflight: true, maxRetries: 60 };
+
+      try {
+        const tx = await buildTx();
+        const sig = await sendTransaction!(tx, connection, sendOpts);
         lastSignature = sig;
-        await connection.confirmTransaction({
-          signature: sig,
-          blockhash: latestBlockhash.blockhash,
-          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-        }, 'confirmed');
-        setMessage(t('tokensSentSuccess'));
+      } catch (sendErr: any) {
+        const msg = String(sendErr?.message || '');
+        if (msg.includes('block height exceeded') || msg.toLowerCase().includes('blockhash') || msg.toLowerCase().includes('expired')) {
+          // Escalate priority and retry once
+          priorityFeeMicroLamports = Math.max(priorityFeeMicroLamports * 3, fallbackPriority * 3);
+          computeUnitLimit = Math.floor(computeUnitLimit * 1.5);
+          const tx = await buildTx();
+          const sig = await sendTransaction!(tx, connection, sendOpts);
+          lastSignature = sig;
+        } else {
+          throw sendErr;
+        }
       }
+
+      // Poll for confirmation up to ~45s, treating confirmed/finalized as success
+      if (lastSignature) {
+        const start = Date.now();
+        const maxWaitMs = 45_000;
+        let confirmed = false;
+        while (Date.now() - start < maxWaitMs) {
+          const statuses = await connection.getSignatureStatuses([lastSignature]);
+          const status = statuses?.value?.[0];
+          if (status?.confirmationStatus === 'confirmed' || status?.confirmationStatus === 'finalized') {
+            confirmed = true;
+            break;
+          }
+          if (status?.err) {
+            throw new Error('Transaction failed');
+          }
+          await new Promise(r => setTimeout(r, 1000));
+        }
+        if (!confirmed) {
+          throw new Error('Confirmation timeout');
+        }
+      }
+
+      setMessage(isSolTransfer ? t('solSentSuccess') : t('tokensSentSuccess'));
       setToAddress(''); setAmount(''); setMint('');
     } catch (e: any) {
-      // If the only failure is the 30s confirm timeout, verify signature status before surfacing an error
-      if (e?.message?.includes('Transaction was not confirmed') && lastSignature) {
+      // If expiration or generic timeout, provide a clearer message and do a last status check
+      if (lastSignature) {
         try {
-          for (let attempt = 0; attempt < 12; attempt++) { // up to ~12s extra
-            const statuses = await connection.getSignatureStatuses([lastSignature]);
-            const status = statuses?.value?.[0];
-            if (status?.confirmationStatus === 'confirmed' || status?.confirmationStatus === 'finalized') {
-              setMessage(isSolTransfer ? t('solSentSuccess') : t('tokensSentSuccess'));
-              setToAddress(''); setAmount(''); setMint('');
-              return;
-            }
-            if (status?.err) break;
-            await new Promise(r => setTimeout(r, 1000));
+          const statuses = await connection.getSignatureStatuses([lastSignature]);
+          const status = statuses?.value?.[0];
+          if (status?.confirmationStatus === 'confirmed' || status?.confirmationStatus === 'finalized') {
+            setMessage(isSolTransfer ? t('solSentSuccess') : t('tokensSentSuccess'));
+            setToAddress(''); setAmount(''); setMint('');
+            setLoading(false);
+            return;
           }
         } catch {}
       }
-      setMessage(t('sendErrorPrefix') + ' ' + (e?.message || 'failed to send'));
+      const msg = e?.message || '';
+      if (msg.includes('block height exceeded') || msg.toLowerCase().includes('expired')) {
+        setMessage(t('sendErrorPrefix') + ' ' + 'Network was busy and the transaction expired before confirmation. It was retried automatically; if it still fails, please try again.');
+      } else if (msg.includes('Confirmation timeout')) {
+        setMessage(t('sendErrorPrefix') + ' ' + 'Confirmation is taking longer than expected. Please check the explorer; it may still succeed.');
+      } else {
+        setMessage(t('sendErrorPrefix') + ' ' + (e?.message || 'failed to send'));
+      }
     } finally {
       setLoading(false);
     }
