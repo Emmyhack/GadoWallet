@@ -26,16 +26,27 @@ export function SendReceive() {
     if (!publicKey) return;
     setMessage('');
     setLoading(true);
+    let lastSignature: string | undefined;
+    const isSolTransfer = tab === 'sol';
     try {
       const recipient = new PublicKey(toAddress);
-      if (tab === 'sol') {
+      // Use latest blockhash so we can confirm with a strategy (avoids default 30s timeout path)
+      const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+      if (isSolTransfer) {
         const tx = new Transaction().add(SystemProgram.transfer({
           fromPubkey: publicKey,
           toPubkey: recipient,
           lamports: Math.floor(parseFloat(amount) * LAMPORTS_PER_SOL),
         }));
-        const sig = await sendTransaction!(tx, connection);
-        await connection.confirmTransaction(sig, 'confirmed');
+        tx.recentBlockhash = latestBlockhash.blockhash;
+        tx.feePayer = publicKey;
+        const sig = await sendTransaction!(tx, connection, { preflightCommitment: 'confirmed' });
+        lastSignature = sig;
+        await connection.confirmTransaction({
+          signature: sig,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        }, 'confirmed');
         setMessage(t('solSentSuccess'));
       } else {
         const mintPk = new PublicKey(mint);
@@ -49,12 +60,35 @@ export function SendReceive() {
         const tokenAmount = Math.floor(parseFloat(amount));
         ix.push(createTransferInstruction(fromAta, toAta, publicKey, tokenAmount));
         const tx = new Transaction().add(...(ix as any));
-        const sig = await sendTransaction!(tx, connection);
-        await connection.confirmTransaction(sig, 'confirmed');
+        tx.recentBlockhash = latestBlockhash.blockhash;
+        tx.feePayer = publicKey;
+        const sig = await sendTransaction!(tx, connection, { preflightCommitment: 'confirmed' });
+        lastSignature = sig;
+        await connection.confirmTransaction({
+          signature: sig,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        }, 'confirmed');
         setMessage(t('tokensSentSuccess'));
       }
       setToAddress(''); setAmount(''); setMint('');
     } catch (e: any) {
+      // If the only failure is the 30s confirm timeout, verify signature status before surfacing an error
+      if (e?.message?.includes('Transaction was not confirmed') && lastSignature) {
+        try {
+          for (let attempt = 0; attempt < 12; attempt++) { // up to ~12s extra
+            const statuses = await connection.getSignatureStatuses([lastSignature]);
+            const status = statuses?.value?.[0];
+            if (status?.confirmationStatus === 'confirmed' || status?.confirmationStatus === 'finalized') {
+              setMessage(isSolTransfer ? t('solSentSuccess') : t('tokensSentSuccess'));
+              setToAddress(''); setAmount(''); setMint('');
+              return;
+            }
+            if (status?.err) break;
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        } catch {}
+      }
       setMessage(t('sendErrorPrefix') + ' ' + (e?.message || 'failed to send'));
     } finally {
       setLoading(false);
