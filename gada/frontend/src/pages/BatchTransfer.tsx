@@ -4,6 +4,7 @@ import { useAnchorProgram, batchTransferTokens, batchTransferCoins } from '../li
 import { Send, Loader2, Plus, Trash2 } from 'lucide-react';
 import { web3 } from '@coral-xyz/anchor';
 import { BN } from '@coral-xyz/anchor';
+import { getAccount, getMint } from '@solana/spl-token';
 
 interface TransferItem {
   id: string;
@@ -49,10 +50,20 @@ const BatchTransfer = () => {
     setError('');
 
     try {
+      let scaleFactor = 1;
+      if (type === 'token') {
+        const fromTokenAccountPubkey = new web3.PublicKey(fromTokenAccount);
+        const tokenAccInfo = await getAccount(program.provider.connection, fromTokenAccountPubkey);
+        const mintInfo = await getMint(program.provider.connection, tokenAccInfo.mint);
+        scaleFactor = 10 ** mintInfo.decimals;
+      } else {
+        scaleFactor = 1e9;
+      }
+
       const amounts = transfers
         .map(t => parseFloat(t.amount))
         .filter(amount => amount > 0)
-        .map(amount => new BN(amount * (type === 'coin' ? 1e9 : 1)));
+        .map(amount => new BN(Math.floor(amount * scaleFactor)));
 
       if (amounts.length === 0) {
         throw new Error('Please enter at least one valid amount');
@@ -178,7 +189,7 @@ const BatchTransfer = () => {
                     onChange={e => updateTransfer(transfer.id, e.target.value)}
                     placeholder={`Amount ${index + 1} ${type === 'coin' ? 'in SOL' : 'in tokens'}`}
                     min={0}
-                    step={type === 'coin' ? 0.0001 : 1}
+                    step={type === 'coin' ? 0.0001 : 0.000001}
                     disabled={!connected}
                   />
                 </div>

@@ -3,7 +3,7 @@ import { useAnchorProgram } from '../lib/anchor';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Send, Plus, Trash2, Coins, Coins as Token } from 'lucide-react';
-import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction } from '@solana/spl-token';
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useTranslation } from 'react-i18next';
 
 interface Recipient {
@@ -84,6 +84,8 @@ export function BatchTransfer() {
           return;
         }
         const mintPk = new web3.PublicKey(tokenMint);
+        const mintInfo = await getMint(connection, mintPk);
+        const decimals = mintInfo.decimals;
         for (const recipient of validRecipients) {
           const toOwner = new web3.PublicKey(recipient.address);
           const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
@@ -102,14 +104,15 @@ export function BatchTransfer() {
             );
           }
 
-          const amount = new BN(parseFloat(recipient.amount));
+          const uiAmount = parseFloat(recipient.amount);
+          const rawAmount = new BN(Math.floor(uiAmount * 10 ** decimals));
           await program.methods
-            .batchTransferTokens([amount])
+            .batchTransferTokens([rawAmount])
             .accounts({
               from_token_account: fromTokenAccount,
               to_token_account: toTokenAccount,
               authority: publicKey,
-              token_program: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+              token_program: TOKEN_PROGRAM_ID,
             })
             .preInstructions(ix)
             .rpc();
@@ -259,7 +262,7 @@ export function BatchTransfer() {
                   type="number"
                   value={recipient.amount}
                   onChange={(e) => updateRecipient(recipient.id, 'amount', e.target.value)}
-                  placeholder={activeTab === 'sol' ? (t('amountInSol') || '') : (t('rawTokenAmount') || '')}
+                  placeholder={activeTab === 'sol' ? (t('amountInSol') || '') : (t('amountInTokens') || 'Amount in tokens (UI)')}
                   step="0.000000001"
                   className="input-field"
                 />
