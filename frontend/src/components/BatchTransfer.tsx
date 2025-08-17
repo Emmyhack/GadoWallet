@@ -5,6 +5,7 @@ import { web3, BN } from '@project-serum/anchor';
 import { Send, Plus, Trash2, Coins, Coins as Token } from 'lucide-react';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useTranslation } from 'react-i18next';
+import { ComputeBudgetProgram } from '@solana/web3.js';
 
 interface Recipient {
   id: string;
@@ -65,14 +66,19 @@ export function BatchTransfer() {
       if (activeTab === 'sol') {
         for (const recipient of validRecipients) {
           const toAddress = new web3.PublicKey(recipient.address);
-          const amount = new BN(parseFloat(recipient.amount) * 1e9);
+          const amount = new BN(Math.floor(parseFloat(recipient.amount) * 1e9));
+          const preIxs = [
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
+          ];
           await program.methods
             .batchTransferCoins([amount])
             .accounts({
-              from_account: publicKey,
-              to_account: toAddress,
-              system_program: web3.SystemProgram.programId,
+              fromAccount: publicKey,
+              toAccount: toAddress,
+              systemProgram: web3.SystemProgram.programId,
             })
+            .preInstructions(preIxs)
             .rpc();
         }
         setMessage(t('solTransfersCompleted'));
@@ -106,15 +112,20 @@ export function BatchTransfer() {
 
           const uiAmount = parseFloat(recipient.amount);
           const rawAmount = new BN(Math.floor(uiAmount * 10 ** decimals));
+          const preIxs = [
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 400_000 }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }),
+            ...ix,
+          ];
           await program.methods
             .batchTransferTokens([rawAmount])
             .accounts({
-              from_token_account: fromTokenAccount,
-              to_token_account: toTokenAccount,
+              fromTokenAccount: fromTokenAccount,
+              toTokenAccount: toTokenAccount,
               authority: publicKey,
-              token_program: TOKEN_PROGRAM_ID,
+              tokenProgram: TOKEN_PROGRAM_ID,
             })
-            .preInstructions(ix)
+            .preInstructions(preIxs)
             .rpc();
         }
         setMessage(t('tokenTransfersCompleted'));
