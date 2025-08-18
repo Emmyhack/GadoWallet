@@ -15,7 +15,7 @@ const INACTIVITY_PERIOD_SECONDS: i64 = 365 * 24 * 60 * 60; // 365 days
 pub mod gada {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
+    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
         msg!("Gada program initialized!");
         Ok(())
     }
@@ -67,26 +67,51 @@ pub mod gada {
 
     pub fn batch_transfer_tokens(
         ctx: Context<BatchTransferTokens>, 
+        recipients: Vec<Pubkey>,
         amounts: Vec<u64>
     ) -> Result<()> {
-        require!(amounts.len() <= 10, ErrorCode::TooManyTransfers);
+        require!(recipients.len() <= 10, ErrorCode::TooManyTransfers);
+        require!(recipients.len() == amounts.len(), ErrorCode::MismatchedArrays);
+        
         // Ensure authority is owner of `from_token_account`
         require_keys_eq!(ctx.accounts.from_token_account.owner, ctx.accounts.authority.key(), ErrorCode::Unauthorized);
-        // Ensure token account mints match
-        require_keys_eq!(ctx.accounts.from_token_account.mint, ctx.accounts.to_token_account.mint, ErrorCode::InvalidMint);
         
-        for (i, &amount) in amounts.iter().enumerate() {
+        for (i, (&amount, &recipient)) in amounts.iter().zip(recipients.iter()).enumerate() {
             if amount > 0 {
-                let cpi_accounts = Transfer {
-                    from: ctx.accounts.from_token_account.to_account_info(),
-                    to: ctx.accounts.to_token_account.to_account_info(),
-                    authority: ctx.accounts.authority.to_account_info(),
-                };
-                let cpi_program = ctx.accounts.token_program.to_account_info();
-                let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+                // Find the corresponding token account for this recipient
+                let remaining_accounts = &ctx.remaining_accounts;
+                if i >= remaining_accounts.len() {
+                    return Err(ErrorCode::InsufficientAccounts.into());
+                }
                 
-                token::transfer(cpi_ctx, amount)?;
-                msg!("Transfer {}: {} tokens", i + 1, amount);
+                let to_token_account = &remaining_accounts[i];
+                
+                // Ensure token account mints match
+                let to_token_account_data = TokenAccount::try_deserialize(&mut to_token_account.data.borrow().as_ref())?;
+                require_keys_eq!(ctx.accounts.from_token_account.mint, to_token_account_data.mint, ErrorCode::InvalidMint);
+                require_keys_eq!(to_token_account_data.owner, recipient, ErrorCode::Unauthorized);
+                
+                // Use the transfer instruction directly
+                let transfer_ix = anchor_spl::token::spl_token::instruction::transfer(
+                    &ctx.accounts.token_program.key(),
+                    &ctx.accounts.from_token_account.key(),
+                    &to_token_account.key(),
+                    &ctx.accounts.authority.key(),
+                    &[],
+                    amount,
+                )?;
+                
+                anchor_lang::solana_program::program::invoke(
+                    &transfer_ix,
+                    &[
+                        ctx.accounts.from_token_account.to_account_info(),
+                        to_token_account.to_account_info(),
+                        ctx.accounts.authority.to_account_info(),
+                        ctx.accounts.token_program.to_account_info(),
+                    ],
+                )?;
+                
+                msg!("Transfer {}: {} tokens to {}", i + 1, amount, recipient);
             }
         }
         Ok(())
@@ -94,25 +119,36 @@ pub mod gada {
 
     pub fn batch_transfer_coins(
         ctx: Context<BatchTransferCoins>, 
+        recipients: Vec<Pubkey>,
         amounts: Vec<u64>
     ) -> Result<()> {
-        require!(amounts.len() <= 10, ErrorCode::TooManyTransfers);
+        require!(recipients.len() <= 10, ErrorCode::TooManyTransfers);
+        require!(recipients.len() == amounts.len(), ErrorCode::MismatchedArrays);
         
-        for (i, &amount) in amounts.iter().enumerate() {
+        for (i, (&amount, &recipient)) in amounts.iter().zip(recipients.iter()).enumerate() {
             if amount > 0 {
+                // Find the corresponding account for this recipient
+                let remaining_accounts = &ctx.remaining_accounts;
+                if i >= remaining_accounts.len() {
+                    return Err(ErrorCode::InsufficientAccounts.into());
+                }
+                
+                let to_account = &remaining_accounts[i];
+                require_keys_eq!(to_account.key(), recipient, ErrorCode::Unauthorized);
+                
                 let ix = anchor_lang::solana_program::system_instruction::transfer(
                     &ctx.accounts.from_account.key(),
-                    &ctx.accounts.to_account.key(),
+                    &to_account.key(),
                     amount,
                 );
                 anchor_lang::solana_program::program::invoke(
                     &ix,
                     &[
                         ctx.accounts.from_account.to_account_info(),
-                        ctx.accounts.to_account.to_account_info(),
+                        to_account.to_account_info(),
                     ],
                 )?;
-                msg!("Transfer {}: {} lamports", i + 1, amount);
+                msg!("Transfer {}: {} lamports to {}", i + 1, amount, recipient);
             }
         }
         Ok(())
@@ -242,8 +278,6 @@ pub struct UpdateCoinActivity<'info> {
 pub struct BatchTransferTokens<'info> {
     #[account(mut)]
     pub from_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
-    pub to_token_account: Account<'info, TokenAccount>,
     pub authority: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
@@ -252,9 +286,6 @@ pub struct BatchTransferTokens<'info> {
 pub struct BatchTransferCoins<'info> {
     #[account(mut)]
     pub from_account: Signer<'info>,
-    /// CHECK: This account will receive SOL
-    #[account(mut)]
-    pub to_account: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
 }
 
@@ -332,4 +363,8 @@ pub enum ErrorCode {
     InvalidMint,
     #[msg("Invalid inactivity period.")]
     InvalidInactivityPeriod,
+    #[msg("Recipients and amounts arrays must have the same length.")]
+    MismatchedArrays,
+    #[msg("Insufficient accounts provided for batch transfer.")]
+    InsufficientAccounts,
 }
