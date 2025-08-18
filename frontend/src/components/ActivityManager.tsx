@@ -1,8 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAnchorProgram } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Clock, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+interface HeirInfo {
+  publicKey: any;
+  account: {
+    owner: any;
+    heir: any;
+    amount: any;
+    lastActiveTime: any;
+    isClaimed: boolean;
+    inactivityPeriodSeconds: any;
+  };
+}
 
 export function ActivityManager() {
   const program = useAnchorProgram();
@@ -11,6 +23,56 @@ export function ActivityManager() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
+  const [solHeirs, setSolHeirs] = useState<HeirInfo[]>([]);
+  const [tokenHeirs, setTokenHeirs] = useState<HeirInfo[]>([]);
+  const [loadingHeirs, setLoadingHeirs] = useState(false);
+
+  const loadHeirs = async () => {
+    if (!program || !publicKey) return;
+    
+    try {
+      setLoadingHeirs(true);
+      
+      // Load SOL heirs
+      const coinHeirs = await (program as any).account.coin_heir.all([
+        { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+      ]);
+      setSolHeirs(coinHeirs);
+      
+      // Load Token heirs
+      const tokenHeirsData = await (program as any).account.token_heir.all([
+        { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+      ]);
+      setTokenHeirs(tokenHeirsData);
+      
+    } catch (error) {
+      console.error('Error loading heirs:', error);
+    } finally {
+      setLoadingHeirs(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHeirs();
+  }, [program, publicKey]);
+
+  const formatInactivityPeriod = (seconds: number) => {
+    const days = Math.floor(seconds / (24 * 60 * 60));
+    if (days === 1) return '1 day';
+    if (days < 30) return `${days} days`;
+    if (days < 365) {
+      const months = Math.floor(days / 30);
+      return months === 1 ? '1 month' : `${months} months`;
+    }
+    const years = Math.floor(days / 365);
+    return years === 1 ? '1 year' : `${years} years`;
+  };
+
+  const getAverageInactivityPeriod = (heirs: HeirInfo[]) => {
+    if (heirs.length === 0) return '1 year';
+    const avgSeconds = heirs.reduce((sum, heir) => sum + heir.account.inactivityPeriodSeconds.toNumber(), 0) / heirs.length;
+    return formatInactivityPeriod(avgSeconds);
+  };
 
   const handleUpdateActivity = async (type: 'sol' | 'token') => {
     if (!program || !publicKey) return;
@@ -34,11 +96,10 @@ export function ActivityManager() {
           }
           setLastUpdateTime(new Date());
           setMessage(t('solUpdated') || '');
+          await loadHeirs(); // Reload heirs to update the display
         }
       } else {
-        const heirs = await (program as any).account.token_heir.all([
-          { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
-        ]);
+        const heirs = tokenHeirs;
         if (!heirs.length) {
           setMessage(t('noTokenHeirs') || '');
         } else {
@@ -50,6 +111,7 @@ export function ActivityManager() {
           }
           setLastUpdateTime(new Date());
           setMessage(t('tokenUpdated') || '');
+          await loadHeirs(); // Reload heirs to update the display
         }
       }
     } catch (error) {
@@ -98,7 +160,7 @@ export function ActivityManager() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-300">{t('inactivityPeriod') || 'Inactivity Period:'}</span>
-              <span className="font-medium text-gray-900 dark:text-white">{t('oneYear') || '1 year'}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{loadingHeirs ? 'Loading...' : getAverageInactivityPeriod(solHeirs)}</span>
             </div>
             <button
               onClick={() => handleUpdateActivity('sol')}
@@ -135,7 +197,7 @@ export function ActivityManager() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-300">{t('inactivityPeriod') || 'Inactivity Period:'}</span>
-              <span className="font-medium text-gray-900 dark:text-white">{t('oneYear') || '1 year'}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{loadingHeirs ? 'Loading...' : getAverageInactivityPeriod(tokenHeirs)}</span>
             </div>
             <button
               onClick={() => handleUpdateActivity('token')}
@@ -188,7 +250,7 @@ export function ActivityManager() {
         <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-4">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('inactivityPeriodCard') || 'Inactivity Period'}</h3>
           <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-            <li>• {t('defaultInactivity') || 'Default inactivity period: 1 year'}</li>
+            <li>• {t('defaultInactivity') || 'Customizable inactivity period set by owner'}</li>
             <li>• {t('heirsCanClaim') || 'Heirs can claim after inactivity period'}</li>
             <li>• {t('updatesReset') || 'Activity updates reset the timer'}</li>
             <li>• {t('multipleHeirs') || 'Multiple heirs can be designated'}</li>
