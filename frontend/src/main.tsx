@@ -1,9 +1,5 @@
-import { Buffer } from 'buffer'
-
-// Polyfill for global Buffer
-if (typeof window !== 'undefined') {
-  window.Buffer = Buffer
-}
+// Import polyfills first before any other modules
+import './polyfills'
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
