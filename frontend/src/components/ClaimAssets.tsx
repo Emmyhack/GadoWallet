@@ -5,6 +5,7 @@ import { web3 } from '@project-serum/anchor';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Gift, Search, AlertTriangle, CheckCircle, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { CivicGateway } from './CivicGateway';
 
 interface ClaimableAsset {
   id: string;
@@ -169,7 +170,10 @@ export function ClaimAssets() {
   };
 
   return (
-    <div className="space-y-6">
+    <CivicGateway 
+      requiredForAction="claiming inherited assets"
+      className="space-y-6"
+    >
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
           <Gift className="w-5 h-5 text-white" />
@@ -346,6 +350,6 @@ export function ClaimAssets() {
           </ul>
         </div>
       </div>
-    </div>
+    </CivicGateway>
   );
 }
