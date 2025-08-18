@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { CivicGateway } from './CivicGateway';
 
 export function InheritanceManager() {
   const program = useAnchorProgram();
@@ -101,7 +102,10 @@ export function InheritanceManager() {
   };
 
   return (
-    <div className="space-y-6">
+    <CivicGateway 
+      requiredForAction="creating inheritance plans"
+      className="space-y-6"
+    >
       <div className="flex items-center space-x-3 mb-6">
         <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
           <Shield className="w-5 h-5 text-white" />
@@ -243,11 +247,11 @@ export function InheritanceManager() {
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li>• {t('designateHeirs') || 'Designate heirs for your assets'}</li>
           <li>• {t('batchTransfer') || 'Batch transfers'}</li>
-          <li>• Set custom inactivity periods in days
-          <li>• Heirs can claim after the specified inactivity period
+          <li>• Set custom inactivity periods in days</li>
+          <li>• Heirs can claim after the specified inactivity period</li>
           <li>• Activity updates reset the inactivity timer</li>
         </ul>
       </div>
-    </div>
+    </CivicGateway>
   );
 }
