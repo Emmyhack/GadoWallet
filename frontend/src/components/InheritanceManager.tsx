@@ -192,7 +192,7 @@ export function InheritanceManager() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Inactivity (days)
+              Inactivity Period (days) - After this many days of no activity, heirs can claim
             </label>
             <input
               type="number"
@@ -243,7 +243,9 @@ export function InheritanceManager() {
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li>• {t('designateHeirs') || 'Designate heirs for your assets'}</li>
           <li>• {t('batchTransfer') || 'Batch transfers'}</li>
-          <li>• {t('activity')}</li>
+          <li>• Set custom inactivity periods in days
+          <li>• Heirs can claim after the specified inactivity period
+          <li>• Activity updates reset the inactivity timer</li>
         </ul>
       </div>
     </div>
