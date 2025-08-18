@@ -38,10 +38,10 @@ const IDL: any = {
       "name": "batch_transfer_coins",
       "accounts": [
         { "name": "from_account", "isMut": true, "isSigner": true },
-        { "name": "to_account", "isMut": true, "isSigner": false },
         { "name": "system_program", "isMut": false, "isSigner": false }
       ],
       "args": [
+        { "name": "recipients", "type": { "vec": "publicKey" } },
         { "name": "amounts", "type": { "vec": "u64" } }
       ]
     },
@@ -49,11 +49,11 @@ const IDL: any = {
       "name": "batch_transfer_tokens",
       "accounts": [
         { "name": "from_token_account", "isMut": true, "isSigner": false },
-        { "name": "to_token_account", "isMut": true, "isSigner": false },
         { "name": "authority", "isMut": false, "isSigner": true },
         { "name": "token_program", "isMut": false, "isSigner": false }
       ],
       "args": [
+        { "name": "recipients", "type": { "vec": "publicKey" } },
         { "name": "amounts", "type": { "vec": "u64" } }
       ]
     },
@@ -133,7 +133,12 @@ const IDL: any = {
   "errors": [
     { "code": 6000, "name": "OwnerStillActive", "msg": "Owner is still active." },
     { "code": 6001, "name": "AlreadyClaimed", "msg": "Assets have already been claimed." },
-    { "code": 6002, "name": "TooManyTransfers", "msg": "Too many transfers in batch (max 10)." }
+    { "code": 6002, "name": "TooManyTransfers", "msg": "Too many transfers in batch (max 10)." },
+    { "code": 6003, "name": "Unauthorized", "msg": "Unauthorized operation." },
+    { "code": 6004, "name": "InvalidMint", "msg": "Invalid token mint." },
+    { "code": 6005, "name": "InvalidInactivityPeriod", "msg": "Invalid inactivity period." },
+    { "code": 6006, "name": "MismatchedArrays", "msg": "Recipients and amounts arrays must have the same length." },
+    { "code": 6007, "name": "InsufficientAccounts", "msg": "Insufficient accounts provided for batch transfer." }
   ]
 };
 
@@ -269,33 +274,42 @@ export async function claimHeirTokenAssets(
 
 export async function batchTransferCoins(
   program: Gada,
-  toAccount: web3.PublicKey,
+  recipients: web3.PublicKey[],
   amounts: BN[]
 ) {
   return await program.methods
-    .batchTransferCoins(amounts)
+    .batchTransferCoins(recipients, amounts)
     .accounts({
       fromAccount: program.provider.publicKey!,
-      toAccount: toAccount,
       systemProgram: web3.SystemProgram.programId,
     })
+    .remainingAccounts(recipients.map(recipient => ({
+      pubkey: recipient,
+      isWritable: true,
+      isSigner: false,
+    })))
     .rpc();
 }
 
 export async function batchTransferTokens(
   program: Gada,
   fromTokenAccount: web3.PublicKey,
-  toTokenAccount: web3.PublicKey,
+  recipients: web3.PublicKey[],
+  toTokenAccounts: web3.PublicKey[],
   amounts: BN[]
 ) {
   return await program.methods
-    .batchTransferTokens(amounts)
+    .batchTransferTokens(recipients, amounts)
     .accounts({
       fromTokenAccount: fromTokenAccount,
-      toTokenAccount: toTokenAccount,
       authority: program.provider.publicKey!,
       tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
     })
+    .remainingAccounts(toTokenAccounts.map(account => ({
+      pubkey: account,
+      isWritable: true,
+      isSigner: false,
+    })))
     .rpc();
 }
 

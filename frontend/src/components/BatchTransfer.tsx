@@ -64,24 +64,34 @@ export function BatchTransfer() {
       }
 
       if (activeTab === 'sol') {
+        // Create a single transaction with multiple transfer instructions
+        const transaction = new web3.Transaction();
+        
+        // Add compute budget instructions
+        transaction.add(
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 + (validRecipients.length * 50_000) })
+        );
+        
+        // Add all transfer instructions to the same transaction
         for (const recipient of validRecipients) {
           const toAddress = new web3.PublicKey(recipient.address);
-          const amount = new BN(Math.floor(parseFloat(recipient.amount) * 1e9));
-          const preIxs = [
-            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
-            ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
-          ];
-          await program.methods
-            .batchTransferCoins([amount])
-            .accounts({
-              from_account: publicKey,
-              to_account: toAddress,
-              system_program: web3.SystemProgram.programId,
-            })
-            .preInstructions(preIxs)
-            .rpc();
+          const amount = Math.floor(parseFloat(recipient.amount) * 1e9);
+          
+          const transferInstruction = web3.SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: toAddress,
+            lamports: amount,
+          });
+          
+          transaction.add(transferInstruction);
         }
-        setMessage(t('solTransfersCompleted'));
+        
+        // Send the transaction with all transfers
+        const signature = await connection.sendTransaction(transaction, [program.provider.wallet.adapter]);
+        await connection.confirmTransaction(signature, 'confirmed');
+        
+        setMessage(`${t('solTransfersCompleted')} - ${validRecipients.length} transfers in 1 transaction`);
         setIsError(false);
       } else {
         if (!tokenMint) {
@@ -89,46 +99,58 @@ export function BatchTransfer() {
           setIsError(true);
           return;
         }
+        
         const mintPk = new web3.PublicKey(tokenMint);
         const mintInfo = await getMint(connection, mintPk);
         const decimals = mintInfo.decimals;
+        const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
+        
+        // Create a single transaction with multiple token transfer instructions
+        const transaction = new web3.Transaction();
+        
+        // Add compute budget instructions
+        transaction.add(
+          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 400_000 }),
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 + (validRecipients.length * 100_000) })
+        );
+        
+        // Create ATA instructions if needed and add transfer instructions
         for (const recipient of validRecipients) {
-          const toOwner = new web3.PublicKey(recipient.address);
-          const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
-          const toTokenAccount = await getAssociatedTokenAddress(mintPk, toOwner);
-
-          const ix: web3.TransactionInstruction[] = [];
+          const recipientAddress = new web3.PublicKey(recipient.address);
+          const toTokenAccount = await getAssociatedTokenAddress(mintPk, recipientAddress);
+          
+          // Check if ATA exists, create if not
           const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
           if (!toAccountInfo) {
-            ix.push(
-              createAssociatedTokenAccountInstruction(
-                publicKey,
-                toTokenAccount,
-                toOwner,
-                mintPk
-              )
+            const createATAInstruction = createAssociatedTokenAccountInstruction(
+              publicKey,
+              toTokenAccount,
+              recipientAddress,
+              mintPk
             );
+            transaction.add(createATAInstruction);
           }
-
-          const uiAmount = parseFloat(recipient.amount);
-          const rawAmount = new BN(Math.floor(uiAmount * 10 ** decimals));
-          const preIxs = [
-            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 400_000 }),
-            ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }),
-            ...ix,
-          ];
-          await program.methods
-            .batchTransferTokens([rawAmount])
-            .accounts({
-              from_token_account: fromTokenAccount,
-              to_token_account: toTokenAccount,
-              authority: publicKey,
-              token_program: TOKEN_PROGRAM_ID,
-            })
-            .preInstructions(preIxs)
-            .rpc();
+          
+          // Add the token transfer instruction
+          const amount = Math.floor(parseFloat(recipient.amount) * 10 ** decimals);
+          
+          // Use SPL Token transfer instruction directly
+          const { createTransferInstruction } = await import('@solana/spl-token');
+          const tokenTransferInstruction = createTransferInstruction(
+            fromTokenAccount,
+            toTokenAccount,
+            publicKey,
+            amount
+          );
+          
+          transaction.add(tokenTransferInstruction);
         }
-        setMessage(t('tokenTransfersCompleted'));
+        
+        // Send the transaction with all transfers
+        const signature = await connection.sendTransaction(transaction, [program.provider.wallet.adapter]);
+        await connection.confirmTransaction(signature, 'confirmed');
+        
+        setMessage(`${t('tokenTransfersCompleted')} - ${validRecipients.length} transfers in 1 transaction`);
         setIsError(false);
       }
 
