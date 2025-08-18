@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useAnchorProgram } from '../lib/anchor';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { web3, BN } from '@project-serum/anchor';
+import { web3 } from '@project-serum/anchor';
 import { Send, Plus, Trash2, Coins, Coins as Token } from 'lucide-react';
-import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getMint, createTransferInstruction } from '@solana/spl-token';
 import { useTranslation } from 'react-i18next';
 import { ComputeBudgetProgram } from '@solana/web3.js';
 
@@ -15,7 +15,7 @@ interface Recipient {
 
 export function BatchTransfer() {
   const program = useAnchorProgram();
-  const { publicKey } = useWallet();
+  const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +88,7 @@ export function BatchTransfer() {
         }
         
         // Send the transaction with all transfers
-        const signature = await connection.sendTransaction(transaction, [program.provider.wallet.adapter]);
+        const signature = await sendTransaction(transaction, connection);
         await connection.confirmTransaction(signature, 'confirmed');
         
         setMessage(`${t('solTransfersCompleted')} - ${validRecipients.length} transfers in 1 transaction`);
@@ -135,7 +135,6 @@ export function BatchTransfer() {
           const amount = Math.floor(parseFloat(recipient.amount) * 10 ** decimals);
           
           // Use SPL Token transfer instruction directly
-          const { createTransferInstruction } = await import('@solana/spl-token');
           const tokenTransferInstruction = createTransferInstruction(
             fromTokenAccount,
             toTokenAccount,
@@ -147,7 +146,7 @@ export function BatchTransfer() {
         }
         
         // Send the transaction with all transfers
-        const signature = await connection.sendTransaction(transaction, [program.provider.wallet.adapter]);
+        const signature = await sendTransaction(transaction, connection);
         await connection.confirmTransaction(signature, 'confirmed');
         
         setMessage(`${t('tokenTransfersCompleted')} - ${validRecipients.length} transfers in 1 transaction`);
