@@ -7,6 +7,7 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env': {},
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
   resolve: {
     alias: {
@@ -17,13 +18,13 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['buffer', 'process'],
+    include: ['buffer', 'process', 'stream-browserify', 'crypto-browserify'],
   },
   server: {
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline';
+        script-src 'self';
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: https: https://drive.google.com https://lh3.googleusercontent.com;
