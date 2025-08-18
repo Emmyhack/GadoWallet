@@ -96,8 +96,12 @@ export function BatchTransfer() {
         const signatures = [];
         
         for (const [batchIndex, batch] of batches.entries()) {
-          // Create a transaction for this batch
-          const transaction = new web3.Transaction();
+          // Create a transaction for this batch with fresh blockhash
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+          const transaction = new web3.Transaction({
+            recentBlockhash: blockhash,
+            feePayer: publicKey,
+          });
           
           // Add compute budget instructions with more conservative limits
           transaction.add(
@@ -124,12 +128,39 @@ export function BatchTransfer() {
             const signature = await sendTransaction(transaction, connection);
             signatures.push(signature);
             
-            // Wait for confirmation before proceeding to next batch
-            await connection.confirmTransaction(signature, 'confirmed');
+            // Wait for confirmation with better timeout handling
+            setMessage(`Batch ${batchIndex + 1}/${batches.length} submitted - waiting for confirmation...`);
+            
+            try {
+              // First try with shorter timeout
+              await connection.confirmTransaction(signature, 'confirmed');
+            } catch (confirmError: any) {
+              if (confirmError.message?.includes('not confirmed')) {
+                // Check if transaction actually succeeded despite timeout
+                setMessage(`Checking transaction status for batch ${batchIndex + 1}...`);
+                
+                const signatureStatus = await connection.getSignatureStatus(signature);
+                if (signatureStatus?.value?.confirmationStatus === 'confirmed' || 
+                    signatureStatus?.value?.confirmationStatus === 'finalized') {
+                  // Transaction actually succeeded
+                  console.log(`Transaction ${signature} succeeded despite timeout`);
+                } else {
+                  // Try one more time with longer timeout
+                  await connection.confirmTransaction({
+                    signature,
+                    blockhash,
+                    lastValidBlockHeight
+                  }, 'confirmed');
+                }
+              } else {
+                throw confirmError;
+              }
+            }
+            
             totalTransferred += batch.length;
             
             // Update progress
-            setMessage(`Processing batch ${batchIndex + 1}/${batches.length} - ${totalTransferred}/${validRecipients.length} transfers completed`);
+            setMessage(`Batch ${batchIndex + 1}/${batches.length} confirmed - ${totalTransferred}/${validRecipients.length} transfers completed`);
             
           } catch (batchError: any) {
             console.error(`Error in batch ${batchIndex + 1}:`, batchError);
@@ -165,7 +196,7 @@ export function BatchTransfer() {
         
         for (const [batchIndex, batch] of batches.entries()) {
           // Create a transaction for this batch
-          const transaction = new web3.Transaction();
+          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed'); const transaction = new web3.Transaction({ recentBlockhash: blockhash, feePayer: publicKey });
           
           // Add compute budget instructions with higher limits for token operations
           transaction.add(
@@ -208,12 +239,39 @@ export function BatchTransfer() {
             const signature = await sendTransaction(transaction, connection);
             signatures.push(signature);
             
-            // Wait for confirmation before proceeding to next batch
-            await connection.confirmTransaction(signature, 'confirmed');
+            // Wait for confirmation with better timeout handling
+            setMessage(`Token batch ${batchIndex + 1}/${batches.length} submitted - waiting for confirmation...`);
+            
+            try {
+              // First try with shorter timeout
+              await connection.confirmTransaction(signature, 'confirmed');
+            } catch (confirmError: any) {
+              if (confirmError.message?.includes('not confirmed')) {
+                // Check if transaction actually succeeded despite timeout
+                setMessage(`Checking token transaction status for batch ${batchIndex + 1}...`);
+                
+                const signatureStatus = await connection.getSignatureStatus(signature);
+                if (signatureStatus?.value?.confirmationStatus === 'confirmed' || 
+                    signatureStatus?.value?.confirmationStatus === 'finalized') {
+                  // Transaction actually succeeded
+                  console.log(`Token transaction ${signature} succeeded despite timeout`);
+                } else {
+                  // Try one more time with longer timeout
+                  await connection.confirmTransaction({
+                    signature,
+                    blockhash,
+                    lastValidBlockHeight
+                  }, 'confirmed');
+                }
+              } else {
+                throw confirmError;
+              }
+            }
+            
             totalTransferred += batch.length;
             
             // Update progress
-            setMessage(`Processing token batch ${batchIndex + 1}/${batches.length} - ${totalTransferred}/${validRecipients.length} transfers completed`);
+            setMessage(`Token batch ${batchIndex + 1}/${batches.length} confirmed - ${totalTransferred}/${validRecipients.length} transfers completed`);
             
           } catch (batchError: any) {
             console.error(`Error in token batch ${batchIndex + 1}:`, batchError);
@@ -234,13 +292,23 @@ export function BatchTransfer() {
       // Provide more detailed error information
       let errorMessage = t('errorBatchTransfer');
       if (error.message) {
-        errorMessage += `: ${error.message}`;
+        if (error.message.includes('not confirmed') && error.message.includes('30.00 seconds')) {
+          // Extract signature from error message if available
+          const signatureMatch = error.message.match(/signature\s+([A-Za-z0-9]{44,})/);
+          const signature = signatureMatch ? signatureMatch[1] : 'unknown';
+          
+          errorMessage = `Transaction timeout - but it may have succeeded! Please check the transaction signature ${signature} on Solana Explorer (https://explorer.solana.com/tx/${signature}) to verify if your transfers completed. If successful, the recipients should have received their funds despite the timeout.`;
+        } else {
+          errorMessage += `: ${error.message}`;
+        }
       } else if (error.toString().includes('insufficient funds')) {
         errorMessage = 'Insufficient funds for batch transfer';
       } else if (error.toString().includes('Transaction too large')) {
         errorMessage = 'Transaction too large - try with fewer recipients';
       } else if (error.toString().includes('Blockhash not found')) {
         errorMessage = 'Network congestion - please try again';
+      } else if (error.toString().includes('timeout')) {
+        errorMessage = 'Network timeout - your transaction may still be processing. Check Solana Explorer for confirmation.';
       }
       
       setMessage(errorMessage);
