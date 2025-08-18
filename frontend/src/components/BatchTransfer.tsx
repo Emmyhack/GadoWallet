@@ -63,35 +63,81 @@ export function BatchTransfer() {
         return;
       }
 
+      // Calculate total amount for SOL transfers to check balance
       if (activeTab === 'sol') {
-        // Create a single transaction with multiple transfer instructions
-        const transaction = new web3.Transaction();
+        const totalAmount = validRecipients.reduce((sum, recipient) => {
+          return sum + Math.floor(parseFloat(recipient.amount) * 1e9);
+        }, 0);
         
-        // Add compute budget instructions
-        transaction.add(
-          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 200_000 }),
-          ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 + (validRecipients.length * 50_000) })
-        );
+        // Add estimated transaction fees (approximately 5000 lamports per signature)
+        const estimatedFees = validRecipients.length > 5 ? Math.ceil(validRecipients.length / 3) * 5000 : 5000;
+        const totalWithFees = totalAmount + estimatedFees;
         
-        // Add all transfer instructions to the same transaction
-        for (const recipient of validRecipients) {
-          const toAddress = new web3.PublicKey(recipient.address);
-          const amount = Math.floor(parseFloat(recipient.amount) * 1e9);
-          
-          const transferInstruction = web3.SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: toAddress,
-            lamports: amount,
-          });
-          
-          transaction.add(transferInstruction);
+        // Check if user has sufficient balance
+        const balance = await connection.getBalance(publicKey);
+        if (balance < totalWithFees) {
+          setMessage(`Insufficient SOL balance. Need ${(totalWithFees / 1e9).toFixed(4)} SOL but have ${(balance / 1e9).toFixed(4)} SOL`);
+          setIsError(true);
+          return;
+        }
+      }
+
+      if (activeTab === 'sol') {
+        // Check if we should split into multiple transactions for reliability
+        const maxRecipientsPerTx = validRecipients.length > 5 ? 3 : validRecipients.length;
+        const batches = [];
+        
+        // Split recipients into smaller batches to avoid transaction limits
+        for (let i = 0; i < validRecipients.length; i += maxRecipientsPerTx) {
+          batches.push(validRecipients.slice(i, i + maxRecipientsPerTx));
         }
         
-        // Send the transaction with all transfers
-        const signature = await sendTransaction(transaction, connection);
-        await connection.confirmTransaction(signature, 'confirmed');
+        let totalTransferred = 0;
+        const signatures = [];
         
-        setMessage(`${t('solTransfersCompleted')} - ${validRecipients.length} transfers in 1 transaction`);
+        for (const [batchIndex, batch] of batches.entries()) {
+          // Create a transaction for this batch
+          const transaction = new web3.Transaction();
+          
+          // Add compute budget instructions with more conservative limits
+          transaction.add(
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 250_000 }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 150_000 + (batch.length * 30_000) })
+          );
+          
+          // Add transfer instructions for this batch
+          for (const recipient of batch) {
+            const toAddress = new web3.PublicKey(recipient.address);
+            const amount = Math.floor(parseFloat(recipient.amount) * 1e9);
+            
+            const transferInstruction = web3.SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: toAddress,
+              lamports: amount,
+            });
+            
+            transaction.add(transferInstruction);
+          }
+          
+          try {
+            // Send the transaction for this batch
+            const signature = await sendTransaction(transaction, connection);
+            signatures.push(signature);
+            
+            // Wait for confirmation before proceeding to next batch
+            await connection.confirmTransaction(signature, 'confirmed');
+            totalTransferred += batch.length;
+            
+            // Update progress
+            setMessage(`Processing batch ${batchIndex + 1}/${batches.length} - ${totalTransferred}/${validRecipients.length} transfers completed`);
+            
+          } catch (batchError: any) {
+            console.error(`Error in batch ${batchIndex + 1}:`, batchError);
+            throw new Error(`Failed at batch ${batchIndex + 1} after ${totalTransferred} successful transfers. Error: ${batchError.message}`);
+          }
+        }
+        
+        setMessage(`${t('solTransfersCompleted')} - ${totalTransferred} transfers in ${batches.length} transaction(s). Signatures: ${signatures.join(', ')}`);
         setIsError(false);
       } else {
         if (!tokenMint) {
@@ -105,60 +151,99 @@ export function BatchTransfer() {
         const decimals = mintInfo.decimals;
         const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
         
-        // Create a single transaction with multiple token transfer instructions
-        const transaction = new web3.Transaction();
+        // Token transfers are more complex due to ATA creation, use smaller batches
+        const maxRecipientsPerTx = validRecipients.length > 3 ? 2 : validRecipients.length;
+        const batches = [];
         
-        // Add compute budget instructions
-        transaction.add(
-          ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 400_000 }),
-          ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 + (validRecipients.length * 100_000) })
-        );
-        
-        // Create ATA instructions if needed and add transfer instructions
-        for (const recipient of validRecipients) {
-          const recipientAddress = new web3.PublicKey(recipient.address);
-          const toTokenAccount = await getAssociatedTokenAddress(mintPk, recipientAddress);
-          
-          // Check if ATA exists, create if not
-          const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
-          if (!toAccountInfo) {
-            const createATAInstruction = createAssociatedTokenAccountInstruction(
-              publicKey,
-              toTokenAccount,
-              recipientAddress,
-              mintPk
-            );
-            transaction.add(createATAInstruction);
-          }
-          
-          // Add the token transfer instruction
-          const amount = Math.floor(parseFloat(recipient.amount) * 10 ** decimals);
-          
-          // Use SPL Token transfer instruction directly
-          const tokenTransferInstruction = createTransferInstruction(
-            fromTokenAccount,
-            toTokenAccount,
-            publicKey,
-            amount
-          );
-          
-          transaction.add(tokenTransferInstruction);
+        // Split recipients into smaller batches for token transfers
+        for (let i = 0; i < validRecipients.length; i += maxRecipientsPerTx) {
+          batches.push(validRecipients.slice(i, i + maxRecipientsPerTx));
         }
         
-        // Send the transaction with all transfers
-        const signature = await sendTransaction(transaction, connection);
-        await connection.confirmTransaction(signature, 'confirmed');
+        let totalTransferred = 0;
+        const signatures = [];
         
-        setMessage(`${t('tokenTransfersCompleted')} - ${validRecipients.length} transfers in 1 transaction`);
+        for (const [batchIndex, batch] of batches.entries()) {
+          // Create a transaction for this batch
+          const transaction = new web3.Transaction();
+          
+          // Add compute budget instructions with higher limits for token operations
+          transaction.add(
+            ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 500_000 }),
+            ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 + (batch.length * 150_000) })
+          );
+          
+          // Process each recipient in this batch
+          for (const recipient of batch) {
+            const recipientAddress = new web3.PublicKey(recipient.address);
+            const toTokenAccount = await getAssociatedTokenAddress(mintPk, recipientAddress);
+            
+            // Check if ATA exists, create if not
+            const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
+            if (!toAccountInfo) {
+              const createATAInstruction = createAssociatedTokenAccountInstruction(
+                publicKey,
+                toTokenAccount,
+                recipientAddress,
+                mintPk
+              );
+              transaction.add(createATAInstruction);
+            }
+            
+            // Add the token transfer instruction
+            const amount = Math.floor(parseFloat(recipient.amount) * 10 ** decimals);
+            
+            const tokenTransferInstruction = createTransferInstruction(
+              fromTokenAccount,
+              toTokenAccount,
+              publicKey,
+              amount
+            );
+            
+            transaction.add(tokenTransferInstruction);
+          }
+          
+          try {
+            // Send the transaction for this batch
+            const signature = await sendTransaction(transaction, connection);
+            signatures.push(signature);
+            
+            // Wait for confirmation before proceeding to next batch
+            await connection.confirmTransaction(signature, 'confirmed');
+            totalTransferred += batch.length;
+            
+            // Update progress
+            setMessage(`Processing token batch ${batchIndex + 1}/${batches.length} - ${totalTransferred}/${validRecipients.length} transfers completed`);
+            
+          } catch (batchError: any) {
+            console.error(`Error in token batch ${batchIndex + 1}:`, batchError);
+            throw new Error(`Token transfer failed at batch ${batchIndex + 1} after ${totalTransferred} successful transfers. Error: ${batchError.message}`);
+          }
+        }
+        
+        setMessage(`${t('tokenTransfersCompleted')} - ${totalTransferred} transfers in ${batches.length} transaction(s). Signatures: ${signatures.join(', ')}`);
         setIsError(false);
       }
 
       // Reset form
       setRecipients([{ id: '1', address: '', amount: '' }]);
       setTokenMint('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in batch transfer:', error);
-      setMessage(t('errorBatchTransfer'));
+      
+      // Provide more detailed error information
+      let errorMessage = t('errorBatchTransfer');
+      if (error.message) {
+        errorMessage += `: ${error.message}`;
+      } else if (error.toString().includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds for batch transfer';
+      } else if (error.toString().includes('Transaction too large')) {
+        errorMessage = 'Transaction too large - try with fewer recipients';
+      } else if (error.toString().includes('Blockhash not found')) {
+        errorMessage = 'Network congestion - please try again';
+      }
+      
+      setMessage(errorMessage);
       setIsError(true);
     } finally {
       setIsLoading(false);
