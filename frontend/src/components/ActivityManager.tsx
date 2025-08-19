@@ -13,6 +13,7 @@ interface HeirInfo {
     lastActiveTime: any;
     isClaimed: boolean;
     inactivityPeriodSeconds: any;
+    tokenMint?: any; // Optional for token heirs
   };
 }
 
@@ -33,20 +34,23 @@ export function ActivityManager() {
     try {
       setLoadingHeirs(true);
       
-      // Load SOL heirs
-      const coinHeirs = await (program as any).account.coin_heir.all([
+      // Load SOL heirs with correct account name
+      const coinHeirs = await (program as any).account.coinHeir.all([
         { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
       ]);
       setSolHeirs(coinHeirs);
       
-      // Load Token heirs
-      const tokenHeirsData = await (program as any).account.token_heir.all([
+      // Load Token heirs with correct account name
+      const tokenHeirsData = await (program as any).account.tokenHeir.all([
         { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
       ]);
       setTokenHeirs(tokenHeirsData);
       
     } catch (error) {
       console.error('Error loading heirs:', error);
+      // Set empty arrays on error to prevent stale data
+      setSolHeirs([]);
+      setTokenHeirs([]);
     } finally {
       setLoadingHeirs(false);
     }
@@ -58,20 +62,50 @@ export function ActivityManager() {
 
   const formatInactivityPeriod = (seconds: number) => {
     const days = Math.floor(seconds / (24 * 60 * 60));
+    
+    if (days === 0) return '< 1 day';
     if (days === 1) return '1 day';
-    if (days < 30) return `${days} days`;
+    if (days < 7) return `${days} days`;
+    if (days < 30) {
+      const weeks = Math.floor(days / 7);
+      const remainingDays = days % 7;
+      if (weeks === 1) {
+        return remainingDays > 0 ? `1 week, ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : '1 week';
+      }
+      return remainingDays > 0 ? `${weeks} weeks, ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${weeks} weeks`;
+    }
     if (days < 365) {
       const months = Math.floor(days / 30);
-      return months === 1 ? '1 month' : `${months} months`;
+      const remainingDays = days % 30;
+      if (months === 1) {
+        return remainingDays > 0 ? `1 month, ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : '1 month';
+      }
+      return remainingDays > 0 ? `${months} months, ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${months} months`;
     }
     const years = Math.floor(days / 365);
-    return years === 1 ? '1 year' : `${years} years`;
+    const remainingDays = days % 365;
+    if (years === 1) {
+      return remainingDays > 0 ? `1 year, ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : '1 year';
+    }
+    return remainingDays > 0 ? `${years} years, ${remainingDays} day${remainingDays > 1 ? 's' : ''}` : `${years} years`;
   };
 
   const getAverageInactivityPeriod = (heirs: HeirInfo[]) => {
-    if (heirs.length === 0) return '1 year';
-    const avgSeconds = heirs.reduce((sum, heir) => sum + heir.account.inactivityPeriodSeconds.toNumber(), 0) / heirs.length;
-    return formatInactivityPeriod(avgSeconds);
+    if (heirs.length === 0) return 'No heirs configured';
+    
+    try {
+      const avgSeconds = heirs.reduce((sum, heir) => {
+        const seconds = typeof heir.account.inactivityPeriodSeconds === 'number' 
+          ? heir.account.inactivityPeriodSeconds 
+          : heir.account.inactivityPeriodSeconds.toNumber();
+        return sum + seconds;
+      }, 0) / heirs.length;
+      
+      return `${formatInactivityPeriod(avgSeconds)} (avg of ${heirs.length} heir${heirs.length > 1 ? 's' : ''})`;
+    } catch (error) {
+      console.error('Error calculating average inactivity period:', error);
+      return 'Error calculating period';
+    }
   };
 
   const handleUpdateActivity = async (type: 'sol' | 'token') => {
@@ -82,41 +116,77 @@ export function ActivityManager() {
       setMessage('');
 
       if (type === 'sol') {
-        const heirs = await (program as any).account.coin_heir.all([
+        // Fetch fresh SOL heirs data
+        const heirs = await (program as any).account.coinHeir.all([
           { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
         ]);
+        
         if (!heirs.length) {
-          setMessage(t('noSolHeirs') || '');
+          setMessage(t('noSolHeirs') || 'No SOL heirs found. Please add heirs first.');
         } else {
-          for (const h of heirs) {
-            await program.methods.updateCoinActivity().accounts({
-              coin_heir: h.publicKey,
-              owner: publicKey,
-            }).rpc();
+          // Update activity for all SOL heirs
+          let successCount = 0;
+          let errorCount = 0;
+          
+          for (const heir of heirs) {
+            try {
+              await program.methods.updateCoinActivity().accounts({
+                coinHeir: heir.publicKey,
+                owner: publicKey,
+              }).rpc();
+              successCount++;
+            } catch (heirError) {
+              console.error(`Failed to update activity for SOL heir ${heir.publicKey.toString()}:`, heirError);
+              errorCount++;
+            }
           }
+          
           setLastUpdateTime(new Date());
-          setMessage(t('solUpdated') || '');
+          if (errorCount === 0) {
+            setMessage(t('solUpdated') || `Successfully updated activity for ${successCount} SOL heir(s).`);
+          } else {
+            setMessage(`Updated ${successCount} heir(s), ${errorCount} failed. Check console for details.`);
+          }
           await loadHeirs(); // Reload heirs to update the display
         }
       } else {
-        const heirs = tokenHeirs;
+        // Fetch fresh token heirs data
+        const heirs = await (program as any).account.tokenHeir.all([
+          { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+        ]);
+        
         if (!heirs.length) {
-          setMessage(t('noTokenHeirs') || '');
+          setMessage(t('noTokenHeirs') || 'No token heirs found. Please add heirs first.');
         } else {
-          for (const h of heirs) {
-            await program.methods.updateActivity().accounts({
-              token_heir: h.publicKey,
-              owner: publicKey,
-            }).rpc();
+          // Update activity for all token heirs
+          let successCount = 0;
+          let errorCount = 0;
+          
+          for (const heir of heirs) {
+            try {
+              await program.methods.updateActivity().accounts({
+                tokenHeir: heir.publicKey,
+                owner: publicKey,
+              }).rpc();
+              successCount++;
+            } catch (heirError) {
+              console.error(`Failed to update activity for token heir ${heir.publicKey.toString()}:`, heirError);
+              errorCount++;
+            }
           }
+          
           setLastUpdateTime(new Date());
-          setMessage(t('tokenUpdated') || '');
+          if (errorCount === 0) {
+            setMessage(t('tokenUpdated') || `Successfully updated activity for ${successCount} token heir(s).`);
+          } else {
+            setMessage(`Updated ${successCount} heir(s), ${errorCount} failed. Check console for details.`);
+          }
           await loadHeirs(); // Reload heirs to update the display
         }
       }
     } catch (error) {
       console.error('Error updating activity:', error);
-      setMessage(t('updateError') || '');
+      setMessage(t('updateError') || `Error updating activity: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -278,14 +348,19 @@ export function ActivityManager() {
             <span>{t('updateTokens') || 'Update Tokens'}</span>
           </button>
           <button
-            onClick={() => {
-              setLastUpdateTime(new Date());
-              setMessage(t('activityRefreshed') || '');
+            onClick={async () => {
+              await loadHeirs();
+              setMessage(t('activityRefreshed') || 'Status refreshed successfully!');
             }}
-            className="btn-secondary flex items-center justify-center space-x-2"
+            disabled={loadingHeirs}
+            className="btn-secondary flex items-center justify-center space-x-2 disabled:opacity-50"
           >
-            <CheckCircle className="w-4 h-4" />
-            <span>{t('checkStatus') || 'Check Status'}</span>
+            {loadingHeirs ? (
+              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <CheckCircle className="w-4 h-4" />
+            )}
+            <span>{loadingHeirs ? 'Loading...' : (t('checkStatus') || 'Refresh Status')}</span>
           </button>
         </div>
       </div>
