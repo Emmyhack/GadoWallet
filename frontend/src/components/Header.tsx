@@ -1,9 +1,14 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
 import i18n from '../lib/i18n';
 import { useTheme } from '../lib/theme';
+import { useCivicAuth } from '../lib/civic';
 
 export function Header() {
   const { gradient, setGradient, gradientClasses } = useTheme();
+  const { connected } = useWallet();
+  const { isVerified, verificationStatus, requestVerification, isVerifying } = useCivicAuth();
 
   return (
     <header className={`bg-gradient-to-r ${gradientClasses} text-white sticky top-0 z-50`}>
@@ -39,6 +44,33 @@ export function Header() {
               <option value="sunset">Sunset</option>
               <option value="forest">Forest</option>
             </select>
+            
+            {/* Civic Verification Badge */}
+            {connected && (
+              <div className="flex items-center space-x-2">
+                {verificationStatus === 'verified' ? (
+                  <div className="flex items-center space-x-1 bg-green-500/20 text-green-100 px-2 py-1 rounded-md text-xs font-medium">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Verified</span>
+                  </div>
+                ) : verificationStatus === 'pending' ? (
+                  <div className="flex items-center space-x-1 bg-yellow-500/20 text-yellow-100 px-2 py-1 rounded-md text-xs font-medium">
+                    <div className="w-3 h-3 border border-yellow-300 border-t-transparent rounded-full animate-spin"></div>
+                    <span>Verifying</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={requestVerification}
+                    disabled={isVerifying}
+                    className="flex items-center space-x-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-100 px-2 py-1 rounded-md text-xs font-medium transition-colors disabled:opacity-50"
+                  >
+                    <Shield className="w-3 h-3" />
+                    <span>Verify</span>
+                  </button>
+                )}
+              </div>
+            )}
+            
             <WalletMultiButton className="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2 px-3 rounded-md" />
           </div>
         </div>

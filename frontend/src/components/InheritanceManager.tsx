@@ -4,11 +4,13 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useCivicAuth, VerificationPrompt, isVerificationRequired } from '../lib/civic';
 
 export function InheritanceManager() {
   const program = useAnchorProgram();
   const { publicKey } = useWallet();
   const { t } = useTranslation();
+  const { isVerified, requestVerification } = useCivicAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'sol' | 'token'>('sol');
   const [heirAddress, setHeirAddress] = useState('');
@@ -16,13 +18,21 @@ export function InheritanceManager() {
   const [tokenMint, setTokenMint] = useState('');
   const [inactivityDays, setInactivityDays] = useState('365');
   const [message, setMessage] = useState('');
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
 
   const handleAddHeir = async () => {
     if (!program || !publicKey) return;
 
+    // Check if verification is required and user is not verified
+    if (isVerificationRequired('addHeir') && !isVerified) {
+      setShowVerificationPrompt(true);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setMessage('');
+      setShowVerificationPrompt(false);
 
       // Validate inputs before proceeding
       if (!heirAddress.trim()) {
@@ -225,6 +235,22 @@ export function InheritanceManager() {
 
       {/* Add Heir Form */}
       <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur rounded-lg p-6 border border-gray-200 dark:border-white/10">
+        {/* Verification Prompt */}
+        {showVerificationPrompt && (
+          <VerificationPrompt
+            operation="setting up inheritance"
+            onVerify={async () => {
+              await requestVerification();
+              setShowVerificationPrompt(false);
+            }}
+            onSkip={() => {
+              setShowVerificationPrompt(false);
+              // Continue with heir addition without verification
+              handleAddHeir();
+            }}
+          />
+        )}
+        
         <form onSubmit={(e) => { e.preventDefault(); handleAddHeir(); }} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">

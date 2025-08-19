@@ -11,10 +11,10 @@ const IDL: any = {
     {
       "name": "add_coin_heir",
       "accounts": [
-        { "name": "coin_heir", "isMut": true, "isSigner": false },
+        { "name": "coinHeir", "isMut": true, "isSigner": false },
         { "name": "owner", "isMut": true, "isSigner": true },
         { "name": "heir", "isMut": false, "isSigner": false },
-        { "name": "system_program", "isMut": false, "isSigner": false }
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
         { "name": "amount", "type": "u64" },
@@ -24,11 +24,11 @@ const IDL: any = {
     {
       "name": "add_token_heir",
       "accounts": [
-        { "name": "token_heir", "isMut": true, "isSigner": false },
+        { "name": "tokenHeir", "isMut": true, "isSigner": false },
         { "name": "owner", "isMut": true, "isSigner": true },
         { "name": "heir", "isMut": false, "isSigner": false },
-        { "name": "token_mint", "isMut": false, "isSigner": false },
-        { "name": "system_program", "isMut": false, "isSigner": false }
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
         { "name": "amount", "type": "u64" },
@@ -38,8 +38,8 @@ const IDL: any = {
     {
       "name": "batch_transfer_coins",
       "accounts": [
-        { "name": "from_account", "isMut": true, "isSigner": true },
-        { "name": "system_program", "isMut": false, "isSigner": false }
+        { "name": "fromAccount", "isMut": true, "isSigner": true },
+        { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
         { "name": "recipients", "type": { "vec": "publicKey" } },
@@ -49,9 +49,9 @@ const IDL: any = {
     {
       "name": "batch_transfer_tokens",
       "accounts": [
-        { "name": "from_token_account", "isMut": true, "isSigner": false },
+        { "name": "fromTokenAccount", "isMut": true, "isSigner": false },
         { "name": "authority", "isMut": false, "isSigner": true },
-        { "name": "token_program", "isMut": false, "isSigner": false }
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
         { "name": "recipients", "type": { "vec": "publicKey" } },
@@ -61,22 +61,22 @@ const IDL: any = {
     {
       "name": "claim_heir_coin_assets",
       "accounts": [
-        { "name": "coin_heir", "isMut": true, "isSigner": false },
-        { "name": "owner_account", "isMut": true, "isSigner": false },
-        { "name": "heir_account", "isMut": true, "isSigner": true }
+        { "name": "coinHeir", "isMut": true, "isSigner": false },
+        { "name": "ownerAccount", "isMut": true, "isSigner": false },
+        { "name": "heirAccount", "isMut": true, "isSigner": true }
       ],
       "args": []
     },
     {
       "name": "claim_heir_token_assets",
       "accounts": [
-        { "name": "token_heir", "isMut": true, "isSigner": false },
+        { "name": "tokenHeir", "isMut": true, "isSigner": false },
         { "name": "owner", "isMut": false, "isSigner": false },
         { "name": "heir", "isMut": false, "isSigner": true },
-        { "name": "owner_token_account", "isMut": true, "isSigner": false },
-        { "name": "heir_token_account", "isMut": true, "isSigner": false },
+        { "name": "ownerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "heirTokenAccount", "isMut": true, "isSigner": false },
         { "name": "authority", "isMut": false, "isSigner": false },
-        { "name": "token_program", "isMut": false, "isSigner": false }
+        { "name": "tokenProgram", "isMut": false, "isSigner": false }
       ],
       "args": []
     },
@@ -84,7 +84,7 @@ const IDL: any = {
     {
       "name": "update_activity",
       "accounts": [
-        { "name": "token_heir", "isMut": true, "isSigner": false },
+        { "name": "tokenHeir", "isMut": true, "isSigner": false },
         { "name": "owner", "isMut": false, "isSigner": true }
       ],
       "args": []
@@ -92,7 +92,7 @@ const IDL: any = {
     {
       "name": "update_coin_activity",
       "accounts": [
-        { "name": "coin_heir", "isMut": true, "isSigner": false },
+        { "name": "coinHeir", "isMut": true, "isSigner": false },
         { "name": "owner", "isMut": false, "isSigner": true }
       ],
       "args": []
