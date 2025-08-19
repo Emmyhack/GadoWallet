@@ -51,15 +51,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "overrides": {
-    "@civic/solana-gateway-react": {
-      "react": "$react",
-      "react-dom": "$react-dom"
-    },
-    "@civic/gateway-client-react": {
-      "react": "$react",
-      "react-dom": "$react-dom"
-    }
   }
 }
