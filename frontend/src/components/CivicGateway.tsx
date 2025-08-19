@@ -6,7 +6,19 @@ import { Shield, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
 // Civic Pass Gatekeeper Network for general identity verification
 // This is a test network - in production you'd use a different network
-const GATEKEEPER_NETWORK = new PublicKey('gatbGF9DvLAw3kNrLHNqHMdaio34d4PsqHPHDK5hTYwc');
+let GATEKEEPER_NETWORK: PublicKey | null = null;
+
+function getGatekeeperNetwork(): PublicKey | null {
+  if (GATEKEEPER_NETWORK) return GATEKEEPER_NETWORK;
+  
+  try {
+    GATEKEEPER_NETWORK = new PublicKey('gatbGF9DvLAw3kNrLHNqHMdaio34d4PsqHPHDK5hTYwc');
+    return GATEKEEPER_NETWORK;
+  } catch (error) {
+    console.error('Failed to initialize GATEKEEPER_NETWORK PublicKey:', error);
+    return null;
+  }
+}
 
 interface CivicGatewayProps {
   children: React.ReactNode;
@@ -136,6 +148,7 @@ function CivicGatewayContent({ children, requiredForAction, className }: CivicGa
 export function CivicGateway({ children, requiredForAction, className }: CivicGatewayProps) {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
+  const gatekeeperNetwork = getGatekeeperNetwork();
 
   if (!publicKey) {
     return (
@@ -155,6 +168,24 @@ export function CivicGateway({ children, requiredForAction, className }: CivicGa
     );
   }
 
+  // If we can't initialize the gatekeeper network, render children without Civic verification
+  if (!gatekeeperNetwork) {
+    console.warn('Civic Gateway disabled due to initialization error. Rendering without verification.');
+    return (
+      <div className={className}>
+        <div className="mb-4 p-3 rounded-md bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+          <div className="flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <span className="text-yellow-800 dark:text-yellow-200 text-sm">
+              Identity verification temporarily unavailable. You can still use the application.
+            </span>
+          </div>
+        </div>
+        {children}
+      </div>
+    );
+  }
+
   return (
     <GatewayProvider
       wallet={{
@@ -164,7 +195,7 @@ export function CivicGateway({ children, requiredForAction, className }: CivicGa
           throw new Error('Transaction signing should be handled by wallet adapter');
         },
       }}
-      gatekeeperNetwork={GATEKEEPER_NETWORK}
+      gatekeeperNetwork={gatekeeperNetwork}
       connection={connection}
       cluster="devnet" // Change to "mainnet-beta" for production
     >

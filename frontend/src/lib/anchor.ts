@@ -1,6 +1,7 @@
 import { Program, AnchorProvider, web3, BN } from '@project-serum/anchor';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useMemo } from 'react';
+import { PROGRAM_ID, TOKEN_PROGRAM_ID } from './publickey-utils';
 
 // Real Gada IDL
 const IDL: any = {
@@ -159,21 +160,21 @@ export function useAnchorProgram(): Gada | undefined {
       { commitment: 'confirmed' }
     );
 
-    return new Program(IDL, 'Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5', provider);
+    return new Program(IDL, PROGRAM_ID, provider);
   }, [connection, wallet]);
 }
 
 export function getCoinHeirPDA(owner: web3.PublicKey, heir: web3.PublicKey): [web3.PublicKey, number] {
   return web3.PublicKey.findProgramAddressSync(
     [Buffer.from('coin_heir'), owner.toBuffer(), heir.toBuffer()],
-    new web3.PublicKey('Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5')
+    PROGRAM_ID
   );
 }
 
 export function getTokenHeirPDA(owner: web3.PublicKey, heir: web3.PublicKey, tokenMint: web3.PublicKey): [web3.PublicKey, number] {
   return web3.PublicKey.findProgramAddressSync(
     [Buffer.from('token_heir'), owner.toBuffer(), heir.toBuffer(), tokenMint.toBuffer()],
-    new web3.PublicKey('Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5')
+    PROGRAM_ID
   );
 }
 
@@ -267,7 +268,7 @@ export async function claimHeirTokenAssets(
       ownerTokenAccount: ownerTokenAccount,
       heirTokenAccount: heirTokenAccount,
       authority: authority,
-      tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
 }
@@ -303,7 +304,7 @@ export async function batchTransferTokens(
     .accounts({
       fromTokenAccount: fromTokenAccount,
       authority: program.provider.publicKey!,
-      tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+      tokenProgram: TOKEN_PROGRAM_ID,
     })
     .remainingAccounts(toTokenAccounts.map(account => ({
       pubkey: account,
