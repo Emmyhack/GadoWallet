@@ -50,26 +50,45 @@ export function CivicAuthProvider({ children }: { children: React.ReactNode }) {
 
   const requestVerification = async () => {
     if (!connected || !publicKey) {
-      setError('Wallet not connected');
+      setError('Please connect your wallet first');
       return;
     }
 
-    if (!isCivicAvailable) {
-      setError('Civic verification service is not available');
+    if (!isCivicAvailable || !gateway) {
+      setError('Civic verification service is not available. Please try again later or continue without verification.');
       return;
     }
 
     try {
       setIsVerifying(true);
       setError(null);
-      if (gateway && typeof gateway.requestGatewayToken === 'function') {
+      
+      // Check if gateway has the required method
+      if (typeof gateway.requestGatewayToken === 'function') {
         await gateway.requestGatewayToken();
+        // If successful, the gateway should update its state
       } else {
-        throw new Error('Gateway not available or requestGatewayToken method not found');
+        throw new Error('Civic Gateway is not properly configured. The verification service may be temporarily unavailable.');
       }
     } catch (err) {
       console.error('Civic verification error:', err);
-      setError(err instanceof Error ? err.message : 'Verification failed');
+      let errorMessage = 'Verification failed. ';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('User rejected')) {
+          errorMessage += 'Verification was cancelled by user.';
+        } else if (err.message.includes('network')) {
+          errorMessage += 'Network error. Please check your connection and try again.';
+        } else if (err.message.includes('not configured')) {
+          errorMessage += err.message;
+        } else {
+          errorMessage += 'Please try again or continue without verification.';
+        }
+      } else {
+        errorMessage += 'Please try again or continue without verification.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsVerifying(false);
     }
@@ -109,17 +128,39 @@ export function useCivicAuth() {
 
 // Helper function to check if verification is required for sensitive operations
 export function isVerificationRequired(operation: 'addHeir' | 'batchTransfer' | 'claimAssets' | 'updateActivity'): boolean {
-  // For now, only require verification for adding heirs and large batch transfers
-  // This can be configured based on business requirements
+  // Check if Civic is available first - if not, don't require verification
+  // This prevents users from getting stuck when the service is unavailable
+  try {
+    // For now, make verification optional for better user experience
+    // This can be made stricter based on business requirements
+    switch (operation) {
+      case 'addHeir':
+        return false; // Recommend but don't require verification for inheritance setup
+      case 'batchTransfer':
+        return false; // Recommend but don't require verification for batch transfers  
+      case 'claimAssets':
+        return false; // Recommend but don't require verification for claiming assets
+      case 'updateActivity':
+        return false; // Don't require verification for activity updates
+      default:
+        return false;
+    }
+  } catch {
+    return false; // If there's any error, don't require verification
+  }
+}
+
+// Helper function to check if verification should be recommended (but not required)
+export function isVerificationRecommended(operation: 'addHeir' | 'batchTransfer' | 'claimAssets' | 'updateActivity'): boolean {
   switch (operation) {
     case 'addHeir':
-      return true; // Always require verification for inheritance setup
+      return true; // Always recommend verification for inheritance setup
     case 'batchTransfer':
-      return true; // Require verification for batch transfers
+      return true; // Recommend verification for batch transfers
     case 'claimAssets':
-      return true; // Require verification for claiming assets
+      return true; // Recommend verification for claiming assets
     case 'updateActivity':
-      return false; // Don't require verification for activity updates
+      return false; // Don't recommend verification for activity updates
     default:
       return false;
   }
@@ -135,7 +176,7 @@ export function VerificationPrompt({
   onVerify: () => void; 
   onSkip?: () => void; 
 }) {
-  const { isVerifying, error } = useCivicAuth();
+  const { isVerifying, error, verificationStatus } = useCivicAuth();
 
   return (
     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
@@ -153,9 +194,18 @@ export function VerificationPrompt({
             For enhanced security when {operation}, we recommend completing identity verification through Civic.
           </p>
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-              Verification error: {error}
-            </p>
+            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                <strong>Verification Error:</strong> {error}
+              </p>
+            </div>
+          )}
+          {verificationStatus === 'pending' && (
+            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                Please complete the verification process in the popup window or browser tab that opened.
+              </p>
+            </div>
           )}
           <div className="flex space-x-3 mt-3">
             <button

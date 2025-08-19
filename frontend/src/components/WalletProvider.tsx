@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from '@solana/wallet-adapter-react';
+import { ConnectionProvider, WalletProvider as SolanaWalletProvider, useWallet } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
@@ -49,21 +49,44 @@ export function WalletProvider({ children }: WalletProviderProps) {
     }
   }), [endpoint]);
   
+  // Inner component to access wallet context
+  function GatewayWrapper({ children }: { children: React.ReactNode }) {
+    const wallet = useWallet();
+    
+    // Create a compatible wallet adapter for Civic
+    const civicWalletAdapter = useMemo(() => {
+      if (!wallet.wallet || !wallet.publicKey) return undefined;
+      
+      return {
+        ...wallet.wallet,
+        publicKey: wallet.publicKey,
+        signTransaction: wallet.signTransaction,
+        signAllTransactions: wallet.signAllTransactions,
+      };
+    }, [wallet.wallet, wallet.publicKey, wallet.signTransaction, wallet.signAllTransactions]);
+    
+    return (
+      <GatewayProvider
+        wallet={civicWalletAdapter}
+        gatekeeperNetwork={civicConfig.gatekeeperNetwork}
+        connection={connection}
+        cluster={civicConfig.cluster}
+        options={civicConfig.options}
+      >
+        <CivicAuthProvider>
+          {children}
+        </CivicAuthProvider>
+      </GatewayProvider>
+    );
+  }
+
   return (
     <ConnectionProvider endpoint={endpoint}>
       <SolanaWalletProvider wallets={wallets} autoConnect={false}>
         <WalletModalProvider>
-          <GatewayProvider
-            wallet={undefined} // Will be provided by context
-            gatekeeperNetwork={civicConfig.gatekeeperNetwork}
-            connection={connection}
-            cluster={civicConfig.cluster}
-            options={civicConfig.options}
-          >
-            <CivicAuthProvider>
-              {children}
-            </CivicAuthProvider>
-          </GatewayProvider>
+          <GatewayWrapper>
+            {children}
+          </GatewayWrapper>
         </WalletModalProvider>
       </SolanaWalletProvider>
     </ConnectionProvider>

@@ -4,7 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useCivicAuth, VerificationPrompt, isVerificationRequired } from '../lib/civic';
+import { useCivicAuth, VerificationPrompt, isVerificationRequired, isVerificationRecommended } from '../lib/civic';
 
 export function InheritanceManager() {
   const program = useAnchorProgram();
@@ -19,12 +19,13 @@ export function InheritanceManager() {
   const [inactivityDays, setInactivityDays] = useState('365');
   const [message, setMessage] = useState('');
   const [showVerificationPrompt, setShowVerificationPrompt] = useState(false);
+  const [skipVerification, setSkipVerification] = useState(false);
 
   const handleAddHeir = async () => {
     if (!program || !publicKey) return;
 
-    // Check if verification is required and user is not verified
-    if (isVerificationRequired('addHeir') && !isVerified) {
+    // Check if verification is recommended and user is not verified and hasn't chosen to skip
+    if (isVerificationRecommended('addHeir') && !isVerified && !skipVerification) {
       setShowVerificationPrompt(true);
       return;
     }
@@ -115,6 +116,7 @@ export function InheritanceManager() {
       setAmount('');
       setTokenMint('');
       setInactivityDays('365');
+      setSkipVerification(false); // Reset verification skip flag
     } catch (error) {
       console.error('Error adding heir:', error);
       
@@ -240,11 +242,20 @@ export function InheritanceManager() {
           <VerificationPrompt
             operation="setting up inheritance"
             onVerify={async () => {
-              await requestVerification();
-              setShowVerificationPrompt(false);
+              try {
+                await requestVerification();
+                setShowVerificationPrompt(false);
+                // After verification attempt, proceed with heir addition
+                // The verification status will be checked again in handleAddHeir
+                handleAddHeir();
+              } catch (error) {
+                console.error('Verification failed:', error);
+                // Keep the prompt open so user can try again or skip
+              }
             }}
             onSkip={() => {
               setShowVerificationPrompt(false);
+              setSkipVerification(true);
               // Continue with heir addition without verification
               handleAddHeir();
             }}
