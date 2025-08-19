@@ -13,35 +13,19 @@ interface WalletProviderProps {
 }
 
 export function WalletProvider({ children }: WalletProviderProps) {
-  console.log('💰 WalletProvider initializing');
-  
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'
   const network = WalletAdapterNetwork.Devnet;
 
   // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => {
-    const url = clusterApiUrl(network);
-    console.log('🌐 RPC endpoint:', url);
-    return url;
-  }, [network]);
+  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   const wallets = useMemo(
-    () => {
-      console.log('👛 Initializing wallet adapters');
-      try {
-        return [
-          new PhantomWalletAdapter(),
-          new SolflareWalletAdapter(),
-        ];
-      } catch (error) {
-        console.error('❌ Error initializing wallets:', error);
-        return [];
-      }
-    },
+    () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+    ],
     []
   );
-
-  console.log('🔗 WalletProvider rendering with', wallets.length, 'wallets');
   
   return (
     <ConnectionProvider endpoint={endpoint}>

@@ -5,7 +5,7 @@ import { web3 } from '@project-serum/anchor';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Gift, Search, AlertTriangle, CheckCircle, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { CivicGateway } from './CivicGateway';
+
 
 interface ClaimableAsset {
   id: string;
