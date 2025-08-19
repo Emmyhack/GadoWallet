@@ -31,23 +31,22 @@ export function WalletProvider({ children }: WalletProviderProps) {
   );
 
   // Civic Auth configuration
-  const civicConfig = useMemo(() => ({
-    // Civic Client ID for Gado Wallet
-    clientId: 'f2fc33e0-3b6b-4ea7-bb5e-a5f60b45e808',
-    // Gatekeeper network for identity verification
-    gatekeeperNetwork: new PublicKey('ignREusXmGrscGNUesoU9mxfds9AiYTezUKex2PsZV6'),
-    // Cluster URL
-    cluster: endpoint,
-    // Options for non-blocking integration
-    options: {
-      autoShowModal: false, // Don't block app usage
-      logo: '/logo.png',
-      title: 'Verify Identity for Gado Wallet',
-      description: 'Complete identity verification to access enhanced security features for inheritance management',
-      // Allow users to use the app without verification initially
-      allowUnverified: true,
-    }
-  }), [endpoint]);
+  const civicConfig = useMemo(() => {
+    // Use the Civic Pass Captcha network for testing - this is a commonly available gatekeeper network
+    // For production, you would use your specific gatekeeper network
+    const gatekeeperNetwork = new PublicKey('tgnuXXNMDLK8dy7Xm1TdeGyc95MDym4bvAQCwcW21Bf'); // Civic Pass Captcha devnet
+    
+    return {
+      gatekeeperNetwork,
+      cluster: endpoint,
+      options: {
+        autoShowModal: false,
+        logo: '/logo.png',
+        title: 'Verify Identity for Gado Wallet',
+        description: 'Complete identity verification to access enhanced security features for inheritance management',
+      }
+    };
+  }, [endpoint, network]);
   
   // Inner component to access wallet context
   function GatewayWrapper({ children }: { children: React.ReactNode }) {

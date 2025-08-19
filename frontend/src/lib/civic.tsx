@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useGateway } from '@civic/solana-gateway-react';
+import { useGateway, IdentityButton, ButtonMode, GatewayStatus } from '@civic/solana-gateway-react';
 
 interface CivicAuthContextType {
   isVerified: boolean;
@@ -32,19 +32,21 @@ export function CivicAuthProvider({ children }: { children: React.ReactNode }) {
     if (!connected || !publicKey) return 'unverified';
     if (!gateway) return 'unverified';
     
-    if (gateway.gatewayToken) {
-      // Check if token is valid and not expired
-      const now = Date.now() / 1000;
-      if (gateway.gatewayToken.expiryTime && gateway.gatewayToken.expiryTime > now) {
+    // Use the proper gateway status from Civic
+    switch (gateway.gatewayStatus) {
+      case GatewayStatus.ACTIVE:
         return 'verified';
-      } else {
-        return 'unverified'; // Token expired
-      }
+      case GatewayStatus.IN_REVIEW:
+      case GatewayStatus.COLLECTING_USER_INFORMATION:
+        return 'pending';
+      case GatewayStatus.REJECTED:
+        return 'rejected';
+      case GatewayStatus.NOT_REQUESTED:
+      case GatewayStatus.UNKNOWN:
+      default:
+        return 'unverified';
     }
-    
-    if (isVerifying) return 'pending';
-    return 'unverified';
-  }, [connected, publicKey, gateway, isVerifying]);
+  }, [connected, publicKey, gateway]);
 
   const isVerified = verificationStatus === 'verified';
 
@@ -63,10 +65,10 @@ export function CivicAuthProvider({ children }: { children: React.ReactNode }) {
       setIsVerifying(true);
       setError(null);
       
-      // Check if gateway has the required method
+      // Use the proper Civic method to request verification
       if (typeof gateway.requestGatewayToken === 'function') {
         await gateway.requestGatewayToken();
-        // If successful, the gateway should update its state
+        // The gateway status will be updated automatically by the Civic provider
       } else {
         throw new Error('Civic Gateway is not properly configured. The verification service may be temporarily unavailable.');
       }
@@ -75,9 +77,9 @@ export function CivicAuthProvider({ children }: { children: React.ReactNode }) {
       let errorMessage = 'Verification failed. ';
       
       if (err instanceof Error) {
-        if (err.message.includes('User rejected')) {
+        if (err.message.includes('User rejected') || err.message.includes('User declined')) {
           errorMessage += 'Verification was cancelled by user.';
-        } else if (err.message.includes('network')) {
+        } else if (err.message.includes('network') || err.message.includes('Network')) {
           errorMessage += 'Network error. Please check your connection and try again.';
         } else if (err.message.includes('not configured')) {
           errorMessage += err.message;
@@ -166,6 +168,24 @@ export function isVerificationRecommended(operation: 'addHeir' | 'batchTransfer'
   }
 }
 
+// Official Civic Identity Button Component
+export function CivicIdentityButton({ 
+  className = "",
+  mode = ButtonMode.LIGHT 
+}: { 
+  className?: string;
+  mode?: ButtonMode;
+}) {
+  return (
+    <div className={className}>
+      <IdentityButton 
+        mode={mode}
+        animation={true}
+      />
+    </div>
+  );
+}
+
 // Helper component for verification prompts
 export function VerificationPrompt({ 
   operation, 
@@ -208,13 +228,13 @@ export function VerificationPrompt({
             </div>
           )}
           <div className="flex space-x-3 mt-3">
-            <button
-              onClick={onVerify}
-              disabled={isVerifying}
-              className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded-md font-medium transition-colors"
-            >
-              {isVerifying ? 'Verifying...' : 'Verify Identity'}
-            </button>
+            {/* Use the official Civic Identity Button */}
+            <div className="civic-button-wrapper">
+              <CivicIdentityButton 
+                mode={ButtonMode.LIGHT}
+                className="civic-identity-button"
+              />
+            </div>
             {onSkip && (
               <button
                 onClick={onSkip}

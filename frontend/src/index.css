@@ -44,3 +44,24 @@
   @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
   @keyframes pulseSoft { 0% { opacity: .9; } 50% { opacity: .6; } 100% { opacity: .9; } }
 }
+
+/* Civic Identity Button Styling */
+.civic-button-wrapper {
+  display: inline-block;
+}
+
+.civic-identity-button {
+  display: inline-block;
+}
+
+/* Override Civic button styles to match the app theme */
+.civic-button-wrapper iframe {
+  border-radius: 6px;
+  min-height: 32px;
+}
+
+.civic-header-button iframe {
+  max-height: 32px;
+  border-radius: 6px;
+}
+
