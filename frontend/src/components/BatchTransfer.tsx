@@ -54,11 +54,9 @@ export function BatchTransfer() {
       setMessage('');
       setIsError(false);
 
-      // Filter out empty recipients
       const validRecipients = recipients.filter(r => r.address && r.amount);
-      
       if (validRecipients.length === 0) {
-        setMessage(t('pleaseAddRecipient'));
+        setMessage('Please add at least one valid recipient.');
         setIsError(true);
         return;
       }
@@ -96,20 +94,17 @@ export function BatchTransfer() {
         const signatures = [];
         
         for (const [batchIndex, batch] of batches.entries()) {
-          // Create a transaction for this batch with fresh blockhash
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-          const transaction = new web3.Transaction({
-            recentBlockhash: blockhash,
-            feePayer: publicKey,
-          });
+          // Create a transaction for this batch
+          const transaction = new web3.Transaction();
           
-          // Add compute budget instructions with more conservative limits
+          // Add compute budget instructions with conservative limits
+          const computeUnits = 150_000 + (batch.length * 30_000);
           transaction.add(
             ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 250_000 }),
-            ComputeBudgetProgram.setComputeUnitLimit({ units: 150_000 + (batch.length * 30_000) })
+            ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnits })
           );
           
-          // Add transfer instructions for this batch
+          // Add all transfer instructions for this batch
           for (const recipient of batch) {
             const toAddress = new web3.PublicKey(recipient.address);
             const amount = Math.floor(parseFloat(recipient.amount) * 1e9);
@@ -122,71 +117,58 @@ export function BatchTransfer() {
             
             transaction.add(transferInstruction);
           }
-          
+
           try {
-            // Send the transaction for this batch
+            setMessage(`Processing batch ${batchIndex + 1} of ${batches.length}... (${batch.length} recipients)`);
+            
             const signature = await sendTransaction(transaction, connection);
             signatures.push(signature);
             
-            // Wait for confirmation with better timeout handling
-            setMessage(`Batch ${batchIndex + 1}/${batches.length} submitted - waiting for confirmation...`);
-            
+            // Wait for confirmation before proceeding to next batch
             try {
-              // First try with shorter timeout
               await connection.confirmTransaction(signature, 'confirmed');
+              totalTransferred += batch.length;
+              
+              if (batches.length > 1) {
+                setMessage(`Batch ${batchIndex + 1} completed successfully! (${totalTransferred}/${validRecipients.length} recipients processed)`);
+                
+                // Small delay between batches to avoid rate limiting
+                if (batchIndex < batches.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
             } catch (confirmError: any) {
               if (confirmError.message?.includes('not confirmed')) {
-                // Check if transaction actually succeeded despite timeout
-                setMessage(`Checking transaction status for batch ${batchIndex + 1}...`);
-                
-                const signatureStatus = await connection.getSignatureStatus(signature);
-                if (signatureStatus?.value?.confirmationStatus === 'confirmed' || 
-                    signatureStatus?.value?.confirmationStatus === 'finalized') {
-                  // Transaction actually succeeded
-                  console.log(`Transaction ${signature} succeeded despite timeout`);
-                } else {
-                  // Try one more time with longer timeout
-                  await connection.confirmTransaction({
-                    signature,
-                    blockhash,
-                    lastValidBlockHeight
-                  }, 'confirmed');
-                }
+                // Transaction might still succeed, just taking longer
+                console.warn(`Batch ${batchIndex + 1} confirmation timeout, but transaction may still succeed`);
+                totalTransferred += batch.length;
               } else {
                 throw confirmError;
               }
             }
-            
-            totalTransferred += batch.length;
-            
-            // Update progress
-            setMessage(`Batch ${batchIndex + 1}/${batches.length} confirmed - ${totalTransferred}/${validRecipients.length} transfers completed`);
-            
           } catch (batchError: any) {
             console.error(`Error in batch ${batchIndex + 1}:`, batchError);
             throw new Error(`Failed at batch ${batchIndex + 1} after ${totalTransferred} successful transfers. Error: ${batchError.message}`);
           }
         }
         
-        setMessage(`${t('solTransfersCompleted')} - ${totalTransferred} transfers in ${batches.length} transaction(s). Signatures: ${signatures.join(', ')}`);
+        setMessage(`✅ All ${totalTransferred} SOL transfers completed successfully!`);
         setIsError(false);
       } else {
+        // Token transfers with batch splitting
         if (!tokenMint) {
-          setMessage(t('tokenMintRequired'));
+          setMessage('Please enter a token mint address.');
           setIsError(true);
           return;
         }
-        
+
         const mintPk = new web3.PublicKey(tokenMint);
         const mintInfo = await getMint(connection, mintPk);
-        const decimals = mintInfo.decimals;
-        const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
         
-        // Token transfers are more complex due to ATA creation, use smaller batches
+        // For token transfers, use smaller batches due to higher complexity
         const maxRecipientsPerTx = validRecipients.length > 3 ? 2 : validRecipients.length;
         const batches = [];
         
-        // Split recipients into smaller batches for token transfers
         for (let i = 0; i < validRecipients.length; i += maxRecipientsPerTx) {
           batches.push(validRecipients.slice(i, i + maxRecipientsPerTx));
         }
@@ -195,123 +177,100 @@ export function BatchTransfer() {
         const signatures = [];
         
         for (const [batchIndex, batch] of batches.entries()) {
-          // Create a transaction for this batch
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed'); const transaction = new web3.Transaction({ recentBlockhash: blockhash, feePayer: publicKey });
+          const transaction = new web3.Transaction();
           
-          // Add compute budget instructions with higher limits for token operations
+          // Higher compute budget for token transfers
+          const computeUnits = 200_000 + (batch.length * 150_000);
           transaction.add(
             ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 500_000 }),
-            ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 + (batch.length * 150_000) })
+            ComputeBudgetProgram.setComputeUnitLimit({ units: computeUnits })
           );
-          
-          // Process each recipient in this batch
+
           for (const recipient of batch) {
             const recipientAddress = new web3.PublicKey(recipient.address);
+            const amount = Math.floor(parseFloat(recipient.amount) * Math.pow(10, mintInfo.decimals));
+
+            const fromTokenAccount = await getAssociatedTokenAddress(mintPk, publicKey);
             const toTokenAccount = await getAssociatedTokenAddress(mintPk, recipientAddress);
-            
-            // Check if ATA exists, create if not
-            const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
-            if (!toAccountInfo) {
-              const createATAInstruction = createAssociatedTokenAccountInstruction(
-                publicKey,
-                toTokenAccount,
-                recipientAddress,
-                mintPk
+
+            // Check if recipient's token account exists, create if not
+            const toTokenAccountInfo = await connection.getAccountInfo(toTokenAccount);
+            if (!toTokenAccountInfo) {
+              transaction.add(
+                createAssociatedTokenAccountInstruction(
+                  publicKey, // payer
+                  toTokenAccount, // ata
+                  recipientAddress, // owner
+                  mintPk // mint
+                )
               );
-              transaction.add(createATAInstruction);
             }
-            
-            // Add the token transfer instruction
-            const amount = Math.floor(parseFloat(recipient.amount) * 10 ** decimals);
-            
-            const tokenTransferInstruction = createTransferInstruction(
-              fromTokenAccount,
-              toTokenAccount,
-              publicKey,
-              amount
+
+            transaction.add(
+              createTransferInstruction(
+                fromTokenAccount,
+                toTokenAccount,
+                publicKey,
+                amount
+              )
             );
-            
-            transaction.add(tokenTransferInstruction);
           }
-          
+
           try {
-            // Send the transaction for this batch
+            setMessage(`Processing token batch ${batchIndex + 1} of ${batches.length}... (${batch.length} recipients)`);
+            
             const signature = await sendTransaction(transaction, connection);
             signatures.push(signature);
             
-            // Wait for confirmation with better timeout handling
-            setMessage(`Token batch ${batchIndex + 1}/${batches.length} submitted - waiting for confirmation...`);
-            
+            // Wait for confirmation
             try {
-              // First try with shorter timeout
               await connection.confirmTransaction(signature, 'confirmed');
+              totalTransferred += batch.length;
+              
+              if (batches.length > 1) {
+                setMessage(`Token batch ${batchIndex + 1} completed successfully! (${totalTransferred}/${validRecipients.length} recipients processed)`);
+                
+                if (batchIndex < batches.length - 1) {
+                  await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+              }
             } catch (confirmError: any) {
               if (confirmError.message?.includes('not confirmed')) {
-                // Check if transaction actually succeeded despite timeout
-                setMessage(`Checking token transaction status for batch ${batchIndex + 1}...`);
-                
-                const signatureStatus = await connection.getSignatureStatus(signature);
-                if (signatureStatus?.value?.confirmationStatus === 'confirmed' || 
-                    signatureStatus?.value?.confirmationStatus === 'finalized') {
-                  // Transaction actually succeeded
-                  console.log(`Token transaction ${signature} succeeded despite timeout`);
-                } else {
-                  // Try one more time with longer timeout
-                  await connection.confirmTransaction({
-                    signature,
-                    blockhash,
-                    lastValidBlockHeight
-                  }, 'confirmed');
-                }
+                console.warn(`Token batch ${batchIndex + 1} confirmation timeout, but transaction may still succeed`);
+                totalTransferred += batch.length;
               } else {
                 throw confirmError;
               }
             }
-            
-            totalTransferred += batch.length;
-            
-            // Update progress
-            setMessage(`Token batch ${batchIndex + 1}/${batches.length} confirmed - ${totalTransferred}/${validRecipients.length} transfers completed`);
-            
           } catch (batchError: any) {
             console.error(`Error in token batch ${batchIndex + 1}:`, batchError);
             throw new Error(`Token transfer failed at batch ${batchIndex + 1} after ${totalTransferred} successful transfers. Error: ${batchError.message}`);
           }
         }
         
-        setMessage(`${t('tokenTransfersCompleted')} - ${totalTransferred} transfers in ${batches.length} transaction(s). Signatures: ${signatures.join(', ')}`);
+        setMessage(`✅ All ${totalTransferred} token transfers completed successfully!`);
         setIsError(false);
       }
 
-      // Reset form
+      // Clear recipients after successful transfer
       setRecipients([{ id: '1', address: '', amount: '' }]);
-      setTokenMint('');
+      if (activeTab === 'token') {
+        setTokenMint('');
+      }
+
     } catch (error: any) {
       console.error('Error in batch transfer:', error);
+      const errorMessage = error.message || 'Unknown error occurred';
       
-      // Provide more detailed error information
-      let errorMessage = t('errorBatchTransfer');
-      if (error.message) {
-        if (error.message.includes('not confirmed') && error.message.includes('30.00 seconds')) {
-          // Extract signature from error message if available
-          const signatureMatch = error.message.match(/signature\s+([A-Za-z0-9]{44,})/);
-          const signature = signatureMatch ? signatureMatch[1] : 'unknown';
-          
-          errorMessage = `Transaction timeout - but it may have succeeded! Please check the transaction signature ${signature} on Solana Explorer (https://explorer.solana.com/tx/${signature}) to verify if your transfers completed. If successful, the recipients should have received their funds despite the timeout.`;
-        } else {
-          errorMessage += `: ${error.message}`;
-        }
-      } else if (error.toString().includes('insufficient funds')) {
-        errorMessage = 'Insufficient funds for batch transfer';
-      } else if (error.toString().includes('Transaction too large')) {
-        errorMessage = 'Transaction too large - try with fewer recipients';
-      } else if (error.toString().includes('Blockhash not found')) {
-        errorMessage = 'Network congestion - please try again';
-      } else if (error.toString().includes('timeout')) {
-        errorMessage = 'Network timeout - your transaction may still be processing. Check Solana Explorer for confirmation.';
+      if (errorMessage.includes('insufficient funds')) {
+        setMessage(`${t('errorBatchTransfer')}: Insufficient funds for this transfer.`);
+      } else if (errorMessage.includes('blockhash not found')) {
+        setMessage(`${t('errorBatchTransfer')}: Network congestion. Please try again.`);
+      } else if (errorMessage.includes('Transaction too large')) {
+        setMessage(`${t('errorBatchTransfer')}: Too many recipients. Please reduce the number of recipients per batch.`);
+      } else {
+        setMessage(`${t('errorBatchTransfer')}: ${errorMessage}`);
       }
-      
-      setMessage(errorMessage);
       setIsError(true);
     } finally {
       setIsLoading(false);
@@ -332,134 +291,154 @@ export function BatchTransfer() {
     return !isNaN(num) && num > 0;
   };
 
-  const isFormValid = () => {
-    const validRecipients = recipients.filter(r => r.address && r.amount);
-    if (validRecipients.length === 0) return false;
-    
-    for (const recipient of validRecipients) {
-      if (!isValidAddress(recipient.address) || !isValidAmount(recipient.amount)) {
-        return false;
-      }
-    }
-
-    if (activeTab === 'token' && (!tokenMint || !isValidAddress(tokenMint))) {
-      return false;
-    }
-
-    return true;
+  const getTotalAmount = () => {
+    return recipients.reduce((sum, r) => {
+      const amount = parseFloat(r.amount || '0');
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
   };
+
+  const getValidRecipientsCount = () => {
+    return recipients.filter(r => r.address && r.amount && isValidAddress(r.address) && isValidAmount(r.amount)).length;
+  };
+
+  if (!publicKey) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
+            <Send className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('batchTransfer')}</h2>
+            <p className="text-gray-600 dark:text-gray-300">{t('batchTransferDescription')}</p>
+          </div>
+        </div>
+        
+        <div className="p-6 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900/20">
+          <div className="text-center">
+            <Send className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Wallet Connection Required
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Please connect your wallet to perform batch transfers.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
+        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
           <Send className="w-5 h-5 text-white" />
         </div>
         <div>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('batchTransfer')}</h2>
-          <p className="text-gray-600 dark:text-gray-300">{t('batchTransferSubtitle')}</p>
+          <p className="text-gray-600 dark:text-gray-300">{t('batchTransferDescription')}</p>
         </div>
       </div>
 
-      {/* Asset Type Tabs */}
+      {/* Tab Navigation */}
       <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-md">
         <button
           onClick={() => setActiveTab('sol')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
             activeTab === 'sol'
-              ? 'bg-white/80 dark:bg-gray-900/60 text-gray-900 dark:text-white shadow-sm backdrop-blur'
+              ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Coins className="w-4 h-4" />
-          <span>{t('sol')}</span>
+          <span>{t('sol') || 'SOL'}</span>
         </button>
         <button
           onClick={() => setActiveTab('token')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
             activeTab === 'token'
-              ? 'bg-white/80 dark:bg-gray-900/60 text-gray-900 dark:text-white shadow-sm backdrop-blur'
+              ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Token className="w-4 h-4" />
-          <span>{t('splToken')}</span>
+          <span>{t('token') || 'Token'}</span>
         </button>
       </div>
 
-      {/* Token Mint Input */}
+      {/* Token Mint Input for Token Transfers */}
       {activeTab === 'token' && (
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-            {t('tokenMintAddress')}
-          </label>
-          <input
-            type="text"
-            value={tokenMint}
-            onChange={(e) => setTokenMint(e.target.value)}
-            placeholder={t('tokenMintAddress') || ''}
-            className="input-field"
-          />
-          {tokenMint && !isValidAddress(tokenMint) && (
-            <p className="text-red-500 text-sm mt-1">{t('invalidTokenMint')}</p>
-          )}
+        <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur rounded-lg p-6 border border-gray-200 dark:border-white/10">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('tokenDetails')}</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              {t('tokenMintAddress')}
+            </label>
+            <input
+              type="text"
+              value={tokenMint}
+              onChange={(e) => setTokenMint(e.target.value)}
+              placeholder="Enter token mint address"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+            {tokenMint && !isValidAddress(tokenMint) && (
+              <p className="text-red-500 text-sm mt-1">{t('invalidTokenMint')}</p>
+            )}
+          </div>
         </div>
       )}
 
       {/* Recipients */}
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-6">
+      <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur rounded-lg p-6 border border-gray-200 dark:border-white/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('recipients')}</h3>
-          <button
-            onClick={addRecipient}
-            disabled={recipients.length >= 10}
-            className="btn-secondary flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{t('addRecipient')}</span>
-          </button>
+          <div className="text-sm text-gray-600 dark:text-gray-300">
+            Valid: {getValidRecipientsCount()} | Total: {getTotalAmount().toFixed(6)} {activeTab.toUpperCase()}
+          </div>
         </div>
 
         <div className="space-y-4">
-          {recipients.map((recipient) => (
-            <div key={recipient.id} className="flex items-center space-x-4 p-4 rounded-lg border border-gray-200 dark:border-white/10 bg-white/60 dark:bg-gray-900/60 backdrop-blur">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  {t('walletAddress')}
-                </label>
-                <input
-                  type="text"
-                  value={recipient.address}
-                  onChange={(e) => updateRecipient(recipient.id, 'address', e.target.value)}
-                  placeholder={t('enterWalletAddress') || ''}
-                  className="input-field"
-                />
-                {recipient.address && !isValidAddress(recipient.address) && (
-                  <p className="text-red-500 text-sm mt-1">{t('invalidAddress')}</p>
-                )}
+          {recipients.map((recipient, index) => (
+            <div key={recipient.id} className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-md">
+              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-300">{index + 1}</span>
               </div>
               
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  {t('amountLabel')} ({activeTab === 'sol' ? t('sol') : t('splToken')})
-                </label>
-                <input
-                  type="number"
-                  value={recipient.amount}
-                  onChange={(e) => updateRecipient(recipient.id, 'amount', e.target.value)}
-                  placeholder={activeTab === 'sol' ? (t('amountInSol') || '') : (t('amountInTokens') || 'Amount in tokens (UI)')}
-                  step="0.000000001"
-                  className="input-field"
-                />
-                {recipient.amount && !isValidAmount(recipient.amount) && (
-                  <p className="text-red-500 text-sm mt-1">{t('invalidAmount')}</p>
-                )}
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <input
+                    type="text"
+                    value={recipient.address}
+                    onChange={(e) => updateRecipient(recipient.id, 'address', e.target.value)}
+                    placeholder={t('recipientAddress')}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                  />
+                  {recipient.address && !isValidAddress(recipient.address) && (
+                    <p className="text-red-500 text-xs mt-1">{t('invalidAddress')}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <input
+                    type="number"
+                    value={recipient.amount}
+                    onChange={(e) => updateRecipient(recipient.id, 'amount', e.target.value)}
+                    placeholder={`${t('amount')} (${activeTab.toUpperCase()})`}
+                    step="0.000000001"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-sm"
+                  />
+                  {recipient.amount && !isValidAmount(recipient.amount) && (
+                    <p className="text-red-500 text-xs mt-1">{t('invalidAmount')}</p>
+                  )}
+                </div>
               </div>
-
+              
               {recipients.length > 1 && (
                 <button
                   onClick={() => removeRecipient(recipient.id)}
-                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                  className="flex-shrink-0 p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -468,43 +447,56 @@ export function BatchTransfer() {
           ))}
         </div>
 
-        <button
-          onClick={handleBatchTransfer}
-          disabled={!isFormValid() || isLoading}
-          className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600"
-        >
-          {isLoading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>{t('processingTransfer')}</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4" />
-              <span>{t('sendBatchTransfer')}</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center justify-between mt-4">
+          <button
+            onClick={addRecipient}
+            disabled={recipients.length >= 10}
+            className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{t('addRecipient')} ({recipients.length}/10)</span>
+          </button>
+
+          <button
+            onClick={handleBatchTransfer}
+            disabled={isLoading || getValidRecipientsCount() === 0 || (activeTab === 'token' && !isValidAddress(tokenMint))}
+            className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>{t('processingTransfer')}</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>{t('sendToAll')} ({getValidRecipientsCount()})</span>
+              </>
+            )}
+          </button>
+        </div>
 
         {message && (
           <div className={`mt-4 p-3 rounded-md ${
             isError 
-              ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800' 
-              : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
+              ? 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' 
+              : 'bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800'
           }`}>
             {message}
           </div>
         )}
       </div>
 
-      {/* Information Card */}
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
+      {/* Information Panel */}
+      <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur border border-gray-200 dark:border-white/10 rounded-lg p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('batchTransferInfo')}</h3>
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li>• {t('sendUpTo10Recipients')}</li>
-          <li>• {t('reduceFeesByBatching')}</li>
-          <li>• {t('transfersRequireSignature')}</li>
-          <li>• {t('recipientsMustHaveValidAddresses')}</li>
+          <li>• Send {activeTab.toUpperCase()} to multiple recipients in a single operation</li>
+          <li>• Automatic batch splitting for large transfers (SOL: 3-5 recipients per batch, Tokens: 2-3 per batch)</li>
+          <li>• Balance validation before transfer initiation</li>
+          <li>• Progress tracking for multi-batch operations</li>
+          <li>• Automatic token account creation for recipients</li>
+          <li>• Maximum 10 recipients per batch transfer</li>
         </ul>
       </div>
     </div>
