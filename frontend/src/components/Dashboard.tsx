@@ -11,6 +11,7 @@ import { SendReceive } from './SendReceive';
 import { Transactions } from './Transactions';
 import { Receive } from './Receive';
 import { SignMessage } from './SignMessage';
+import { CivicTestPage } from './CivicTestPage';
 import { Landing } from './Landing';
 import { useTranslation } from 'react-i18next';
 
@@ -37,6 +38,12 @@ export function Dashboard() {
       name: t('batchTransfer'),
       icon: Send,
       description: t('batchTransfer')
+    },
+    {
+      id: 'civic-test',
+      name: 'Civic Test',
+      icon: Shield,
+      description: 'Test Civic verification'
     },
     {
       id: 'activity',
@@ -124,6 +131,7 @@ export function Dashboard() {
           {activeTab === 'txs' && <Transactions />}
           {activeTab === 'receive' && <Receive />}
           {activeTab === 'sign' && <SignMessage />}
+          {activeTab === 'civic-test' && <CivicTestPage />}
         </div>
       </div>
     </div>
