@@ -24,49 +24,106 @@ export function InheritanceManager() {
       setIsLoading(true);
       setMessage('');
 
+      // Validate inputs before proceeding
+      if (!heirAddress.trim()) {
+        setMessage('Please enter a valid heir wallet address.');
+        return;
+      }
+
+      if (!amount.trim() || parseFloat(amount) <= 0) {
+        setMessage('Please enter a valid amount greater than 0.');
+        return;
+      }
+
+      if (!inactivityDays.trim() || parseFloat(inactivityDays) <= 0) {
+        setMessage('Please enter a valid inactivity period in days.');
+        return;
+      }
+
+      if (activeTab === 'token' && (!tokenMint.trim() || !isValidAddress(tokenMint))) {
+        setMessage('Please enter a valid token mint address.');
+        return;
+      }
+
       const heirPubkey = new web3.PublicKey(heirAddress);
-      const amountBN = new BN(parseFloat(amount) * 1e9); // Convert SOL to lamports
-      const inactivitySeconds = Math.max(1, Math.floor(parseFloat(inactivityDays || '0') * 24 * 60 * 60));
+      
+      // Ensure heir address is different from owner
+      if (heirPubkey.equals(publicKey)) {
+        setMessage('Heir address cannot be the same as your wallet address.');
+        return;
+      }
+
+      // Convert amount properly based on type
+      const amountBN = activeTab === 'sol' 
+        ? new BN(Math.floor(parseFloat(amount) * 1e9)) // Convert SOL to lamports
+        : new BN(Math.floor(parseFloat(amount))); // Keep tokens as whole numbers
+      
+      // Ensure minimum 1 day inactivity period and convert to seconds
+      const daysFloat = parseFloat(inactivityDays);
+      const inactivitySeconds = Math.max(86400, Math.floor(daysFloat * 24 * 60 * 60)); // Minimum 1 day
 
       if (activeTab === 'sol') {
+        const [coinHeirPDA] = web3.PublicKey.findProgramAddressSync(
+          [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
+          program.programId
+        );
+
         await program.methods
           .addCoinHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
-            coin_heir: web3.PublicKey.findProgramAddressSync(
-              [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
-              program.programId
-            )[0],
+            coinHeir: coinHeirPDA,
             owner: publicKey,
             heir: heirPubkey,
-            system_program: web3.SystemProgram.programId,
+            systemProgram: web3.SystemProgram.programId,
           })
           .rpc();
-        setMessage(t('heirAddedSuccessfully') || 'Heir added successfully!');
+        
+        setMessage(t('heirAddedSuccessfully') || `SOL heir added successfully! Amount: ${amount} SOL, Inactivity: ${daysFloat} days`);
       } else {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
+        const [tokenHeirPDA] = web3.PublicKey.findProgramAddressSync(
+          [Buffer.from('token_heir'), publicKey.toBuffer(), heirPubkey.toBuffer(), tokenMintPubkey.toBuffer()],
+          program.programId
+        );
+
         await program.methods
           .addTokenHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
-            token_heir: web3.PublicKey.findProgramAddressSync(
-              [Buffer.from('token_heir'), publicKey.toBuffer(), heirPubkey.toBuffer(), tokenMintPubkey.toBuffer()],
-              program.programId
-            )[0],
+            tokenHeir: tokenHeirPDA,
             owner: publicKey,
             heir: heirPubkey,
-            token_mint: tokenMintPubkey,
-            system_program: web3.SystemProgram.programId,
+            tokenMint: tokenMintPubkey,
+            systemProgram: web3.SystemProgram.programId,
           })
           .rpc();
-        setMessage(t('heirAddedSuccessfully') || 'Heir added successfully!');
+        
+        setMessage(t('heirAddedSuccessfully') || `Token heir added successfully! Amount: ${amount} tokens, Inactivity: ${daysFloat} days`);
       }
 
+      // Clear form after success
       setHeirAddress('');
       setAmount('');
       setTokenMint('');
       setInactivityDays('365');
     } catch (error) {
       console.error('Error adding heir:', error);
-      setMessage('Error adding heir. Please try again.');
+      
+      let errorMessage = 'Error adding heir. ';
+      if (error instanceof Error) {
+        if (error.message.includes('already in use')) {
+          errorMessage += 'An heir with these details already exists.';
+        } else if (error.message.includes('insufficient funds')) {
+          errorMessage += 'Insufficient funds to complete this transaction.';
+        } else if (error.message.includes('Invalid public key')) {
+          errorMessage += 'Invalid wallet address provided.';
+        } else {
+          errorMessage += error.message;
+        }
+      } else {
+        errorMessage += 'Please check your inputs and try again.';
+      }
+      
+      setMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +145,7 @@ export function InheritanceManager() {
 
   const isValidDays = (days: string) => {
     const num = parseFloat(days);
-    return !isNaN(num) && num > 0;
+    return !isNaN(num) && num >= 1 && num <= 36500; // Min 1 day, max ~100 years
   };
 
   const isFormValid = () => {
@@ -212,7 +269,8 @@ export function InheritanceManager() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder={`Enter ${activeTab === 'sol' ? 'SOL' : 'token'} amount`}
-              step="0.000000001"
+              min="0"
+              step={activeTab === 'sol' ? '0.000000001' : '1'}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
             {amount && !isValidAmount(amount) && (
@@ -230,14 +288,15 @@ export function InheritanceManager() {
               onChange={(e) => setInactivityDays(e.target.value)}
               placeholder="e.g. 365"
               min={1}
+              max={36500}
               step={1}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
             <p className="text-xs text-gray-500 mt-1">
-              After this many days of no activity, heirs can claim the assets
+              After this many days of no activity, heirs can claim the assets (minimum 1 day, maximum ~100 years)
             </p>
             {inactivityDays && !isValidDays(inactivityDays) && (
-              <p className="text-red-500 text-sm mt-1">Enter a valid number of days</p>
+              <p className="text-red-500 text-sm mt-1">Enter a valid number of days between 1 and 36,500</p>
             )}
           </div>
 
