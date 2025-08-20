@@ -7,6 +7,7 @@ import {
   SolflareWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { handleWalletError } from '../utils/errorHandling';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -68,16 +69,7 @@ export const WalletContextProvider: React.FC<{ children: React.ReactNode }> = ({
   // Error handler for wallet connection issues
   const onError = useMemo(
     () => (error: any) => {
-      console.warn('Wallet connection error:', error);
-      // Don't throw for MetaMask detection errors from Solflare
-      if (error?.message?.includes('MetaMask extension not found')) {
-        console.info('MetaMask not detected, continuing with available wallets');
-        return;
-      }
-      // Log other errors but don't break the app
-      if (error?.message) {
-        console.error('Wallet error:', error.message);
-      }
+      handleWalletError(error);
     },
     []
   );

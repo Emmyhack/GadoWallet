@@ -4,6 +4,7 @@ import { useAnchorProgram, addCoinHeir, addTokenHeir } from '../lib/anchor';
 import { Coins, UserPlus, Loader2 } from 'lucide-react';
 import { web3 } from '@coral-xyz/anchor';
 import { BN } from '@coral-xyz/anchor';
+import { handleTransactionError } from '../utils/errorHandling';
 
 const AddHeir = () => {
   const { connected } = useWallet();
@@ -43,22 +44,7 @@ const AddHeir = () => {
       setTokenMint('');
       setInactivityDays('365');
     } catch (err) {
-      console.error('Error adding heir:', err);
-      
-      // Provide more user-friendly error messages
-      let errorMessage = 'Failed to add heir';
-      if (err instanceof Error) {
-        if (err.message.includes('insufficient funds')) {
-          errorMessage = 'Insufficient funds in your wallet';
-        } else if (err.message.includes('Transaction simulation failed')) {
-          errorMessage = 'Transaction failed. Please check your inputs and try again.';
-        } else if (err.message.includes('User rejected')) {
-          errorMessage = 'Transaction was cancelled by user';
-        } else {
-          errorMessage = err.message;
-        }
-      }
-      
+      const errorMessage = handleTransactionError(err, 'adding heir', 'Failed to add heir');
       setError(errorMessage);
     } finally {
       setLoading(false);
