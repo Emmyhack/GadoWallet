@@ -5,6 +5,18 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/',
+  define: {
+    global: 'globalThis',
+  },
+  resolve: {
+    alias: {
+      buffer: 'buffer',
+      process: 'process',
+    },
+  },
+  optimizeDeps: {
+    include: ['buffer', 'process'],
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -24,8 +36,8 @@ export default defineConfig({
         script-src 'self' 'unsafe-inline';
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: https: https://drive.google.com https://lh3.googleusercontent.com;
-        connect-src 'self' https://api.devnet.solana.com https://api.mainnet-beta.solana.com https://explorer.solana.com;
-        frame-src 'none';
+        connect-src 'self' https://api.devnet.solana.com https://api.mainnet-beta.solana.com https://explorer.solana.com https://*.civic.com https://civic.com wss://api.devnet.solana.com wss://api.mainnet-beta.solana.com;
+        frame-src 'self' https://*.civic.com https://civic.com;
         object-src 'none';
         base-uri 'self';
         form-action 'self';

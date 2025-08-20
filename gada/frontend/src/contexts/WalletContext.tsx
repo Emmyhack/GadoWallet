@@ -65,9 +65,26 @@ export const WalletContextProvider: React.FC<{ children: React.ReactNode }> = ({
     [network]
   );
 
+  // Error handler for wallet connection issues
+  const onError = useMemo(
+    () => (error: any) => {
+      console.warn('Wallet connection error:', error);
+      // Don't throw for MetaMask detection errors from Solflare
+      if (error?.message?.includes('MetaMask extension not found')) {
+        console.info('MetaMask not detected, continuing with available wallets');
+        return;
+      }
+      // Log other errors but don't break the app
+      if (error?.message) {
+        console.error('Wallet error:', error.message);
+      }
+    },
+    []
+  );
+
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
+      <WalletProvider wallets={wallets} autoConnect onError={onError}>
         <WalletModalProvider>
           {/* Crucial change: WalletInnerProvider wraps the children */}
           <WalletInnerProvider>
