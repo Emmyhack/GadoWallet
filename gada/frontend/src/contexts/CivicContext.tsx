@@ -1,18 +1,19 @@
-import React, { createContext, useContext, ReactNode } from 'react';
-import { SolanaGatewayProvider, useGateway } from '@civic/solana-gateway-react';
+import React, { createContext, useContext } from 'react';
+import type { ReactNode } from 'react';
+import { GatewayProvider, useGateway, GatewayStatus } from '@civic/solana-gateway-react';
+import { PublicKey } from '@solana/web3.js';
 import { useWallet } from './WalletContext';
 import { useConnection } from '@solana/wallet-adapter-react';
 
 // Civic Gateway configuration
-const GATEKEEPER_NETWORK = 'tgnuXXNMDLK8dy7Xm1TdeGyc95MDym4bvAQCwcW21Bf'; // Civic Captcha Pass
-const GATEKEEPER_NETWORK_UNIQUENESS = '49wLubTmowVu8idEHdFQ6EAQnmktDJncGc7LnYcKEfzz'; // Civic Uniqueness Pass
+const GATEKEEPER_NETWORK = new PublicKey('tgnuXXNMDLK8dy7Xm1TdeGyc95MDym4bvAQCwcW21Bf'); // Civic Captcha Pass
 
 interface CivicContextType {
   isVerified: boolean;
   isLoading: boolean;
-  requestGatewayToken: () => void;
+  requestGatewayToken: (() => void) | undefined;
   gatewayToken: any;
-  gatewayStatus: string;
+  gatewayStatus: GatewayStatus;
 }
 
 const CivicContext = createContext<CivicContextType | undefined>(undefined);
@@ -29,8 +30,8 @@ export const useCivic = () => {
 const CivicInnerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { gatewayToken, gatewayStatus, requestGatewayToken } = useGateway();
   
-  const isVerified = gatewayStatus === 'ACTIVE' && gatewayToken;
-  const isLoading = gatewayStatus === 'CHECKING' || gatewayStatus === 'COLLECTING_USER_INFORMATION';
+  const isVerified = gatewayStatus === GatewayStatus.ACTIVE && !!gatewayToken;
+  const isLoading = gatewayStatus === GatewayStatus.CHECKING || gatewayStatus === GatewayStatus.COLLECTING_USER_INFORMATION;
 
   const value: CivicContextType = {
     isVerified,
@@ -60,7 +61,7 @@ export const CivicProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         isLoading: false,
         requestGatewayToken: () => console.warn('Wallet not connected'),
         gatewayToken: null,
-        gatewayStatus: 'NOT_CONNECTED',
+        gatewayStatus: GatewayStatus.NOT_REQUESTED,
       }}>
         {children}
       </CivicContext.Provider>
@@ -68,21 +69,18 @@ export const CivicProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }
 
   return (
-    <SolanaGatewayProvider
+    <GatewayProvider
       wallet={wallet as any}
       connection={connection}
       cluster="devnet"
       gatekeeperNetwork={GATEKEEPER_NETWORK}
       options={{
         autoShowModal: false, // We'll control when to show the modal
-        logo: 'https://avatars.githubusercontent.com/u/89479282?s=200&v=4', // Your app logo
-        title: 'Gada Wallet Guardian',
-        description: 'Verify your identity to secure your inheritance setup',
       }}
     >
       <CivicInnerProvider>
         {children}
       </CivicInnerProvider>
-    </SolanaGatewayProvider>
+    </GatewayProvider>
   );
 };
