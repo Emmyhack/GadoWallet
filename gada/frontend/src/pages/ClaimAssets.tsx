@@ -56,7 +56,24 @@ const ClaimAssets = () => {
       setAuthority('');
     } catch (err) {
       console.error('Error claiming assets:', err);
-      setError(err instanceof Error ? err.message : 'Failed to claim assets');
+      
+      // Provide more user-friendly error messages
+      let errorMessage = 'Failed to claim assets';
+      if (err instanceof Error) {
+        if (err.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds in your wallet';
+        } else if (err.message.includes('Transaction simulation failed')) {
+          errorMessage = 'Transaction failed. Please check your inputs and try again.';
+        } else if (err.message.includes('User rejected')) {
+          errorMessage = 'Transaction was cancelled by user';
+        } else if (err.message.includes('not authorized')) {
+          errorMessage = 'You are not authorized to claim these assets';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

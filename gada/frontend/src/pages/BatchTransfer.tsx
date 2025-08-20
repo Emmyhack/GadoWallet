@@ -85,7 +85,22 @@ const BatchTransfer = () => {
       setTransfers([{ id: '1', amount: '' }]);
     } catch (err) {
       console.error('Error performing batch transfer:', err);
-      setError(err instanceof Error ? err.message : 'Failed to perform batch transfer');
+      
+      // Provide more user-friendly error messages
+      let errorMessage = 'Failed to perform batch transfer';
+      if (err instanceof Error) {
+        if (err.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds in your wallet';
+        } else if (err.message.includes('Transaction simulation failed')) {
+          errorMessage = 'Transaction failed. Please check your inputs and try again.';
+        } else if (err.message.includes('User rejected')) {
+          errorMessage = 'Transaction was cancelled by user';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
