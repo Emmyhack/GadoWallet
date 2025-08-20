@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useWallet } from '../contexts/WalletContext';
+import { useCivic } from '../contexts/CivicContext';
 import { useAnchorProgram, addCoinHeir, addTokenHeir } from '../lib/anchor';
 import { Coins, UserPlus, Loader2 } from 'lucide-react';
 import { web3 } from '@coral-xyz/anchor';
 import { BN } from '@coral-xyz/anchor';
 import { handleTransactionError } from '../utils/errorHandling';
+import CivicVerification from '../components/CivicVerification';
+import ProgramStatus from '../components/ProgramStatus';
 
 const AddHeir = () => {
   const { connected } = useWallet();
+  const { isVerified } = useCivic();
   const program = useAnchorProgram();
   const [type, setType] = useState<'token' | 'coin'>('token');
   const [heir, setHeir] = useState('');
@@ -21,6 +25,10 @@ const AddHeir = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!program || !connected) return;
+    if (!isVerified) {
+      setError('Please complete identity verification before adding an heir.');
+      return;
+    }
     
     setLoading(true);
     setSuccess(false);
@@ -52,14 +60,28 @@ const AddHeir = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto card p-8 mt-8">
-      <h1 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
-        <UserPlus className="w-7 h-7 text-purple-600" /> Add Heir
-      </h1>
-      {!connected && (
-        <div className="mb-4 text-purple-600 font-semibold">Please connect your wallet to add an heir.</div>
-      )}
-      <form className="space-y-6" onSubmit={handleSubmit}>
+    <div className="max-w-xl mx-auto space-y-6 mt-8">
+      <div className="card p-8">
+        <h1 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
+          <UserPlus className="w-7 h-7 text-purple-600" /> Add Heir
+        </h1>
+        
+        {connected && <ProgramStatus />}
+        
+        {!connected && (
+          <div className="mb-4 text-purple-600 font-semibold">Please connect your wallet to add an heir.</div>
+        )}
+        
+        {connected && !isVerified && (
+          <div className="mb-6">
+            <CivicVerification required={true} />
+          </div>
+        )}
+      </div>
+
+      {connected && isVerified && (
+        <div className="card p-8">
+          <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
           <label className="block mb-1 font-medium">Heir Address</label>
           <input
@@ -140,7 +162,9 @@ const AddHeir = () => {
         {error && (
           <div className="text-red-600 font-semibold text-center mt-2">{error}</div>
         )}
-      </form>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

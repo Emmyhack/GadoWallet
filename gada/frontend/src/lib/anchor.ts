@@ -1,8 +1,9 @@
 import { Program, AnchorProvider, web3, BN } from '@coral-xyz/anchor';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useWallet } from '../contexts/WalletContext';
+import { checkProgramDeployment } from './programCheck';
 
 // Simplified IDL that works with Anchor
 const IDL = {
@@ -149,9 +150,51 @@ const PROGRAM_ID = new web3.PublicKey("Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg8
 export function useAnchorProgram(): any {
   const { connection } = useConnection();
   const wallet = useWallet();
+  const [programDeployed, setProgramDeployed] = useState<boolean | null>(null);
+
+  // Check if program is deployed when connection or wallet changes
+  useEffect(() => {
+    let isMounted = true;
+    
+    const checkDeployment = async () => {
+      if (!connection) return;
+      
+      try {
+        const isDeployed = await checkProgramDeployment(connection);
+        if (isMounted) {
+          setProgramDeployed(isDeployed);
+          if (!isDeployed) {
+            console.warn(`
+⚠️  Program ${PROGRAM_ID.toString()} not found on devnet!
+            
+To fix this issue:
+1. Deploy the program: cd /workspace/gada && anchor deploy --provider.cluster devnet
+2. Or switch to localnet and start local validator: solana-test-validator
+3. Update Anchor.toml cluster setting to match your deployment
+
+Current network: ${connection.rpcEndpoint}
+            `);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check program deployment:', error);
+        if (isMounted) setProgramDeployed(false);
+      }
+    };
+
+    checkDeployment();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [connection]);
 
   return useMemo(() => {
     if (!wallet || !wallet.publicKey) return undefined;
+    if (programDeployed === false) {
+      console.error('Cannot create program instance - program not deployed');
+      return undefined;
+    }
 
     const provider = new AnchorProvider(
       connection,
@@ -160,7 +203,7 @@ export function useAnchorProgram(): any {
     );
 
     return new (Program as any)(IDL, PROGRAM_ID, provider);
-  }, [connection, wallet]);
+  }, [connection, wallet, programDeployed]);
 }
 
 // Helper functions for PDA derivation
