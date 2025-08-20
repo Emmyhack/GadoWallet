@@ -44,7 +44,22 @@ const AddHeir = () => {
       setInactivityDays('365');
     } catch (err) {
       console.error('Error adding heir:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add heir');
+      
+      // Provide more user-friendly error messages
+      let errorMessage = 'Failed to add heir';
+      if (err instanceof Error) {
+        if (err.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds in your wallet';
+        } else if (err.message.includes('Transaction simulation failed')) {
+          errorMessage = 'Transaction failed. Please check your inputs and try again.';
+        } else if (err.message.includes('User rejected')) {
+          errorMessage = 'Transaction was cancelled by user';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
