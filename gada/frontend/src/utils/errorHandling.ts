@@ -7,6 +7,12 @@ export interface TransactionError extends Error {
   logs?: string[];
 }
 
+export interface SendTransactionError extends Error {
+  logs?: string[];
+  getLogs?: () => string[];
+  message: string;
+}
+
 /**
  * Converts raw transaction errors into user-friendly messages
  */
@@ -73,9 +79,30 @@ export function handleTransactionError(
 ): string {
   console.error(`Error in ${context}:`, error);
   
-  // Log additional details if available
-  if (error && typeof error === 'object' && 'logs' in error) {
-    console.error('Transaction logs:', (error as TransactionError).logs);
+  // Handle SendTransactionError specifically
+  if (error && typeof error === 'object') {
+    const txError = error as SendTransactionError;
+    
+    // Try to get logs using getLogs() method
+    if (typeof txError.getLogs === 'function') {
+      try {
+        const logs = txError.getLogs();
+        console.error('Transaction logs from getLogs():', logs);
+      } catch (logError) {
+        console.error('Failed to get transaction logs:', logError);
+      }
+    }
+    
+    // Also check for logs property
+    if ('logs' in txError && Array.isArray(txError.logs)) {
+      console.error('Transaction logs from property:', txError.logs);
+    }
+
+    // Log program-specific errors
+    if (txError.message.includes('program that does not exist')) {
+      console.error('Program deployment issue - check if program is deployed to the correct network');
+      return 'Program not found. Please ensure the smart contract is deployed.';
+    }
   }
 
   return getTransactionErrorMessage(error, defaultMessage);
