@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCivic } from '../contexts/CivicContext';
+import { GatewayStatus } from '@civic/solana-gateway-react';
 import { Shield, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 interface CivicVerificationProps {
@@ -35,17 +36,17 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
 
   const getStatusText = () => {
     switch (gatewayStatus) {
-      case 'ACTIVE':
+      case GatewayStatus.ACTIVE:
         return 'Identity Verified ✓';
-      case 'CHECKING':
+      case GatewayStatus.CHECKING:
         return 'Checking verification status...';
-      case 'COLLECTING_USER_INFORMATION':
+      case GatewayStatus.COLLECTING_USER_INFORMATION:
         return 'Please complete verification...';
-      case 'REJECTED':
+      case GatewayStatus.REJECTED:
         return 'Verification rejected';
-      case 'FROZEN':
+      case GatewayStatus.FROZEN:
         return 'Verification frozen';
-      case 'NOT_CONNECTED':
+      case GatewayStatus.NOT_REQUESTED:
         return 'Wallet not connected';
       default:
         return 'Identity verification required';
@@ -53,7 +54,7 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
   };
 
   const handleVerifyClick = () => {
-    if (!isLoading && !isVerified) {
+    if (!isLoading && !isVerified && requestGatewayToken) {
       requestGatewayToken();
     }
   };
