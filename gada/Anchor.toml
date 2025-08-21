@@ -6,10 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-gada = "JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM"
+gada = "8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE"
 
 [programs.devnet]
-gada = "JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM"
+gada = "8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE"
 
 [registry]
 url = "https://api.apr.dev"
