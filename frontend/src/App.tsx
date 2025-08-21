@@ -7,7 +7,21 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 function App() {
   return (
     <ErrorBoundary>
-      <CivicAuthProvider clientId="f2fc33e0-3b6b-4ea7-bb5e-a5f60b45e808">
+      <CivicAuthProvider 
+        clientId="f2fc33e0-3b6b-4ea7-bb5e-a5f60b45e808"
+        displayMode="iframe"
+        iframeMode="modal"
+        onSignIn={(error) => {
+          if (error) {
+            console.error('Civic sign-in error:', error);
+          } else {
+            console.log('Civic sign-in successful');
+          }
+        }}
+        onSignOut={() => {
+          console.log('Civic sign-out');
+        }}
+      >
         <WalletProvider>
           <div className="min-h-screen">
             <Header />

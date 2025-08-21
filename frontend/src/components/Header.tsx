@@ -8,7 +8,22 @@ import { useCivicAuth } from '../lib/civic';
 export function Header() {
   const { gradient, setGradient, gradientClasses } = useTheme();
   const { connected } = useWallet();
-  const { isVerified, verificationStatus, requestVerification, isVerifying } = useCivicAuth();
+  
+  // Use Civic auth with error boundary protection
+  let civicAuthData;
+  try {
+    civicAuthData = useCivicAuth();
+  } catch (error) {
+    console.warn('Civic auth not available in Header:', error);
+    civicAuthData = {
+      isVerified: false,
+      verificationStatus: 'unverified' as const,
+      requestVerification: async () => {},
+      isVerifying: false
+    };
+  }
+  
+  const { isVerified, verificationStatus, requestVerification, isVerifying } = civicAuthData;
 
   return (
     <header className={`bg-gradient-to-r ${gradientClasses} text-white sticky top-0 z-50`}>
