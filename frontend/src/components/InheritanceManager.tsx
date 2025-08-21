@@ -128,6 +128,11 @@ export function InheritanceManager() {
           errorMessage += 'Insufficient funds to complete this transaction.';
         } else if (error.message.includes('Invalid public key')) {
           errorMessage += 'Invalid wallet address provided.';
+        } else if (error.message.includes('program that does not exist') || error.message.includes('Attempt to load a program that does not exist')) {
+          errorMessage += 'The Gado program is not deployed on this network. Please contact support or try again later.';
+          console.error('Program deployment issue - Program ID:', 'JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM', 'Network: Devnet');
+        } else if (error.message.includes('Simulation failed')) {
+          errorMessage += 'Transaction simulation failed. This usually means the program is not deployed or network issues. Please try again.';
         } else {
           errorMessage += error.message;
         }

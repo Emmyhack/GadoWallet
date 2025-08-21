@@ -56,9 +56,11 @@ If you can't deploy the program, you can temporarily mock the program calls for 
 
 ## Current Program Configuration
 
-- **Program ID:** `Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5`
+- **Program ID:** `JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM` (Updated to match Anchor.toml)
 - **Current Network:** Devnet (configured in Anchor.toml)
-- **Frontend Network:** Devnet (configured in WalletContext.tsx)
+- **Frontend Network:** Devnet (configured in WalletProvider.tsx)
+
+⚠️ **IMPORTANT**: The program needs to be deployed to devnet before heir functionality will work.
 
 ## Civic Integration Setup
 

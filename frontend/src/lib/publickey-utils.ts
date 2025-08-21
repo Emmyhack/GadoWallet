@@ -32,7 +32,7 @@ export function isValidPublicKey(key: string): boolean {
  * Program ID for the Gada program with safe initialization
  */
 export const PROGRAM_ID = (() => {
-  const programIdString = 'Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5';
+  const programIdString = 'JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM';
   const publicKey = safeCreatePublicKey(programIdString);
   if (!publicKey) {
     console.error('Failed to initialize PROGRAM_ID');
