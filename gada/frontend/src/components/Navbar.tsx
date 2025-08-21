@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Shield, Zap, Users, Coins } from 'lucide-react';
+import { Menu, X, Shield, Zap, Users, Coins, Wallet } from 'lucide-react';
+import { useWallet } from '../contexts/WalletContext';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { connected, publicKey } = useWallet();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,15 +76,24 @@ const Navbar: React.FC = () => {
             })}
           </div>
 
-          {/* CTA Button */}
+          {/* Wallet Connection */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Link
-              to="/dashboard"
-              className="btn-primary group relative overflow-hidden"
-            >
-              <span className="relative z-10">Get Started</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Link>
+            {connected ? (
+              <div className="flex items-center space-x-3">
+                <div className="text-white/80 text-sm">
+                  {publicKey?.toString().slice(0, 4)}...{publicKey?.toString().slice(-4)}
+                </div>
+                <WalletMultiButton className="!bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 !text-white !border-none !rounded-lg !px-4 !py-2 !text-sm !font-medium transition-all duration-300" />
+              </div>
+            ) : (
+              <WalletMultiButton className="btn-primary group relative overflow-hidden">
+                <span className="relative z-10 flex items-center gap-2">
+                  <Wallet className="w-4 h-4" />
+                  Connect Wallet
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </WalletMultiButton>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -122,13 +134,21 @@ const Navbar: React.FC = () => {
                 );
               })}
               <div className="pt-2">
-                <Link
-                  to="/dashboard"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="btn-primary w-full justify-center"
-                >
-                  Get Started
-                </Link>
+                {connected ? (
+                  <div className="space-y-2">
+                    <div className="text-white/80 text-sm text-center">
+                      {publicKey?.toString().slice(0, 4)}...{publicKey?.toString().slice(-4)}
+                    </div>
+                    <WalletMultiButton className="!w-full !justify-center !bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 !text-white !border-none !rounded-lg !px-4 !py-2 !text-sm !font-medium" />
+                  </div>
+                ) : (
+                  <WalletMultiButton className="btn-primary w-full justify-center">
+                    <span className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4" />
+                      Connect Wallet
+                    </span>
+                  </WalletMultiButton>
+                )}
               </div>
             </div>
           </div>

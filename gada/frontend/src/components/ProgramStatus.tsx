@@ -35,34 +35,34 @@ const ProgramStatus: React.FC = () => {
 
   if (isDeployed) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-        <div className="flex items-center gap-2 text-green-800">
+      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-4">
+        <div className="flex items-center gap-2 text-green-400">
           <CheckCircle className="w-4 h-4" />
-          <span className="text-sm font-medium">Program Ready</span>
+          <span className="text-sm font-medium text-white">Program Ready</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+        <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="font-medium text-yellow-800 mb-2">
+          <h3 className="font-medium text-white mb-2">
             Smart Contract Not Deployed
           </h3>
-          <p className="text-yellow-700 text-sm mb-3">
+          <p className="text-white/80 text-sm mb-3">
             The Gada inheritance program is not deployed to this network. 
             You'll need to deploy it before you can add heirs or manage inheritance.
           </p>
           
           <div className="space-y-2 text-sm">
-            <div className="bg-yellow-100 rounded p-3">
-              <p className="font-medium text-yellow-800 mb-2">Quick Fix Options:</p>
-              <ol className="list-decimal list-inside space-y-1 text-yellow-700">
+            <div className="bg-white/5 rounded p-3">
+              <p className="font-medium text-white mb-2">Quick Fix Options:</p>
+              <ol className="list-decimal list-inside space-y-1 text-white/80">
                 <li>
-                  <strong>Use Localnet:</strong> Run <code className="bg-yellow-200 px-1 rounded">solana-test-validator</code> 
+                  <strong>Use Localnet:</strong> Run <code className="bg-white/10 px-1 rounded">solana-test-validator</code> 
                   and switch to localnet in wallet settings
                 </li>
                 <li>
@@ -78,7 +78,7 @@ const ProgramStatus: React.FC = () => {
               <button
                 onClick={checkStatus}
                 disabled={isChecking}
-                className="flex items-center gap-1 px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700 disabled:opacity-50"
+                className="flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${isChecking ? 'animate-spin' : ''}`} />
                 {isChecking ? 'Checking...' : 'Recheck Status'}
@@ -88,7 +88,7 @@ const ProgramStatus: React.FC = () => {
                 href="https://github.com/Emmyhack/GadaWallet/blob/main/gada/DEPLOYMENT_GUIDE.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
               >
                 <ExternalLink className="w-3 h-3" />
                 Deployment Guide
@@ -97,7 +97,7 @@ const ProgramStatus: React.FC = () => {
           </div>
           
           {lastCheck && (
-            <p className="text-xs text-yellow-600 mt-2">
+            <p className="text-xs text-white/60 mt-2">
               Last checked: {lastCheck.toLocaleTimeString()}
             </p>
           )}

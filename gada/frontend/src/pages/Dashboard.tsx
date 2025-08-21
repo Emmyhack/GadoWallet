@@ -15,9 +15,13 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { useWallet } from '../contexts/WalletContext';
+import { useCivic } from '../contexts/CivicContext';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 const Dashboard: React.FC = () => {
-  const [isConnected] = useState(false);
+  const { connected } = useWallet();
+  const { isVerified } = useCivic();
   const [showBalance, setShowBalance] = useState(false);
   const [heirs] = useState([
     { id: 1, name: 'Sarah Johnson', address: '0x1234...5678', percentage: 60, status: 'active', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=50&h=50&fit=crop&crop=face' },
@@ -65,7 +69,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Connection Status */}
-        {!isConnected ? (
+        {!connected ? (
           <div className="glass-card p-8 mb-8 animate-fade-in-up">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6">
@@ -77,14 +81,32 @@ const Dashboard: React.FC = () => {
                   <p className="text-white/70 text-lg">Connect your wallet to access your dashboard</p>
                 </div>
               </div>
-              <button className="btn-primary text-lg px-8 py-4">
-                <Wallet className="w-6 h-6 mr-3" />
-                Connect Wallet
-              </button>
+              <WalletMultiButton className="btn-primary text-lg px-8 py-4" />
             </div>
           </div>
         ) : (
           <>
+            {/* Verification Status */}
+            {connected && !isVerified && (
+              <div className="glass-card p-8 mb-8 animate-fade-in-up">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-6">
+                    <div className="w-16 h-16 bg-yellow-500/20 rounded-2xl flex items-center justify-center">
+                      <AlertCircle className="w-8 h-8 text-yellow-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-2">Identity Verification Required</h3>
+                      <p className="text-white/70 text-lg">Complete identity verification to add heirs and manage assets</p>
+                    </div>
+                  </div>
+                  <Link to="/add-heir" className="btn-primary text-lg px-8 py-4">
+                    <Shield className="w-6 h-6 mr-3" />
+                    Verify Identity
+                  </Link>
+                </div>
+              </div>
+            )}
+            
             {/* Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
               <div className="dashboard-card group">
