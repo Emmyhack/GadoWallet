@@ -15,8 +15,26 @@ interface CivicAuthContextType {
 // Custom hook that wraps the new Civic Auth context
 export function useCivicAuth(): CivicAuthContextType {
   const { connected } = useWallet();
-  const civicAuth = useCivicAuthContext();
   const [error, setError] = useState<string | null>(null);
+  
+  // Handle case where context might not be available
+  let civicAuth;
+  try {
+    civicAuth = useCivicAuthContext();
+  } catch (contextError) {
+    // If context is not available, return default values
+    console.warn('CivicAuthContext not available, using default values:', contextError);
+    return {
+      isVerified: false,
+      isVerifying: false,
+      verificationStatus: 'unverified',
+      requestVerification: async () => {
+        console.warn('Civic auth not available - please ensure CivicAuthProvider is properly configured');
+      },
+      user: null,
+      error: null // Don't show error in UI for missing context
+    };
+  }
 
   const verificationStatus = useMemo(() => {
     if (!connected) return 'unverified';
