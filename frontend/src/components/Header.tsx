@@ -14,7 +14,7 @@ export function Header() {
   try {
     civicAuthData = useCivicAuth();
   } catch (error) {
-    console.warn('Civic auth not available in Header:', error);
+    console.info('Civic auth not available in Header - using defaults');
     civicAuthData = {
       isVerified: false,
       verificationStatus: 'unverified' as const,

@@ -9,7 +9,7 @@
 
 "@coral-xyz/anchor-cli@0.31.1":
   version "0.31.1"
-  resolved "https://registry.yarnpkg.com/@coral-xyz/anchor-cli/-/anchor-cli-0.31.1.tgz#6e00131912fb91d44f6e165aa23d80f4929b375e"
+  resolved "https://registry.npmjs.org/@coral-xyz/anchor-cli/-/anchor-cli-0.31.1.tgz"
   integrity sha512-ClHj4T7TCCQNdKFpcy7niEMFcRe2zgESBekDCLWvVlZdsRnr05ypAIE9gq/SsIBdB+xP62tCgs+uE7fGH93QPw==
 
 "@coral-xyz/anchor-errors@^0.31.1":
@@ -231,7 +231,7 @@
 
 "@types/bn.js@^5.2.0":
   version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.2.0.tgz#4349b9710e98f9ab3cdc50f1c5e4dcbd8ef29c80"
+  resolved "https://registry.npmjs.org/@types/bn.js/-/bn.js-5.2.0.tgz"
   integrity sha512-DLbJ1BPqxvQhIGbeu8VbUC1DiAiahHtAYvA0ZEAa4P31F7IaArc8z3C3BRQdWX4mtLQuABG4yzp76ZrS02Ui1Q==
   dependencies:
     "@types/node" "*"
@@ -617,7 +617,7 @@ fast-stable-stringify@^1.0.0:
 
 fastestsmallesttextencoderdecoder@^1.0.22:
   version "1.0.22"
-  resolved "https://registry.yarnpkg.com/fastestsmallesttextencoderdecoder/-/fastestsmallesttextencoderdecoder-1.0.22.tgz#59b47e7b965f45258629cc6c127bf783281c5e93"
+  resolved "https://registry.npmjs.org/fastestsmallesttextencoderdecoder/-/fastestsmallesttextencoderdecoder-1.0.22.tgz"
   integrity sha512-Pb8d48e+oIuY4MaM64Cd7OW1gt4nxCHs7/ddPPZ/Ic3sg8yVGM7O9wDvZ7us6ScaUupzM+pfBolwtYhN1IxBIw==
 
 file-uri-to-path@1.0.0:

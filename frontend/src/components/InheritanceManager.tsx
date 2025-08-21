@@ -5,6 +5,7 @@ import { web3, BN } from '@project-serum/anchor';
 import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useCivicAuth, VerificationPrompt, isVerificationRequired, isVerificationRecommended } from '../lib/civic';
+import { ProgramStatus } from './ProgramStatus';
 
 export function InheritanceManager() {
   const program = useAnchorProgram();
@@ -120,6 +121,21 @@ export function InheritanceManager() {
     } catch (error) {
       console.error('Error adding heir:', error);
       
+      // Handle SendTransactionError specifically to get detailed logs
+      if (error && typeof error === 'object' && 'getLogs' in error) {
+        try {
+          const logs = (error as any).getLogs();
+          console.error('Transaction logs from getLogs():', logs);
+        } catch (logError) {
+          console.error('Failed to get transaction logs:', logError);
+        }
+      }
+      
+      // Also check for logs property
+      if (error && typeof error === 'object' && 'logs' in error && Array.isArray((error as any).logs)) {
+        console.error('Transaction logs from property:', (error as any).logs);
+      }
+      
       let errorMessage = 'Error adding heir. ';
       if (error instanceof Error) {
         if (error.message.includes('already in use')) {
@@ -213,6 +229,9 @@ export function InheritanceManager() {
           <p className="text-gray-600 dark:text-gray-300">{t('whyGado')}</p>
         </div>
       </div>
+
+      {/* Program Status */}
+      <ProgramStatus />
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-md">

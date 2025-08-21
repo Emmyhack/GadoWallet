@@ -23,13 +23,14 @@ export function useCivicAuth(): CivicAuthContextType {
     civicAuth = useCivicAuthContext();
   } catch (contextError) {
     // If context is not available, return default values
-    console.warn('CivicAuthContext not available, using default values:', contextError);
+    // Use console.info instead of console.warn to reduce noise
+    console.info('CivicAuthContext not available, using default values. This is expected if CivicAuthProvider is not configured.');
     return {
       isVerified: false,
       isVerifying: false,
       verificationStatus: 'unverified',
       requestVerification: async () => {
-        console.warn('Civic auth not available - please ensure CivicAuthProvider is properly configured');
+        console.info('Civic auth not available - please ensure CivicAuthProvider is properly configured');
       },
       user: null,
       error: null // Don't show error in UI for missing context
