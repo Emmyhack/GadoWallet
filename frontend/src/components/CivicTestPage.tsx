@@ -100,7 +100,7 @@ export function CivicTestPage() {
           </h4>
           <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
             <div>Auth Status: {civicAuth.authStatus}</div>
-            <div>User ID: {user?.sub || 'Not available'}</div>
+            <div>User ID: {user?.id || 'Not available'}</div>
             <div>Access Token: {civicAuth.accessToken ? 'Present' : 'Not present'}</div>
             <div>ID Token: {civicAuth.idToken ? 'Present' : 'Not present'}</div>
           </div>
@@ -113,7 +113,7 @@ export function CivicTestPage() {
               <div className="flex items-center justify-center space-x-3">
                 <User className="w-5 h-5 text-green-500" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">
-                  Signed in as: {user?.email || user?.sub || 'Verified User'}
+                  Signed in as: {user?.email || user?.username || user?.id || 'Verified User'}
                 </span>
               </div>
               <UserButton className="civic-user-button" />

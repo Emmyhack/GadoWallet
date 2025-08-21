@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useCivicAuthContext, SignInButton, SignOutButton, UserButton } from '@civic/auth/react';
-import type { User } from '@civic/auth/react';
+import type { User } from '@civic/auth';
 
 interface CivicAuthContextType {
   isVerified: boolean;
