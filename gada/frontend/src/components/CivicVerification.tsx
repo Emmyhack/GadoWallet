@@ -23,9 +23,9 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
   }, [isVerified, onVerificationComplete]);
 
   const getStatusColor = () => {
-    if (isVerified) return 'text-green-600';
-    if (isLoading) return 'text-yellow-600';
-    return 'text-red-600';
+    if (isVerified) return 'text-green-400';
+    if (isLoading) return 'text-yellow-400';
+    return 'text-red-400';
   };
 
   const getStatusIcon = () => {
@@ -62,18 +62,18 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
   if (!required && isVerified) {
     // If verification is optional and user is already verified, show minimal indicator
     return (
-      <div className={`flex items-center gap-2 text-green-600 ${className}`}>
+      <div className={`flex items-center gap-2 text-green-400 ${className}`}>
         <CheckCircle className="w-4 h-4" />
-        <span className="text-sm">Verified</span>
+        <span className="text-sm text-white">Verified</span>
       </div>
     );
   }
 
   return (
-    <div className={`card p-6 border-2 ${isVerified ? 'border-green-200' : 'border-yellow-200'} ${className}`}>
+    <div className={`bg-white/5 backdrop-blur-sm border border-white/20 rounded-2xl p-6 ${isVerified ? 'border-green-500/30' : 'border-yellow-500/30'} ${className}`}>
       <div className="flex items-center gap-3 mb-4">
-        <Shield className="w-6 h-6 text-purple-600" />
-        <h3 className="text-lg font-semibold">Identity Verification</h3>
+        <Shield className="w-6 h-6 text-purple-400" />
+        <h3 className="text-lg font-semibold text-white">Identity Verification</h3>
       </div>
 
       <div className="space-y-4">
@@ -84,7 +84,7 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
 
         {!isVerified && (
           <div className="space-y-3">
-            <p className="text-gray-600 text-sm">
+            <p className="text-white/80 text-sm">
               {required 
                 ? 'Identity verification is required to set up inheritance. This ensures only you can manage your assets.'
                 : 'Verify your identity for enhanced security and trust in your inheritance setup.'
@@ -123,8 +123,8 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
         )}
 
         {isVerified && (
-          <div className="bg-green-50 p-3 rounded-lg">
-            <p className="text-green-800 text-sm">
+          <div className="bg-green-500/10 border border-green-500/20 p-3 rounded-lg">
+            <p className="text-green-400 text-sm">
               🎉 Your identity has been successfully verified! You can now securely manage your inheritance settings.
             </p>
           </div>
@@ -132,9 +132,9 @@ const CivicVerification: React.FC<CivicVerificationProps> = ({
       </div>
 
       {/* Security information */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <details className="text-sm text-gray-600">
-          <summary className="cursor-pointer hover:text-gray-800 font-medium">
+      <div className="mt-4 pt-4 border-t border-white/20">
+        <details className="text-sm text-white/80">
+          <summary className="cursor-pointer hover:text-white font-medium">
             Why do we need verification?
           </summary>
           <div className="mt-2 space-y-2">
