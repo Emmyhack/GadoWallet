@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 
-const PROGRAM_ID = new PublicKey("Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5");
+const PROGRAM_ID = new PublicKey("JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM");
 
 export async function checkProgramDeployment(connection: Connection): Promise<boolean> {
   try {
