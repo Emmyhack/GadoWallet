@@ -1,13 +1,13 @@
 import React from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useCivicAuth, CivicIdentityButton } from '../lib/civic';
-import { ButtonMode, GatewayStatus, useGateway } from '@civic/solana-gateway-react';
-import { Shield, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import { useCivicAuth, CivicIdentityButton, SignInButton, SignOutButton, UserButton } from '../lib/civic';
+import { useCivicAuthContext } from '@civic/auth/react';
+import { Shield, CheckCircle, AlertTriangle, Clock, User } from 'lucide-react';
 
 export function CivicTestPage() {
   const { connected } = useWallet();
-  const { verificationStatus, error } = useCivicAuth();
-  const gateway = useGateway();
+  const { verificationStatus, error, user } = useCivicAuth();
+  const civicAuth = useCivicAuthContext();
 
   if (!connected) {
     return (
@@ -93,33 +93,49 @@ export function CivicTestPage() {
           </div>
         )}
 
-        {/* Gateway Info */}
+        {/* Auth Info */}
         <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-            Gateway Information
+            Authentication Information
           </h4>
           <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
-            <div>Gateway Status: {gateway?.gatewayStatus || 'Not available'}</div>
-            <div>Gateway Token: {gateway?.gatewayToken ? 'Present' : 'Not present'}</div>
-            <div>Network: Devnet (Civic Pass Captcha)</div>
+            <div>Auth Status: {civicAuth.authStatus}</div>
+            <div>User ID: {user?.sub || 'Not available'}</div>
+            <div>Access Token: {civicAuth.accessToken ? 'Present' : 'Not present'}</div>
+            <div>ID Token: {civicAuth.idToken ? 'Present' : 'Not present'}</div>
           </div>
         </div>
 
-        {/* Civic Identity Button */}
-        <div className="text-center">
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-              Official Civic Identity Button (Light Mode)
-            </h4>
-            <CivicIdentityButton mode={ButtonMode.LIGHT} className="civic-test-button" />
-          </div>
-          
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-              Official Civic Identity Button (Dark Mode)
-            </h4>
-            <CivicIdentityButton mode={ButtonMode.DARK} className="civic-test-button" />
-          </div>
+        {/* Civic Auth Buttons */}
+        <div className="text-center space-y-6">
+          {verificationStatus === 'verified' ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center space-x-3">
+                <User className="w-5 h-5 text-green-500" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  Signed in as: {user?.email || user?.sub || 'Verified User'}
+                </span>
+              </div>
+              <UserButton className="civic-user-button" />
+              <SignOutButton className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md font-medium transition-colors" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Civic Authentication
+                </h4>
+                <SignInButton className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-md font-medium transition-colors" />
+              </div>
+              
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                  Custom Identity Button
+                </h4>
+                <CivicIdentityButton className="civic-test-button" variant="primary" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Instructions */}
@@ -128,11 +144,12 @@ export function CivicTestPage() {
             Testing Instructions
           </h4>
           <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-            <li>1. Click on one of the Civic Identity buttons above</li>
-            <li>2. A popup window or new tab should open with the Civic verification flow</li>
-            <li>3. Complete the verification process (may require ID documents)</li>
-            <li>4. Return to this page to see the updated verification status</li>
+            <li>1. Click on one of the Civic authentication buttons above</li>
+            <li>2. A popup window or iframe will open with the Civic authentication flow</li>
+            <li>3. Complete the authentication process with your credentials</li>
+            <li>4. Return to this page to see the updated authentication status</li>
             <li>5. The status should change from "unverified" to "pending" to "verified"</li>
+            <li>6. Once verified, you can proceed to add heirs with enhanced security</li>
           </ul>
         </div>
       </div>
