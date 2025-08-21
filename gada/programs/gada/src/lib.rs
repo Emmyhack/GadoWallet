@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, TokenAccount, Token, Transfer, Mint};
 use anchor_lang::solana_program::clock::Clock;
 
-declare_id!("Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5");
+declare_id!("JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM");
 
 // Inactivity period for inheritance claims. Default: 365 days. With
 // feature `short-claim-delay`, use 2 days for testing.
