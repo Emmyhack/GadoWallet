@@ -1,77 +1,51 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useGateway, IdentityButton, ButtonMode, GatewayStatus } from '@civic/solana-gateway-react';
+import { useCivicAuthContext, SignInButton, SignOutButton, UserButton } from '@civic/auth/react';
+import type { User } from '@civic/auth/react';
 
 interface CivicAuthContextType {
   isVerified: boolean;
   isVerifying: boolean;
   verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
   requestVerification: () => Promise<void>;
-  gatewayToken: any;
+  user: User | null;
   error: string | null;
 }
 
-const CivicAuthContext = createContext<CivicAuthContextType | undefined>(undefined);
-
-export function CivicAuthProvider({ children }: { children: React.ReactNode }) {
-  const { connected, publicKey } = useWallet();
-  const gateway = useGateway();
-  const [isVerifying, setIsVerifying] = useState(false);
+// Custom hook that wraps the new Civic Auth context
+export function useCivicAuth(): CivicAuthContextType {
+  const { connected } = useWallet();
+  const civicAuth = useCivicAuthContext();
   const [error, setError] = useState<string | null>(null);
 
-  // Fallback for when Civic is not available
-  const isCivicAvailable = useMemo(() => {
-    try {
-      return gateway !== undefined;
-    } catch {
-      return false;
-    }
-  }, [gateway]);
-
   const verificationStatus = useMemo(() => {
-    if (!connected || !publicKey) return 'unverified';
-    if (!gateway) return 'unverified';
+    if (!connected) return 'unverified';
     
-    // Use the proper gateway status from Civic
-    switch (gateway.gatewayStatus) {
-      case GatewayStatus.ACTIVE:
+    switch (civicAuth.authStatus) {
+      case 'authenticated':
         return 'verified';
-      case GatewayStatus.IN_REVIEW:
-      case GatewayStatus.COLLECTING_USER_INFORMATION:
+      case 'authenticating':
         return 'pending';
-      case GatewayStatus.REJECTED:
+      case 'error':
         return 'rejected';
-      case GatewayStatus.NOT_REQUESTED:
-      case GatewayStatus.UNKNOWN:
+      case 'unauthenticated':
       default:
         return 'unverified';
     }
-  }, [connected, publicKey, gateway]);
+  }, [connected, civicAuth.authStatus]);
 
   const isVerified = verificationStatus === 'verified';
+  const isVerifying = civicAuth.authStatus === 'authenticating';
 
   const requestVerification = async () => {
-    if (!connected || !publicKey) {
+    if (!connected) {
       setError('Please connect your wallet first');
       return;
     }
 
-    if (!isCivicAvailable || !gateway) {
-      setError('Civic verification service is not available. Please try again later or continue without verification.');
-      return;
-    }
-
     try {
-      setIsVerifying(true);
       setError(null);
-      
-      // Use the proper Civic method to request verification
-      if (typeof gateway.requestGatewayToken === 'function') {
-        await gateway.requestGatewayToken();
-        // The gateway status will be updated automatically by the Civic provider
-      } else {
-        throw new Error('Civic Gateway is not properly configured. The verification service may be temporarily unavailable.');
-      }
+      await civicAuth.signIn();
     } catch (err) {
       console.error('Civic verification error:', err);
       let errorMessage = 'Verification failed. ';
@@ -81,52 +55,29 @@ export function CivicAuthProvider({ children }: { children: React.ReactNode }) {
           errorMessage += 'Verification was cancelled by user.';
         } else if (err.message.includes('network') || err.message.includes('Network')) {
           errorMessage += 'Network error. Please check your connection and try again.';
-        } else if (err.message.includes('not configured')) {
-          errorMessage += err.message;
         } else {
-          errorMessage += 'Please try again or continue without verification.';
+          errorMessage += err.message || 'Please try again or continue without verification.';
         }
       } else {
         errorMessage += 'Please try again or continue without verification.';
       }
       
       setError(errorMessage);
-    } finally {
-      setIsVerifying(false);
     }
   };
 
-  // Clear error when wallet disconnects
-  useEffect(() => {
-    if (!connected) {
-      setError(null);
-      setIsVerifying(false);
-    }
-  }, [connected]);
-
-  const value: CivicAuthContextType = {
+  return {
     isVerified,
     isVerifying,
     verificationStatus,
     requestVerification,
-    gatewayToken: gateway?.gatewayToken,
-    error
+    user: civicAuth.user,
+    error: error || (civicAuth.error?.message || null)
   };
-
-  return (
-    <CivicAuthContext.Provider value={value}>
-      {children}
-    </CivicAuthContext.Provider>
-  );
 }
 
-export function useCivicAuth() {
-  const context = useContext(CivicAuthContext);
-  if (context === undefined) {
-    throw new Error('useCivicAuth must be used within a CivicAuthProvider');
-  }
-  return context;
-}
+// Export the new Civic Auth components for easy access
+export { SignInButton, SignOutButton, UserButton };
 
 // Helper function to check if verification is required for sensitive operations
 export function isVerificationRequired(operation: 'addHeir' | 'batchTransfer' | 'claimAssets' | 'updateActivity'): boolean {
@@ -168,19 +119,18 @@ export function isVerificationRecommended(operation: 'addHeir' | 'batchTransfer'
   }
 }
 
-// Official Civic Identity Button Component
+// Official Civic Identity Button Component using new API
 export function CivicIdentityButton({ 
   className = "",
-  mode = ButtonMode.LIGHT 
+  variant = "primary"
 }: { 
   className?: string;
-  mode?: ButtonMode;
+  variant?: "primary" | "secondary";
 }) {
   return (
     <div className={className}>
-      <IdentityButton 
-        mode={mode}
-        animation={true}
+      <SignInButton 
+        className={`civic-sign-in-btn ${variant === 'secondary' ? 'civic-btn-secondary' : 'civic-btn-primary'}`}
       />
     </div>
   );
@@ -189,14 +139,13 @@ export function CivicIdentityButton({
 // Helper component for verification prompts
 export function VerificationPrompt({ 
   operation, 
-  onVerify, 
   onSkip 
 }: { 
   operation: string; 
-  onVerify: () => void; 
+  onVerify?: () => void; 
   onSkip?: () => void; 
 }) {
-  const { isVerifying, error, verificationStatus } = useCivicAuth();
+  const { error, verificationStatus } = useCivicAuth();
 
   return (
     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
@@ -228,13 +177,11 @@ export function VerificationPrompt({
             </div>
           )}
           <div className="flex space-x-3 mt-3">
-            {/* Use the official Civic Identity Button */}
-            <div className="civic-button-wrapper">
-              <CivicIdentityButton 
-                mode={ButtonMode.LIGHT}
-                className="civic-identity-button"
-              />
-            </div>
+            {/* Use the new Civic Identity Button */}
+            <CivicIdentityButton 
+              className="civic-identity-button"
+              variant="primary"
+            />
             {onSkip && (
               <button
                 onClick={onSkip}
