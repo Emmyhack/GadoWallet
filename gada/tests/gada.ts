@@ -1,23 +1,23 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Gada, TokenHeir, CoinHeir } from "../target/types/gada";
-import { 
-  Keypair, 
-  LAMPORTS_PER_SOL, 
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
   SystemProgram,
   Transaction,
   sendAndConfirmTransaction,
-  PublicKey
+  PublicKey,
 } from "@solana/web3.js";
-import { 
-  TOKEN_PROGRAM_ID, 
-  createMint, 
-  createAccount, 
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAccount,
   mintTo,
   getAccount,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
-  createAssociatedTokenAccount
+  createAssociatedTokenAccount,
 } from "@solana/spl-token";
 import { assert } from "chai";
 
@@ -27,17 +27,17 @@ describe("gada", () => {
   anchor.setProvider(provider);
 
   const program = anchor.workspace.Gada as Program<Gada>;
-  
+
   // Test keypairs
   let owner: Keypair;
   let heir: Keypair;
   let thirdParty: Keypair;
-  
+
   // Token related
   let tokenMint: PublicKey;
   let ownerTokenAccount: PublicKey;
   let heirTokenAccount: PublicKey;
-  
+
   // PDAs
   let tokenHeirPda: PublicKey;
   let coinHeirPda: PublicKey;
@@ -52,13 +52,22 @@ describe("gada", () => {
 
     // Airdrop SOL to test accounts
     await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(owner.publicKey, 2 * LAMPORTS_PER_SOL)
+      await provider.connection.requestAirdrop(
+        owner.publicKey,
+        2 * LAMPORTS_PER_SOL
+      )
     );
     await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(heir.publicKey, 1 * LAMPORTS_PER_SOL)
+      await provider.connection.requestAirdrop(
+        heir.publicKey,
+        1 * LAMPORTS_PER_SOL
+      )
     );
     await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(thirdParty.publicKey, 1 * LAMPORTS_PER_SOL)
+      await provider.connection.requestAirdrop(
+        thirdParty.publicKey,
+        1 * LAMPORTS_PER_SOL
+      )
     );
 
     // Create token mint
@@ -77,7 +86,7 @@ describe("gada", () => {
       tokenMint,
       owner.publicKey
     );
-    
+
     heirTokenAccount = await createAssociatedTokenAccount(
       provider.connection,
       heir,
@@ -101,7 +110,7 @@ describe("gada", () => {
         Buffer.from("token_heir"),
         owner.publicKey.toBuffer(),
         heir.publicKey.toBuffer(),
-        tokenMint.toBuffer()
+        tokenMint.toBuffer(),
       ],
       program.programId
     );
@@ -110,7 +119,7 @@ describe("gada", () => {
       [
         Buffer.from("coin_heir"),
         owner.publicKey.toBuffer(),
-        heir.publicKey.toBuffer()
+        heir.publicKey.toBuffer(),
       ],
       program.programId
     );
@@ -137,7 +146,9 @@ describe("gada", () => {
       .rpc();
 
     // Verify the account was created correctly
-    const tokenHeirAccount = await (program.account as any).tokenHeir.fetch(tokenHeirPda);
+    const tokenHeirAccount = await (program.account as any).tokenHeir.fetch(
+      tokenHeirPda
+    );
     assert.ok(tokenHeirAccount.owner.equals(owner.publicKey));
     assert.ok(tokenHeirAccount.heir.equals(heir.publicKey));
     assert.ok(tokenHeirAccount.tokenMint.equals(tokenMint));
@@ -161,7 +172,9 @@ describe("gada", () => {
       .rpc();
 
     // Verify the account was created correctly
-    const coinHeirAccount = await (program.account as any).coinHeir.fetch(coinHeirPda);
+    const coinHeirAccount = await (program.account as any).coinHeir.fetch(
+      coinHeirPda
+    );
     assert.ok(coinHeirAccount.owner.equals(owner.publicKey));
     assert.ok(coinHeirAccount.heir.equals(heir.publicKey));
     assert.ok(coinHeirAccount.amount.eq(amount));
@@ -170,11 +183,13 @@ describe("gada", () => {
   });
 
   it("Can update activity", async () => {
-    const beforeUpdate = await (program.account as any).tokenHeir.fetch(tokenHeirPda);
-    
+    const beforeUpdate = await (program.account as any).tokenHeir.fetch(
+      tokenHeirPda
+    );
+
     // Wait a bit to ensure timestamp difference
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     await program.methods
       .updateActivity()
       .accounts({
@@ -184,24 +199,36 @@ describe("gada", () => {
       .signers([owner])
       .rpc();
 
-    const afterUpdate = await (program.account as any).tokenHeir.fetch(tokenHeirPda);
+    const afterUpdate = await (program.account as any).tokenHeir.fetch(
+      tokenHeirPda
+    );
     assert.ok(afterUpdate.lastActiveTime.gt(beforeUpdate.lastActiveTime));
     console.log("Activity updated successfully");
   });
 
   it("Can perform batch token transfers", async () => {
     // Create additional token accounts for testing
-    const recipientKeypair = Keypair.generate();
-    await provider.connection.confirmTransaction(
-      await provider.connection.requestAirdrop(recipientKeypair.publicKey, LAMPORTS_PER_SOL)
-    );
-    
-    const recipientTokenAccount = await createAssociatedTokenAccount(
-      provider.connection,
-      recipientKeypair,
-      tokenMint,
-      recipientKeypair.publicKey
-    );
+    const recipients: Keypair[] = [];
+    const recipientTokenAccounts: PublicKey[] = [];
+
+    for (let i = 0; i < 3; i++) {
+      const recipientKeypair = Keypair.generate();
+      recipients.push(recipientKeypair);
+      await provider.connection.confirmTransaction(
+        await provider.connection.requestAirdrop(
+          recipientKeypair.publicKey,
+          LAMPORTS_PER_SOL
+        )
+      );
+
+      const recipientTokenAccount = await createAssociatedTokenAccount(
+        provider.connection,
+        recipientKeypair,
+        tokenMint,
+        recipientKeypair.publicKey
+      );
+      recipientTokenAccounts.push(recipientTokenAccount);
+    }
 
     const amounts = [
       new anchor.BN(1000000), // 1 token
@@ -210,20 +237,35 @@ describe("gada", () => {
     ];
 
     await program.methods
-      .batchTransferTokens(amounts)
+      .batchTransferTokens(
+        recipients.map((r) => r.publicKey),
+        amounts
+      )
       .accounts({
         fromTokenAccount: ownerTokenAccount,
-        toTokenAccount: recipientTokenAccount,
         authority: owner.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       })
+      .remainingAccounts(
+        recipientTokenAccounts.map((account) => ({
+          pubkey: account,
+          isWritable: true,
+          isSigner: false,
+        }))
+      )
       .signers([owner])
       .rpc();
 
     // Verify transfers
-    const recipientBalance = await getAccount(provider.connection, recipientTokenAccount);
-    const expectedTotal = amounts.reduce((sum, amount) => sum.add(amount), new anchor.BN(0));
-    assert.ok(new anchor.BN(recipientBalance.amount.toString()).eq(expectedTotal));
+    for (let i = 0; i < recipientTokenAccounts.length; i++) {
+      const recipientBalance = await getAccount(
+        provider.connection,
+        recipientTokenAccounts[i]
+      );
+      assert.ok(
+        new anchor.BN(recipientBalance.amount.toString()).eq(amounts[i])
+      );
+    }
     console.log("Batch token transfers completed successfully");
   });
 
@@ -234,7 +276,9 @@ describe("gada", () => {
       new anchor.BN(LAMPORTS_PER_SOL / 200), // 0.005 SOL
     ];
 
-    const initialBalance = await provider.connection.getBalance(recipient.publicKey);
+    const initialBalance = await provider.connection.getBalance(
+      recipient.publicKey
+    );
 
     await program.methods
       .batchTransferCoins(amounts)
@@ -246,8 +290,13 @@ describe("gada", () => {
       .signers([owner])
       .rpc();
 
-    const finalBalance = await provider.connection.getBalance(recipient.publicKey);
-    const expectedIncrease = amounts.reduce((sum, amount) => sum.add(amount), new anchor.BN(0));
+    const finalBalance = await provider.connection.getBalance(
+      recipient.publicKey
+    );
+    const expectedIncrease = amounts.reduce(
+      (sum, amount) => sum.add(amount),
+      new anchor.BN(0)
+    );
     assert.ok(finalBalance - initialBalance >= expectedIncrease.toNumber());
     console.log("Batch coin transfers completed successfully");
   });
@@ -267,7 +316,7 @@ describe("gada", () => {
         })
         .signers([heir])
         .rpc();
-      
+
       assert.fail("Should have thrown an error");
     } catch (error) {
       assert.ok(error.toString().includes("OwnerStillActive"));
@@ -286,7 +335,7 @@ describe("gada", () => {
         })
         .signers([heir])
         .rpc();
-      
+
       assert.fail("Should have thrown an error");
     } catch (error) {
       assert.ok(error.toString().includes("OwnerStillActive"));
@@ -301,7 +350,7 @@ describe("gada", () => {
 
   it("Fails with too many batch transfers", async () => {
     const tooManyAmounts = Array(11).fill(new anchor.BN(1000000));
-    
+
     try {
       await program.methods
         .batchTransferTokens(tooManyAmounts)
@@ -313,7 +362,7 @@ describe("gada", () => {
         })
         .signers([owner])
         .rpc();
-      
+
       assert.fail("Should have thrown an error");
     } catch (error) {
       assert.ok(error.toString().includes("TooManyTransfers"));
@@ -331,7 +380,7 @@ describe("gada", () => {
         })
         .signers([thirdParty])
         .rpc();
-      
+
       assert.fail("Should have thrown an error");
     } catch (error) {
       assert.ok(error.toString().includes("unknown signer"));
@@ -357,13 +406,15 @@ describe("gada", () => {
       })
       .signers([owner])
       .rpc();
-    
+
     console.log("Successfully handled zero amounts in batch transfers");
   });
 
   // Helper function to get account info
   async function getTokenHeirInfo() {
-    const account = await (program.account as any).tokenHeir.fetch(tokenHeirPda);
+    const account = await (program.account as any).tokenHeir.fetch(
+      tokenHeirPda
+    );
     console.log("Token Heir Info:", {
       owner: account.owner.toString(),
       heir: account.heir.toString(),
@@ -399,21 +450,27 @@ export async function setupTestEnvironment() {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
   const program = anchor.workspace.Gada as Program<Gada>;
-  
+
   return { provider, program };
 }
 
 export async function createTestAccounts(provider: anchor.AnchorProvider) {
   const owner = Keypair.generate();
   const heir = Keypair.generate();
-  
+
   // Fund accounts
   await provider.connection.confirmTransaction(
-    await provider.connection.requestAirdrop(owner.publicKey, 2 * LAMPORTS_PER_SOL)
+    await provider.connection.requestAirdrop(
+      owner.publicKey,
+      2 * LAMPORTS_PER_SOL
+    )
   );
   await provider.connection.confirmTransaction(
-    await provider.connection.requestAirdrop(heir.publicKey, 1 * LAMPORTS_PER_SOL)
+    await provider.connection.requestAirdrop(
+      heir.publicKey,
+      1 * LAMPORTS_PER_SOL
+    )
   );
-  
+
   return { owner, heir };
 }
