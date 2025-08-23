@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider, useWallet as useSolanaWallet } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
-import { clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { handleWalletError } from '../utils/errorHandling';
+import { getRpcUrl } from '../lib/shared-config';
 
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -55,15 +55,14 @@ const WalletInnerProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const WalletContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const network = WalletAdapterNetwork.Devnet;
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => getRpcUrl(), []);
 
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
       new SolflareWalletAdapter(),
     ],
-    [network]
+    []
   );
 
   // Error handler for wallet connection issues

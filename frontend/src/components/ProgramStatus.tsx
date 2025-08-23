@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { PROGRAM_ID } from '../lib/publickey-utils';
 import { AlertTriangle, CheckCircle, Info, ExternalLink } from 'lucide-react';
+import { getNetworkLabel, getExplorerClusterParam } from '../lib/config';
 
 export function ProgramStatus() {
   const { connection } = useConnection();
@@ -24,6 +25,10 @@ export function ProgramStatus() {
 
     checkProgramDeployment();
   }, [connection]);
+
+  const networkLabel = getNetworkLabel();
+  const explorerCluster = getExplorerClusterParam();
+  const explorerUrl = `https://explorer.solana.com/address/${PROGRAM_ID.toBase58()}${explorerCluster ? `?cluster=${explorerCluster}` : ''}`;
 
   if (loading) {
     return (
@@ -53,18 +58,18 @@ export function ProgramStatus() {
               Program Not Deployed
             </h3>
             <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-              The Gado program is not deployed on Devnet. Heir functionality will not work until the program is deployed.
+              The Gado program is not deployed on {networkLabel}. Heir functionality will not work until the program is deployed.
             </p>
             <div className="mt-3 space-y-2">
               <div className="text-xs text-red-600 dark:text-red-400">
                 <strong>Program ID:</strong> {PROGRAM_ID.toBase58()}
               </div>
               <div className="text-xs text-red-600 dark:text-red-400">
-                <strong>Network:</strong> Devnet
+                <strong>Network:</strong> {networkLabel}
               </div>
               <div className="flex items-center space-x-2 mt-2">
                 <a
-                  href={`https://explorer.solana.com/address/${PROGRAM_ID.toBase58()}?cluster=devnet`}
+                  href={explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-1 text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 underline"
@@ -90,7 +95,7 @@ export function ProgramStatus() {
               Program Deployed Successfully
             </h3>
             <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-              The Gado program is deployed and ready to use on Devnet.
+              The Gado program is deployed and ready to use on {networkLabel}.
             </p>
             <div className="mt-2 text-xs text-green-600 dark:text-green-400">
               <strong>Program ID:</strong> {PROGRAM_ID.toBase58()}

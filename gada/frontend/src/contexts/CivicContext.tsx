@@ -4,6 +4,7 @@ import { GatewayProvider, useGateway, GatewayStatus } from '@civic/solana-gatewa
 import { PublicKey } from '@solana/web3.js';
 import { useWallet } from './WalletContext';
 import { useConnection } from '@solana/wallet-adapter-react';
+import { getCluster } from '../lib/shared-config';
 
 // Civic Gateway configuration
 const GATEKEEPER_NETWORK = new PublicKey('tgnuXXNMDLK8dy7Xm1TdeGyc95MDym4bvAQCwcW21Bf'); // Civic Captcha Pass
@@ -72,7 +73,7 @@ export const CivicProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     <GatewayProvider
       wallet={wallet as any}
       connection={connection}
-      cluster="devnet"
+      cluster={getCluster()}
       gatekeeperNetwork={GATEKEEPER_NETWORK}
       options={{
         autoShowModal: false, // We'll control when to show the modal

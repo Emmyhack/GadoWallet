@@ -1,6 +1,7 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
+import { getProgramId } from './shared-config';
 
-const PROGRAM_ID = new PublicKey("8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE");
+const PROGRAM_ID = getProgramId();
 
 export async function checkProgramDeployment(connection: Connection): Promise<boolean> {
   try {
@@ -12,7 +13,7 @@ export async function checkProgramDeployment(connection: Connection): Promise<bo
   }
 }
 
-export function getProgramId(): PublicKey {
+export function currentProgramId() {
   return PROGRAM_ID;
 }
 

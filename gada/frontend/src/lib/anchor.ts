@@ -4,6 +4,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useWallet } from '../contexts/WalletContext';
 import { checkProgramDeployment } from './programCheck';
+import { getProgramId, getCluster } from './shared-config';
 
 // Simplified IDL that works with Anchor
 const IDL = {
@@ -145,8 +146,8 @@ const IDL = {
   ]
 } as any; // Type assertion to bypass strict typing
 
-// Program ID from your IDL
-const PROGRAM_ID = new web3.PublicKey("8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE");
+// Program ID from environment
+const PROGRAM_ID = getProgramId();
 
 export function useAnchorProgram(): any {
   const { connection } = useConnection();
@@ -165,16 +166,7 @@ export function useAnchorProgram(): any {
         if (isMounted) {
           setProgramDeployed(isDeployed);
           if (!isDeployed) {
-            console.warn(`
-⚠️  Program ${PROGRAM_ID.toString()} not found on devnet!
-            
-To fix this issue:
-1. Deploy the program: cd /workspace/gada && anchor deploy --provider.cluster devnet
-2. Or switch to localnet and start local validator: solana-test-validator
-3. Update Anchor.toml cluster setting to match your deployment
-
-Current network: ${connection.rpcEndpoint}
-            `);
+            console.warn(`\n⚠️  Program ${PROGRAM_ID.toString()} not found on ${getCluster()}!\n`);
           }
         }
       } catch (error) {
@@ -366,7 +358,7 @@ export async function claimHeirTokenAssets(
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
-} 
+}
 
 export function isHeirClaimable(lastActiveTimeSeconds: number, isClaimed: boolean, inactivitySeconds: number): boolean {
   if (isClaimed) return false;

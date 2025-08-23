@@ -6,6 +6,8 @@ import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useCivicAuth, VerificationPrompt, isVerificationRequired, isVerificationRecommended } from '../lib/civic';
 import { ProgramStatus } from './ProgramStatus';
+import { PROGRAM_ID } from '../lib/publickey-utils';
+import { getNetworkLabel } from '../lib/config';
 
 export function InheritanceManager() {
   const program = useAnchorProgram();
@@ -146,7 +148,7 @@ export function InheritanceManager() {
           errorMessage += 'Invalid wallet address provided.';
         } else if (error.message.includes('program that does not exist') || error.message.includes('Attempt to load a program that does not exist')) {
           errorMessage += 'The Gado program is not deployed on this network. Please contact support or try again later.';
-          console.error('Program deployment issue - Program ID:', '8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE', 'Network: Devnet');
+          console.error('Program deployment issue - Program ID:', PROGRAM_ID.toBase58(), 'Network:', getNetworkLabel());
         } else if (error.message.includes('Simulation failed')) {
           errorMessage += 'Transaction simulation failed. This usually means the program is not deployed or network issues. Please try again.';
         } else {

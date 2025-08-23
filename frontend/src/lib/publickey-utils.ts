@@ -1,4 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
+import { getProgramId } from './config';
 
 /**
  * Safely creates a PublicKey instance with error handling
@@ -29,18 +30,9 @@ export function isValidPublicKey(key: string): boolean {
 }
 
 /**
- * Program ID for the Gada program with safe initialization
+ * Program ID for the Gada program
  */
-export const PROGRAM_ID = (() => {
-  const programIdString = '8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE';
-  const publicKey = safeCreatePublicKey(programIdString);
-  if (!publicKey) {
-    console.error('Failed to initialize PROGRAM_ID');
-    // Return a default PublicKey as fallback
-    return new PublicKey('11111111111111111111111111111112'); // System Program ID as fallback
-  }
-  return publicKey;
-})();
+export const PROGRAM_ID = getProgramId();
 
 /**
  * Token Program ID with safe initialization
