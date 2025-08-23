@@ -85,8 +85,9 @@ const IDL = {
       "name": "claim_heir_coin_assets",
       "accounts": [
         { "name": "coin_heir", "isMut": true, "isSigner": false },
-        { "name": "owner_account", "isMut": true, "isSigner": false },
-        { "name": "heir_account", "isMut": true, "isSigner": true }
+        { "name": "owner_account", "isMut": false, "isSigner": false },
+        { "name": "heir_account", "isMut": true, "isSigner": true },
+        { "name": "system_program", "isMut": false, "isSigner": false }
       ],
       "args": []
     },
@@ -340,6 +341,7 @@ export async function claimHeirCoinAssets(
       coinHeir: coinHeirPDA,
       ownerAccount: ownerAccount,
       heirAccount: program.provider.publicKey!,
+      systemProgram: web3.SystemProgram.programId,
     })
     .rpc();
 }

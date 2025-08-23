@@ -97,6 +97,7 @@ export function ClaimAssets() {
             )[0],
             owner_account: ownerAccount,
             heir_account: publicKey,
+            system_program: web3.SystemProgram.programId,
           })
           .rpc();
         
