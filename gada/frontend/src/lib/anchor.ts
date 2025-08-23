@@ -146,7 +146,7 @@ const IDL = {
 } as any; // Type assertion to bypass strict typing
 
 // Program ID from your IDL
-const PROGRAM_ID = new web3.PublicKey("JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM");
+const PROGRAM_ID = new web3.PublicKey("8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE");
 
 export function useAnchorProgram(): any {
   const { connection } = useConnection();

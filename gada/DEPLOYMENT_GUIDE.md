@@ -56,7 +56,7 @@ If you can't deploy the program, you can temporarily mock the program calls for 
 
 ## Current Program Configuration
 
-- **Program ID:** `JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM` (Updated to match Anchor.toml)
+- **Program ID:** `8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE` (Updated to match Anchor.toml)
 - **Current Network:** Devnet (configured in Anchor.toml)
 - **Frontend Network:** Devnet (configured in WalletProvider.tsx)
 
