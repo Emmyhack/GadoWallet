@@ -45,6 +45,18 @@ pub mod gada {
         coin_heir.is_claimed = false;
         coin_heir.inactivity_period_seconds = inactivity_period_seconds;
         coin_heir.bump = ctx.bumps.coin_heir;
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.owner.key(),
+            &coin_heir.key(),
+            amount,
+        );
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.owner.to_account_info(),
+                coin_heir.to_account_info(),
+            ],
+        )?;
         msg!("Coin heir added: {} lamports, inactivity {}s", amount, inactivity_period_seconds);
         Ok(())
     }
@@ -197,22 +209,29 @@ pub mod gada {
             current_timestamp - coin_heir.last_active_time > coin_heir.inactivity_period_seconds,
             ErrorCode::OwnerStillActive
         );
-        // Ensure the signer is the recorded heir
+        // Ensure the signer is the recorded heir and provided owner matches
         require_keys_eq!(ctx.accounts.heir_account.key(), coin_heir.heir, ErrorCode::Unauthorized);
-        // Ensure the provided owner account matches record
         require_keys_eq!(ctx.accounts.owner_account.key(), coin_heir.owner, ErrorCode::Unauthorized);
 
         let ix = anchor_lang::solana_program::system_instruction::transfer(
-            &ctx.accounts.owner_account.key(),
+            &coin_heir.key(),
             &ctx.accounts.heir_account.key(),
             coin_heir.amount,
         );
-        anchor_lang::solana_program::program::invoke(
+        let seeds = &[
+            b"coin_heir",
+            coin_heir.owner.as_ref(),
+            coin_heir.heir.as_ref(),
+            &[coin_heir.bump],
+        ];
+        anchor_lang::solana_program::program::invoke_signed(
             &ix,
             &[
-                ctx.accounts.owner_account.to_account_info(),
+                coin_heir.to_account_info(),
                 ctx.accounts.heir_account.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
             ],
+            &[seeds],
         )?;
         
         coin_heir.is_claimed = true;
@@ -308,14 +327,18 @@ pub struct ClaimHeirTokenAssets<'info> {
 
 #[derive(Accounts)]
 pub struct ClaimHeirCoinAssets<'info> {
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"coin_heir", owner_account.key().as_ref(), heir_account.key().as_ref()],
+        bump = coin_heir.bump
+    )]
     pub coin_heir: Account<'info, CoinHeir>,
     /// CHECK: This is the owner account
-    #[account(mut)]
     pub owner_account: AccountInfo<'info>,
     /// CHECK: This is the heir who must be a signer
     #[account(mut)]
     pub heir_account: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[account]

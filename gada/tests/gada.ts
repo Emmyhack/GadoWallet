@@ -150,7 +150,7 @@ describe("gada", () => {
     const amount = new anchor.BN(LAMPORTS_PER_SOL / 2); // 0.5 SOL
 
     await program.methods
-      .addCoinHeir(amount, new anchor.BN(2 * 24 * 60 * 60))
+      .addCoinHeir(amount, new anchor.BN(2))
       .accounts({
         coinHeir: coinHeirPda,
         owner: owner.publicKey,
@@ -160,13 +160,15 @@ describe("gada", () => {
       .signers([owner])
       .rpc();
 
-    // Verify the account was created correctly
+    // Verify the account was created correctly and funded
     const coinHeirAccount = await (program.account as any).coinHeir.fetch(coinHeirPda);
+    const coinHeirBalance = await provider.connection.getBalance(coinHeirPda);
     assert.ok(coinHeirAccount.owner.equals(owner.publicKey));
     assert.ok(coinHeirAccount.heir.equals(heir.publicKey));
     assert.ok(coinHeirAccount.amount.eq(amount));
     assert.ok(!coinHeirAccount.isClaimed);
-    console.log("Coin heir created successfully");
+    assert.ok(coinHeirBalance >= amount.toNumber());
+    console.log("Coin heir created and funded successfully");
   });
 
   it("Can update activity", async () => {
@@ -278,20 +280,52 @@ describe("gada", () => {
   it("Cannot claim coin assets when owner is still active", async () => {
     try {
       await program.methods
+        .updateCoinActivity()
+        .accounts({
+          coinHeir: coinHeirPda,
+          owner: owner.publicKey,
+        })
+        .signers([owner])
+        .rpc();
+
+      await program.methods
         .claimHeirCoinAssets()
         .accounts({
           coinHeir: coinHeirPda,
           ownerAccount: owner.publicKey,
           heirAccount: heir.publicKey,
+          systemProgram: SystemProgram.programId,
         })
         .signers([heir])
         .rpc();
-      
+
       assert.fail("Should have thrown an error");
     } catch (error) {
       assert.ok(error.toString().includes("OwnerStillActive"));
       console.log("Correctly prevented premature coin claiming");
     }
+  });
+
+  it("Can claim coin assets after inactivity", async () => {
+    await new Promise(resolve => setTimeout(resolve, 2100));
+    const beforeBalance = await provider.connection.getBalance(heir.publicKey);
+
+    await program.methods
+      .claimHeirCoinAssets()
+      .accounts({
+        coinHeir: coinHeirPda,
+        ownerAccount: owner.publicKey,
+        heirAccount: heir.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([heir])
+      .rpc();
+
+    const afterBalance = await provider.connection.getBalance(heir.publicKey);
+    const coinHeirAccount = await (program.account as any).coinHeir.fetch(coinHeirPda);
+    assert.ok(afterBalance - beforeBalance >= LAMPORTS_PER_SOL / 2);
+    assert.ok(coinHeirAccount.isClaimed);
+    console.log("Coin assets claimed successfully");
   });
 
   // Note: Testing actual claiming after one year would require manipulating time
