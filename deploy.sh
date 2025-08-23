@@ -177,7 +177,7 @@ main() {
     # Create deployment summary
     create_summary "$PROGRAM_ID"
     
-    print_success "✅ Deployment process completed successfully!"
+    print_success " Deployment process completed successfully!"
 }
 
 # Run main function with all arguments
