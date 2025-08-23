@@ -77,19 +77,19 @@ update_program_id() {
     
     # Update frontend configuration
     if [ -f "frontend/src/lib/publickey-utils.ts" ]; then
-        sed -i.bak "s/JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM/$PROGRAM_ID/g" frontend/src/lib/publickey-utils.ts
+        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" frontend/src/lib/publickey-utils.ts
         print_success "Updated frontend configuration"
     fi
     
     # Update Anchor configuration
     if [ -f "gada/Anchor.toml" ]; then
-        sed -i.bak "s/JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM/$PROGRAM_ID/g" gada/Anchor.toml
+        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" gada/Anchor.toml
         print_success "Updated Anchor configuration"
     fi
     
     # Update program lib.rs
     if [ -f "gada/programs/gada/src/lib.rs" ]; then
-        sed -i.bak "s/JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM/$PROGRAM_ID/g" gada/programs/gada/src/lib.rs
+        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" gada/programs/gada/src/lib.rs
         print_success "Updated program source"
     fi
     

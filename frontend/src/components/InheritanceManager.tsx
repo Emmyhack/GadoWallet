@@ -146,7 +146,7 @@ export function InheritanceManager() {
           errorMessage += 'Invalid wallet address provided.';
         } else if (error.message.includes('program that does not exist') || error.message.includes('Attempt to load a program that does not exist')) {
           errorMessage += 'The Gado program is not deployed on this network. Please contact support or try again later.';
-          console.error('Program deployment issue - Program ID:', 'JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM', 'Network: Devnet');
+          console.error('Program deployment issue - Program ID:', '8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE', 'Network: Devnet');
         } else if (error.message.includes('Simulation failed')) {
           errorMessage += 'Transaction simulation failed. This usually means the program is not deployed or network issues. Please try again.';
         } else {

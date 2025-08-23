@@ -50,7 +50,7 @@ solana config set --url devnet
 anchor build
 anchor deploy
 ```
-- Ensure the program ID matches `Gf4b24oCZ6xGdVj5HyKfDBZKrd3JUuhQ87ApMAyg87t5` (see `Anchor.toml`).
+- Ensure the program ID matches `8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE` (see `Anchor.toml`).
 
 ### 4. Run the Frontends
 ```bash
