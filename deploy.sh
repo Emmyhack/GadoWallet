@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Starting Gado Wallet Deployment..."
+echo " Starting Gado Wallet Deployment..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -134,19 +134,19 @@ deploy_vercel() {
 create_summary() {
     local PROGRAM_ID=$1
     
-    print_success "🎉 Deployment completed!"
+    print_success " Deployment completed!"
     echo ""
-    echo "📋 Deployment Summary:"
+    echo " Deployment Summary:"
     echo "======================="
     echo "Program ID: $PROGRAM_ID"
     echo "Network: Devnet"
     echo "Frontend: Built and ready for deployment"
     echo ""
-    echo "🔗 Useful Links:"
+    echo " Useful Links:"
     echo "Frontend build: ./frontend/dist/"
     echo "Program Explorer: https://explorer.solana.com/address/$PROGRAM_ID?cluster=devnet"
     echo ""
-    echo "⚠️  Next Steps:"
+    echo "  Next Steps:"
     echo "1. Deploy the Solana program to devnet (requires Anchor CLI)"
     echo "2. Deploy frontend to Vercel or your preferred hosting"
     echo "3. Test the application functionality"
@@ -154,7 +154,7 @@ create_summary() {
 
 # Main deployment process
 main() {
-    print_status "🚀 Starting Gado Wallet deployment process..."
+    print_status " Starting Gado Wallet deployment process..."
     
     # Check dependencies
     check_dependencies
