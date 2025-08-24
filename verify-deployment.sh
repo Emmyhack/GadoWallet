@@ -14,6 +14,16 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Cluster and RPC configuration
+CLUSTER="${CLUSTER:-devnet}"
+if [ "$CLUSTER" = "mainnet-beta" ]; then
+    RPC_URL="https://api.mainnet-beta.solana.com"
+elif [ "$CLUSTER" = "testnet" ]; then
+    RPC_URL="https://api.testnet.solana.com"
+else
+    RPC_URL="https://api.devnet.solana.com"
+fi
+
 # Function to print colored output
 print_status() {
     echo -e "${BLUE}[CHECK]${NC} $1"
@@ -145,18 +155,18 @@ verify_program_keypair() {
     fi
 }
 
-# Check if program is deployed on devnet
+# Check if program is deployed on selected cluster
 check_program_deployment() {
-    print_status "Checking program deployment on devnet..."
+    print_status "Checking program deployment on $CLUSTER..."
     
     PROGRAM_ID=$(get_program_id)
     
     if command -v solana &> /dev/null; then
-        if solana account "$PROGRAM_ID" --url https://api.devnet.solana.com > /dev/null 2>&1; then
-            print_success "Program is deployed on devnet"
+        if solana account "$PROGRAM_ID" --url "$RPC_URL" > /dev/null 2>&1; then
+            print_success "Program is deployed on $CLUSTER"
         else
-            print_warning "Program not yet deployed on devnet"
-            print_status "Deploy with: cd gada && anchor deploy"
+            print_warning "Program not yet deployed on $CLUSTER"
+            print_status "Deploy with: cd gada && anchor deploy --provider.cluster $CLUSTER"
         fi
     else
         print_warning "Solana CLI not available - cannot check deployment status"
@@ -185,14 +195,14 @@ main() {
     
     PROGRAM_ID=$(get_program_id)
     echo "Program ID: $PROGRAM_ID"
-    echo "Network: Devnet"
+    echo "Network: $CLUSTER"
     echo "Errors found: $errors"
     
     if [ $errors -eq 0 ]; then
         print_success "✅ All critical checks passed! Deployment is ready."
         echo ""
         echo "🚀 Next steps:"
-        echo "1. Deploy program: cd gada && anchor deploy"
+        echo "1. Deploy program: cd gada && anchor deploy --provider.cluster $CLUSTER"
         echo "2. Deploy frontend: cd frontend && vercel --prod"
         echo "3. Test the application"
     else

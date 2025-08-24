@@ -3,6 +3,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getExplorerClusterParam } from '../lib/config';
 
 interface TxRow {
   signature: string;
@@ -58,6 +59,8 @@ export function Transactions() {
     );
   }
 
+  const explorerCluster = getExplorerClusterParam();
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center space-x-3 mb-2">
@@ -77,16 +80,19 @@ export function Transactions() {
         <div className="divide-y divide-gray-100 dark:divide-gray-800">
           {loading && <div className="p-4 text-sm text-gray-500 dark:text-gray-400">{t('loading')}</div>}
           {!loading && rows.length === 0 && <div className="p-4 text-sm text-gray-500 dark:text-gray-400">{t('noTransactionsFound')}</div>}
-          {rows.map((r) => (
-            <a key={r.signature} href={`https://explorer.solana.com/tx/${r.signature}?cluster=devnet`} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-              <div className="p-4 grid md:grid-cols-4 gap-2 items-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{r.signature}</div>
-                <div className={`text-xs ${r.err ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{r.err ? t('failed') : t('success')}</div>
-                <div className="text-sm text-gray-900 dark:text-white">{r.lamports === null ? '—' : r.lamports.toFixed(6)} {t('sol')}</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">{r.date}</div>
-              </div>
-            </a>
-          ))}
+          {rows.map((r) => {
+            const href = `https://explorer.solana.com/tx/${r.signature}${explorerCluster ? `?cluster=${explorerCluster}` : ''}`;
+            return (
+              <a key={r.signature} href={href} target="_blank" rel="noopener noreferrer" className="block hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <div className="p-4 grid md:grid-cols-4 gap-2 items-center">
+                  <div className={`text-xs ${r.err ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{r.err ? t('failed') : t('success')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{r.signature}</div>
+                  <div className="text-sm text-gray-900 dark:text-white">{r.lamports === null ? '—' : r.lamports.toFixed(6)} {t('sol')}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{r.date}</div>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </div>
     </div>
