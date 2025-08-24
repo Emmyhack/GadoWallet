@@ -36,6 +36,10 @@ const IDL = {
         { "name": "owner", "isMut": true, "isSigner": true },
         { "name": "heir", "isMut": false, "isSigner": false },
         { "name": "token_mint", "isMut": false, "isSigner": false },
+        { "name": "owner_token_account", "isMut": true, "isSigner": false },
+        { "name": "escrow_token_account", "isMut": true, "isSigner": false },
+        { "name": "token_program", "isMut": false, "isSigner": false },
+        { "name": "associated_token_program", "isMut": false, "isSigner": false },
         { "name": "system_program", "isMut": false, "isSigner": false }
       ],
       "args": [
@@ -96,11 +100,10 @@ const IDL = {
       "name": "claim_heir_token_assets",
       "accounts": [
         { "name": "token_heir", "isMut": true, "isSigner": false },
-        { "name": "owner", "isMut": false, "isSigner": false },
         { "name": "heir", "isMut": false, "isSigner": true },
-        { "name": "owner_token_account", "isMut": true, "isSigner": false },
         { "name": "heir_token_account", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": false },
+        { "name": "escrow_token_account", "isMut": true, "isSigner": false },
+        { "name": "token_mint", "isMut": false, "isSigner": false },
         { "name": "token_program", "isMut": false, "isSigner": false }
       ],
       "args": []
@@ -241,10 +244,10 @@ export async function addCoinHeir(
   return await (program as any).methods
     .addCoinHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
-      coinHeir: coinHeirPDA,
+      coin_heir: coinHeirPDA,
       owner: program.provider.publicKey!,
       heir: heir,
-      systemProgram: web3.SystemProgram.programId,
+      system_program: web3.SystemProgram.programId,
     })
     .rpc();
 }
@@ -253,6 +256,7 @@ export async function addTokenHeir(
   program: any,
   heir: web3.PublicKey,
   tokenMint: web3.PublicKey,
+  ownerTokenAccount: web3.PublicKey,
   amount: BN,
   inactivityPeriodSeconds: number
 ) {
@@ -261,11 +265,15 @@ export async function addTokenHeir(
   return await (program as any).methods
     .addTokenHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
-      tokenHeir: tokenHeirPDA,
+      token_heir: tokenHeirPDA,
       owner: program.provider.publicKey!,
       heir: heir,
-      tokenMint: tokenMint,
-      systemProgram: web3.SystemProgram.programId,
+      token_mint: tokenMint,
+      owner_token_account: ownerTokenAccount,
+      escrow_token_account: tokenHeirPDA /* ATA will be created for this PDA by program */,
+      token_program: TOKEN_PROGRAM_ID,
+      associated_token_program: new web3.PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
+      system_program: web3.SystemProgram.programId,
     })
     .rpc();
 }
@@ -274,7 +282,7 @@ export async function updateActivity(program: any, tokenHeirPDA: web3.PublicKey)
   return await (program as any).methods
     .updateActivity()
     .accounts({
-      tokenHeir: tokenHeirPDA,
+      token_heir: tokenHeirPDA,
       owner: program.provider.publicKey!,
     })
     .rpc();
@@ -284,7 +292,7 @@ export async function updateCoinActivity(program: any, coinHeirPDA: web3.PublicK
   return await (program as any).methods
     .updateCoinActivity()
     .accounts({
-      coinHeir: coinHeirPDA,
+      coin_heir: coinHeirPDA,
       owner: program.provider.publicKey!,
     })
     .rpc();
@@ -299,10 +307,10 @@ export async function batchTransferTokens(
   return await (program as any).methods
     .batchTransferTokens(amounts)
     .accounts({
-      fromTokenAccount: fromTokenAccount,
-      toTokenAccount: toTokenAccount,
+      from_token_account: fromTokenAccount,
+      to_token_account: toTokenAccount,
       authority: program.provider.publicKey!,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      token_program: TOKEN_PROGRAM_ID,
     })
     .rpc();
 }
@@ -315,9 +323,9 @@ export async function batchTransferCoins(
   return await (program as any).methods
     .batchTransferCoins(amounts)
     .accounts({
-      fromAccount: program.provider.publicKey!,
-      toAccount: toAccount,
-      systemProgram: web3.SystemProgram.programId,
+      from_account: program.provider.publicKey!,
+      to_account: toAccount,
+      system_program: web3.SystemProgram.programId,
     })
     .rpc();
 }
@@ -330,10 +338,10 @@ export async function claimHeirCoinAssets(
   return await (program as any).methods
     .claimHeirCoinAssets()
     .accounts({
-      coinHeir: coinHeirPDA,
-      ownerAccount: ownerAccount,
-      heirAccount: program.provider.publicKey!,
-      systemProgram: web3.SystemProgram.programId,
+      coin_heir: coinHeirPDA,
+      owner_account: ownerAccount,
+      heir_account: program.provider.publicKey!,
+      system_program: web3.SystemProgram.programId,
     })
     .rpc();
 }
@@ -341,21 +349,18 @@ export async function claimHeirCoinAssets(
 export async function claimHeirTokenAssets(
   program: any,
   tokenHeirPDA: web3.PublicKey,
-  owner: web3.PublicKey,
-  ownerTokenAccount: web3.PublicKey,
+  tokenMint: web3.PublicKey,
   heirTokenAccount: web3.PublicKey,
-  authority: web3.PublicKey
 ) {
   return await (program as any).methods
     .claimHeirTokenAssets()
     .accounts({
-      tokenHeir: tokenHeirPDA,
-      owner: owner,
+      token_heir: tokenHeirPDA,
       heir: program.provider.publicKey!,
-      ownerTokenAccount: ownerTokenAccount,
-      heirTokenAccount: heirTokenAccount,
-      authority: authority,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      heir_token_account: heirTokenAccount,
+      escrow_token_account: tokenHeirPDA /* PDA ATA as escrow */,
+      token_mint: tokenMint,
+      token_program: TOKEN_PROGRAM_ID,
     })
     .rpc();
 }

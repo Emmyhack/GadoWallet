@@ -32,5 +32,5 @@ panic = "abort"
 
 [dependencies]
 anchor-lang = { version = "0.31.1", features = ["derive"] }
-anchor-spl = { version = "0.31.1", default-features = false, features = ["token", "token_2022"] }
+anchor-spl = { version = "0.31.1", default-features = false, features = ["token", "token_2022", "associated_token"] }
 

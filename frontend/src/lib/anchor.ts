@@ -28,6 +28,10 @@ const IDL: any = {
         { "name": "owner", "isMut": true, "isSigner": true },
         { "name": "heir", "isMut": false, "isSigner": false },
         { "name": "tokenMint", "isMut": false, "isSigner": false },
+        { "name": "ownerTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "escrowTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "tokenProgram", "isMut": false, "isSigner": false },
+        { "name": "associatedTokenProgram", "isMut": false, "isSigner": false },
         { "name": "systemProgram", "isMut": false, "isSigner": false }
       ],
       "args": [
@@ -72,11 +76,10 @@ const IDL: any = {
       "name": "claim_heir_token_assets",
       "accounts": [
         { "name": "tokenHeir", "isMut": true, "isSigner": false },
-        { "name": "owner", "isMut": false, "isSigner": false },
         { "name": "heir", "isMut": false, "isSigner": true },
-        { "name": "ownerTokenAccount", "isMut": true, "isSigner": false },
         { "name": "heirTokenAccount", "isMut": true, "isSigner": false },
-        { "name": "authority", "isMut": false, "isSigner": false },
+        { "name": "escrowTokenAccount", "isMut": true, "isSigner": false },
+        { "name": "tokenMint", "isMut": false, "isSigner": false },
         { "name": "tokenProgram", "isMut": false, "isSigner": false }
       ],
       "args": []
@@ -201,10 +204,15 @@ export async function addTokenHeir(
   program: Gada,
   heir: web3.PublicKey,
   tokenMint: web3.PublicKey,
+  ownerTokenAccount: web3.PublicKey,
   amount: BN,
   inactivityPeriodSeconds: number
 ) {
   const [tokenHeirPDA] = getTokenHeirPDA(program.provider.publicKey!, heir, tokenMint);
+  const [escrowTokenAccount] = await web3.PublicKey.findProgramAddress(
+    [Buffer.from('token_heir'), program.provider.publicKey!.toBuffer(), heir.toBuffer(), tokenMint.toBuffer()],
+    PROGRAM_ID
+  );
   return await program.methods
     .addTokenHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
@@ -212,6 +220,10 @@ export async function addTokenHeir(
       owner: program.provider.publicKey!,
       heir: heir,
       tokenMint: tokenMint,
+      ownerTokenAccount: ownerTokenAccount,
+      escrowTokenAccount: escrowTokenAccount,
+      tokenProgram: TOKEN_PROGRAM_ID,
+      associatedTokenProgram: new web3.PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'),
       systemProgram: web3.SystemProgram.programId,
     })
     .rpc();
@@ -256,20 +268,21 @@ export async function claimHeirCoinAssets(
 export async function claimHeirTokenAssets(
   program: Gada,
   tokenHeirPDA: web3.PublicKey,
-  owner: web3.PublicKey,
-  ownerTokenAccount: web3.PublicKey,
+  tokenMint: web3.PublicKey,
   heirTokenAccount: web3.PublicKey,
-  authority: web3.PublicKey
 ) {
+  const [escrowTokenAccount] = await web3.PublicKey.findProgramAddress(
+    [Buffer.from('token_heir'), program.provider.publicKey!.toBuffer(), program.provider.publicKey!.toBuffer(), tokenMint.toBuffer()],
+    PROGRAM_ID
+  );
   return await program.methods
     .claimHeirTokenAssets()
     .accounts({
       tokenHeir: tokenHeirPDA,
-      owner: owner,
       heir: program.provider.publicKey!,
-      ownerTokenAccount: ownerTokenAccount,
       heirTokenAccount: heirTokenAccount,
-      authority: authority,
+      escrowTokenAccount: escrowTokenAccount,
+      tokenMint: tokenMint,
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();

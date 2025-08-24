@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, TokenAccount, Token, Transfer, Mint};
+use anchor_spl::associated_token::AssociatedToken;
 use anchor_lang::solana_program::clock::Clock;
 
 declare_id!("8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE");
@@ -22,6 +23,12 @@ pub mod gada {
 
     pub fn add_token_heir(ctx: Context<AddTokenHeir>, amount: u64, inactivity_period_seconds: i64) -> Result<()> {
         require!(inactivity_period_seconds > 0, ErrorCode::InvalidInactivityPeriod);
+
+        // Validate owner's token account
+        require_keys_eq!(ctx.accounts.owner_token_account.mint, ctx.accounts.token_mint.key(), ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.owner_token_account.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
+
+        // Initialize state
         let token_heir = &mut ctx.accounts.token_heir;
         token_heir.owner = *ctx.accounts.owner.key;
         token_heir.heir = *ctx.accounts.heir.key;
@@ -31,7 +38,22 @@ pub mod gada {
         token_heir.is_claimed = false;
         token_heir.inactivity_period_seconds = inactivity_period_seconds;
         token_heir.bump = ctx.bumps.token_heir;
-        msg!("Token heir added: {} tokens, inactivity {}s", amount, inactivity_period_seconds);
+
+        // Escrow: transfer tokens from owner to PDA-owned ATA (escrow)
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.owner_token_account.to_account_info(),
+            to: ctx.accounts.escrow_token_account.to_account_info(),
+            authority: ctx.accounts.owner.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_ctx, amount)?;
+
+        msg!(
+            "Token heir added and escrow funded: {} tokens, inactivity {}s",
+            amount,
+            inactivity_period_seconds
+        );
         Ok(())
     }
 
@@ -178,20 +200,27 @@ pub mod gada {
         // Ensure the signer is the recorded heir
         require_keys_eq!(ctx.accounts.heir.key(), token_heir.heir, ErrorCode::Unauthorized);
         // Validate token accounts
-        require_keys_eq!(ctx.accounts.owner.key(), token_heir.owner, ErrorCode::Unauthorized);
-        require_keys_eq!(ctx.accounts.owner_token_account.owner, token_heir.owner, ErrorCode::Unauthorized);
         require_keys_eq!(ctx.accounts.heir_token_account.owner, ctx.accounts.heir.key(), ErrorCode::Unauthorized);
-        require_keys_eq!(ctx.accounts.owner_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
         require_keys_eq!(ctx.accounts.heir_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.escrow_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.escrow_token_account.owner, ctx.accounts.token_heir.key(), ErrorCode::Unauthorized);
 
         let cpi_accounts = Transfer {
-            from: ctx.accounts.owner_token_account.to_account_info(),
+            from: ctx.accounts.escrow_token_account.to_account_info(),
             to: ctx.accounts.heir_token_account.to_account_info(),
-            authority: ctx.accounts.authority.to_account_info(),
+            authority: ctx.accounts.token_heir.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
-        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-        
+
+        let seeds = &[
+            b"token_heir",
+            token_heir.owner.as_ref(),
+            token_heir.heir.as_ref(),
+            token_heir.token_mint.as_ref(),
+            &[token_heir.bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
         token::transfer(cpi_ctx, token_heir.amount)?;
         
         token_heir.is_claimed = true;
@@ -259,6 +288,17 @@ pub struct AddTokenHeir<'info> {
     /// CHECK: This is just a pubkey for the heir
     pub heir: AccountInfo<'info>,
     pub token_mint: Account<'info, Mint>,
+    #[account(mut)]
+    pub owner_token_account: Account<'info, TokenAccount>,
+    #[account(
+        init_if_needed,
+        payer = owner,
+        associated_token::mint = token_mint,
+        associated_token::authority = token_heir
+    )]
+    pub escrow_token_account: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
@@ -312,16 +352,13 @@ pub struct BatchTransferCoins<'info> {
 pub struct ClaimHeirTokenAssets<'info> {
     #[account(mut)]
     pub token_heir: Account<'info, TokenHeir>,
-    /// CHECK: This is the owner account
-    pub owner: AccountInfo<'info>,
     /// CHECK: This is the heir who must be a signer
     pub heir: Signer<'info>,
     #[account(mut)]
-    pub owner_token_account: Account<'info, TokenAccount>,
-    #[account(mut)]
     pub heir_token_account: Account<'info, TokenAccount>,
-    /// CHECK: This should be the authority that can transfer from owner's token account
-    pub authority: AccountInfo<'info>,
+    #[account(mut)]
+    pub escrow_token_account: Account<'info, TokenAccount>,
+    pub token_mint: Account<'info, Mint>,
     pub token_program: Program<'info, Token>,
 }
 
