@@ -11,8 +11,7 @@ function App() {
     <ErrorBoundary>
       <CivicAuthProvider 
         clientId="f2fc33e0-3b6b-4ea7-bb5e-a5f60b45e808"
-        displayMode="iframe"
-        iframeMode="modal"
+        displayMode="popup"
         onSignIn={(error) => {
           if (error) {
             console.error('Civic sign-in error:', error);
