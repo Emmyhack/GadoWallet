@@ -1,13 +1,11 @@
 import React from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useCivicAuth, CivicIdentityButton, SignInButton, SignOutButton, UserButton } from '../lib/civic';
-import { useCivicAuthContext } from '@civic/auth/react';
 import { Shield, CheckCircle, AlertTriangle, Clock, User } from 'lucide-react';
 
 export function CivicTestPage() {
   const { connected } = useWallet();
   const { verificationStatus, error, user } = useCivicAuth();
-  const civicAuth = useCivicAuthContext();
 
   if (!connected) {
     return (
@@ -99,10 +97,10 @@ export function CivicTestPage() {
             Authentication Information
           </h4>
           <div className="text-xs text-gray-600 dark:text-gray-300 space-y-1">
-            <div>Auth Status: {civicAuth.authStatus}</div>
+            <div>Auth Status: {verificationStatus}</div>
             <div>User ID: {user?.id || 'Not available'}</div>
-            <div>Access Token: {civicAuth.accessToken ? 'Present' : 'Not present'}</div>
-            <div>ID Token: {civicAuth.idToken ? 'Present' : 'Not present'}</div>
+            <div>Access Token: Not displayed</div>
+            <div>ID Token: Not displayed</div>
           </div>
         </div>
 
