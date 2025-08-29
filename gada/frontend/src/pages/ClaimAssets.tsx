@@ -10,9 +10,7 @@ const ClaimAssets = () => {
   const [type, setType] = useState<'token' | 'coin'>('token');
   const [owner, setOwner] = useState('');
   const [tokenMint, setTokenMint] = useState('');
-  const [ownerTokenAccount, setOwnerTokenAccount] = useState('');
   const [heirTokenAccount, setHeirTokenAccount] = useState('');
-  const [authority, setAuthority] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -33,27 +31,16 @@ const ClaimAssets = () => {
         await claimHeirCoinAssets(program, coinHeirPDA, ownerPubkey);
       } else {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
-        const ownerTokenAccountPubkey = new web3.PublicKey(ownerTokenAccount);
         const heirTokenAccountPubkey = new web3.PublicKey(heirTokenAccount);
-        const authorityPubkey = new web3.PublicKey(authority);
         
         const [tokenHeirPDA] = getTokenHeirPDA(ownerPubkey, program.provider.publicKey!, tokenMintPubkey);
-        await claimHeirTokenAssets(
-          program, 
-          tokenHeirPDA, 
-          ownerPubkey, 
-          ownerTokenAccountPubkey, 
-          heirTokenAccountPubkey, 
-          authorityPubkey
-        );
+        await claimHeirTokenAssets(program, tokenHeirPDA, tokenMintPubkey, heirTokenAccountPubkey);
       }
 
       setSuccess(true);
       setOwner('');
       setTokenMint('');
-      setOwnerTokenAccount('');
       setHeirTokenAccount('');
-      setAuthority('');
     } catch (err) {
       console.error('Error claiming assets:', err);
       
@@ -126,18 +113,7 @@ const ClaimAssets = () => {
                 disabled={!connected}
               />
             </div>
-            <div>
-              <label className="block mb-1 font-medium">Owner Token Account</label>
-              <input
-                type="text"
-                className="input-field"
-                value={ownerTokenAccount}
-                onChange={e => setOwnerTokenAccount(e.target.value)}
-                placeholder="Enter owner's token account"
-                required={type === 'token'}
-                disabled={!connected}
-              />
-            </div>
+            {/* Owner token account not required for claim; program uses escrow */}
             <div>
               <label className="block mb-1 font-medium">Heir Token Account</label>
               <input
@@ -150,18 +126,7 @@ const ClaimAssets = () => {
                 disabled={!connected}
               />
             </div>
-            <div>
-              <label className="block mb-1 font-medium">Authority</label>
-              <input
-                type="text"
-                className="input-field"
-                value={authority}
-                onChange={e => setAuthority(e.target.value)}
-                placeholder="Enter authority public key"
-                required={type === 'token'}
-                disabled={!connected}
-              />
-            </div>
+            {/* Authority not required; heir signs the transaction */}
           </>
         )}
         <button

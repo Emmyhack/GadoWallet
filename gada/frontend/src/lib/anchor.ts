@@ -1,7 +1,7 @@
 import { Program, AnchorProvider, web3, BN } from '@coral-xyz/anchor';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { useMemo, useEffect, useState } from 'react';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { useWallet } from '../contexts/WalletContext';
 import { checkProgramDeployment } from './programCheck';
 import { getProgramId, getCluster } from './shared-config';
@@ -256,11 +256,12 @@ export async function addTokenHeir(
   program: any,
   heir: web3.PublicKey,
   tokenMint: web3.PublicKey,
-  ownerTokenAccount: web3.PublicKey,
   amount: BN,
   inactivityPeriodSeconds: number
 ) {
   const [tokenHeirPDA] = getTokenHeirPDA(program.provider.publicKey!, heir, tokenMint);
+  // Derive owner's associated token account for the given mint
+  const ownerTokenAccount = getAssociatedTokenAddressSync(tokenMint, program.provider.publicKey!, false, TOKEN_PROGRAM_ID);
   
   return await (program as any).methods
     .addTokenHeir(amount, new BN(inactivityPeriodSeconds))
@@ -350,7 +351,7 @@ export async function claimHeirTokenAssets(
   program: any,
   tokenHeirPDA: web3.PublicKey,
   tokenMint: web3.PublicKey,
-  heirTokenAccount: web3.PublicKey,
+  heirTokenAccount: web3.PublicKey
 ) {
   return await (program as any).methods
     .claimHeirTokenAssets()

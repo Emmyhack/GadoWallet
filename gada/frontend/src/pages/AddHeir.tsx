@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { useWallet } from '../contexts/WalletContext';
-import { useCivic } from '../contexts/CivicContext';
 import { useAnchorProgram, addCoinHeir, addTokenHeir } from '../lib/anchor';
 import { Coins, UserPlus, Loader2 } from 'lucide-react';
 import { web3 } from '@coral-xyz/anchor';
 import { BN } from '@coral-xyz/anchor';
 import { handleTransactionError } from '../utils/errorHandling';
-import CivicVerification from '../components/CivicVerification';
 import ProgramStatus from '../components/ProgramStatus';
 
 const AddHeir = () => {
   const { connected } = useWallet();
-  const { isVerified } = useCivic();
   const program = useAnchorProgram();
   const [type, setType] = useState<'token' | 'coin'>('token');
   const [heir, setHeir] = useState('');
@@ -25,10 +22,7 @@ const AddHeir = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!program || !connected) return;
-    if (!isVerified) {
-      setError('Please complete identity verification before adding an heir.');
-      return;
-    }
+    // Civic verification removed
     
     setLoading(true);
     setSuccess(false);
@@ -72,14 +66,10 @@ const AddHeir = () => {
           <div className="mb-4 text-purple-600 font-semibold">Please connect your wallet to add an heir.</div>
         )}
         
-        {connected && !isVerified && (
-          <div className="mb-6">
-            <CivicVerification required={true} />
-          </div>
-        )}
+        {/* Civic verification removed */}
       </div>
 
-      {connected && isVerified && (
+      {connected && (
         <div className="card p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
         <div>

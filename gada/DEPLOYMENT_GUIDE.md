@@ -62,20 +62,9 @@ If you can't deploy the program, you can temporarily mock the program calls for 
 
 ⚠️ **IMPORTANT**: The program needs to be deployed to devnet before heir functionality will work.
 
-## Civic Integration Setup
+## Identity Verification
 
-The Civic verification system is now fully integrated:
-
-### Features Implemented:
-- ✅ Identity verification before heir setup
-- ✅ Civic Pass integration with proper CSP
-- ✅ Graceful error handling for verification failures
-- ✅ Optional vs required verification modes
-- ✅ User-friendly verification flow
-
-### Civic Networks Used:
-- **Captcha Pass:** `tgnuXXNMDLK8dy7Xm1TdeGyc95MDym4bvAQCwcW21Bf`
-- **Uniqueness Pass:** `49wLubTmowVu8idEHdFQ6EAQnmktDJncGc7LnYcKEfzz`
+External identity verification has been removed. The application now relies solely on wallet signatures and on-chain program rules.
 
 ## Error Handling Improvements
 
@@ -89,8 +78,7 @@ Enhanced error handling now includes:
 
 1. **Choose deployment option** (localnet recommended for development)
 2. **Deploy the program** using chosen method
-3. **Test Civic verification flow**
-4. **Test inheritance functionality**
+3. **Test inheritance functionality**
 
 ## Troubleshooting
 
@@ -99,8 +87,7 @@ Enhanced error handling now includes:
 1. **"Program that does not exist"**
    - Solution: Deploy program using steps above
 
-2. **Civic verification not working**
-   - Check CSP settings (already configured)
+2. **Program interaction not working**
    - Ensure wallet is connected
    - Check network connection
 
@@ -125,13 +112,11 @@ The frontend now provides detailed error logging:
 2. **Deploy program** to chosen network
 3. **Start frontend:** `cd gada/frontend && npm run dev`
 4. **Connect wallet** and test functionality
-5. **Complete Civic verification** when prompted
-6. **Test inheritance features**
+5. **Test inheritance features**
 
 ## Production Deployment
 
 For production:
 1. Deploy program to mainnet-beta
 2. Update network configurations
-3. Use production Civic gatekeeper networks
-4. Ensure proper security configurations
+3. Ensure proper security configurations

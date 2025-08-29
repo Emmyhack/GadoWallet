@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WalletContextProvider } from './contexts/WalletContext';
-import { CivicProvider } from './contexts/CivicContext';
 import Navbar from './components/Navbar';
 import LandingPageStitch from './pages/LandingPageStitch';
 import Dashboard from './pages/Dashboard';
@@ -12,7 +11,6 @@ import BatchTransfer from './pages/BatchTransfer';
 function App() {
   return (
     <WalletContextProvider>
-      <CivicProvider>
         <Router>
           <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             <Navbar />
@@ -28,7 +26,6 @@ function App() {
             </main>
           </div>
         </Router>
-      </CivicProvider>
     </WalletContextProvider>
   );
 }

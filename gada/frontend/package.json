@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@civic/solana-gateway-react": "^1.2.4",
     "@coral-xyz/anchor": "^0.31.1",
     "@protobufjs/aspromise": "^1.1.2",
     "@protobufjs/base64": "^1.1.2",

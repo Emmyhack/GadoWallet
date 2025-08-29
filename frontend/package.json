@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@civic/auth": "^0.9.5",
-    "@civic/solana-gateway-react": "^1.2.4",
     "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
     "@project-serum/anchor": "^0.26.0",
