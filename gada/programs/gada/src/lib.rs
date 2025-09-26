@@ -3,7 +3,7 @@ use anchor_spl::token::{self, TokenAccount, Token, Transfer, Mint};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_lang::solana_program::clock::Clock;
 
-declare_id!("8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE");
+declare_id!("EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu");
 
 // Inactivity period for inheritance claims. Default: 365 days. With
 // feature `short-claim-delay`, use 2 days for testing.
@@ -99,8 +99,8 @@ pub mod gada {
         Ok(())
     }
 
-    pub fn batch_transfer_tokens(
-        ctx: Context<BatchTransferTokens>, 
+    pub fn batch_transfer_tokens<'info>(
+        ctx: Context<'_, '_, '_, 'info, BatchTransferTokens<'info>>, 
         recipients: Vec<Pubkey>,
         amounts: Vec<u64>
     ) -> Result<()> {
@@ -135,6 +135,7 @@ pub mod gada {
                     amount,
                 )?;
                 
+                // Use the transfer instruction directly with proper lifetime management
                 anchor_lang::solana_program::program::invoke(
                     &transfer_ix,
                     &[
@@ -151,8 +152,8 @@ pub mod gada {
         Ok(())
     }
 
-    pub fn batch_transfer_coins(
-        ctx: Context<BatchTransferCoins>, 
+    pub fn batch_transfer_coins<'info>(
+        ctx: Context<'_, '_, '_, 'info, BatchTransferCoins<'info>>, 
         recipients: Vec<Pubkey>,
         amounts: Vec<u64>
     ) -> Result<()> {
@@ -175,6 +176,8 @@ pub mod gada {
                     &to_account.key(),
                     amount,
                 );
+                
+                // Use the transfer instruction directly with proper lifetime management
                 anchor_lang::solana_program::program::invoke(
                     &ix,
                     &[
@@ -189,43 +192,46 @@ pub mod gada {
     }
 
     pub fn claim_heir_token_assets(ctx: Context<ClaimHeirTokenAssets>) -> Result<()> {
-        let token_heir = &mut ctx.accounts.token_heir;
         let current_timestamp = Clock::get()?.unix_timestamp;
 
-        require!(!token_heir.is_claimed, ErrorCode::AlreadyClaimed);
+        // First, do all the validation checks without borrowing mutably
+        require!(!ctx.accounts.token_heir.is_claimed, ErrorCode::AlreadyClaimed);
         require!(
-            current_timestamp - token_heir.last_active_time > token_heir.inactivity_period_seconds,
+            current_timestamp - ctx.accounts.token_heir.last_active_time > ctx.accounts.token_heir.inactivity_period_seconds,
             ErrorCode::OwnerStillActive
         );
         // Ensure the signer is the recorded heir
-        require_keys_eq!(ctx.accounts.heir.key(), token_heir.heir, ErrorCode::Unauthorized);
+        require_keys_eq!(ctx.accounts.heir.key(), ctx.accounts.token_heir.heir, ErrorCode::Unauthorized);
         // Validate token accounts
         require_keys_eq!(ctx.accounts.heir_token_account.owner, ctx.accounts.heir.key(), ErrorCode::Unauthorized);
-        require_keys_eq!(ctx.accounts.heir_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
-        require_keys_eq!(ctx.accounts.escrow_token_account.mint, token_heir.token_mint, ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.heir_token_account.mint, ctx.accounts.token_heir.token_mint, ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.escrow_token_account.mint, ctx.accounts.token_heir.token_mint, ErrorCode::InvalidMint);
         require_keys_eq!(ctx.accounts.escrow_token_account.owner, ctx.accounts.token_heir.key(), ErrorCode::Unauthorized);
 
+        // Store the token_heir key before mutable borrow
+        let _token_heir_key = ctx.accounts.token_heir.key();
+        
         let cpi_accounts = Transfer {
             from: ctx.accounts.escrow_token_account.to_account_info(),
             to: ctx.accounts.heir_token_account.to_account_info(),
             authority: ctx.accounts.token_heir.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
-
-        let seeds = &[
+        let cpi_signer_seeds: &[&[&[u8]]] = &[&[
             b"token_heir",
-            token_heir.owner.as_ref(),
-            token_heir.heir.as_ref(),
-            token_heir.token_mint.as_ref(),
-            &[token_heir.bump],
-        ];
-        let signer_seeds = &[&seeds[..]];
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
-        token::transfer(cpi_ctx, token_heir.amount)?;
+            ctx.accounts.token_heir.owner.as_ref(),
+            ctx.accounts.token_heir.heir.as_ref(),
+            ctx.accounts.token_heir.token_mint.as_ref(),
+            &[ctx.accounts.token_heir.bump],
+        ]];
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, cpi_signer_seeds);
         
+        token::transfer(cpi_ctx, ctx.accounts.token_heir.amount)?;
+
+        // Now do the mutable borrow and update state
+        let token_heir = &mut ctx.accounts.token_heir;
         token_heir.is_claimed = true;
-        msg!("Token inheritance claimed: {}", token_heir.amount);
-        
+
         Ok(())
     }
 

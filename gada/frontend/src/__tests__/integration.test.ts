@@ -4,12 +4,10 @@ import { describe, it, expect } from 'vitest';
 describe('Core Integration', () => {
   it('should import core components without errors', async () => {
     // Test that our main components can be imported
-    const { CivicProvider } = await import('../contexts/CivicContext');
     const { WalletContextProvider } = await import('../contexts/WalletContext');
     const { handleTransactionError } = await import('../utils/errorHandling');
     const { checkProgramDeployment } = await import('../lib/programCheck');
     
-    expect(CivicProvider).toBeDefined();
     expect(WalletContextProvider).toBeDefined();
     expect(handleTransactionError).toBeDefined();
     expect(checkProgramDeployment).toBeDefined();

@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.31.1",
+    "@project-serum/anchor": "^0.26.0",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "lucide-react": "^0.544.0",
+    "react-i18next": "^15.7.3"
+  },
+  "devDependencies": {
+    "@types/react-i18next": "^7.8.3"
+  }
+}

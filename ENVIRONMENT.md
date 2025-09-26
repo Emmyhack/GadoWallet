@@ -25,7 +25,7 @@ Optionally, export shell vars for scripts (e.g., CLUSTER).
 - VITE_PROGRAM_ID
   - The deployed Solana program ID for the selected cluster
   - Example (devnet):
-    VITE_PROGRAM_ID=8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE
+    VITE_PROGRAM_ID=EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu
   - Replace with the actual program id you deploy per cluster
 
 - VITE_RPC_URL (optional)

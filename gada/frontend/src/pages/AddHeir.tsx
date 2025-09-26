@@ -22,7 +22,6 @@ const AddHeir = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!program || !connected) return;
-    // Civic verification removed
     
     setLoading(true);
     setSuccess(false);
@@ -66,7 +65,6 @@ const AddHeir = () => {
           <div className="mb-4 text-purple-600 font-semibold">Please connect your wallet to add an heir.</div>
         )}
         
-        {/* Civic verification removed */}
       </div>
 
       {connected && (

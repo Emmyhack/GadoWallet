@@ -3,13 +3,10 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
 import i18n from '../lib/i18n';
 import { useTheme } from '../lib/theme';
-// Civic auth removed
 
 export function Header() {
   const { gradient, setGradient, gradientClasses } = useTheme();
   const { connected } = useWallet();
-  
-  // Civic auth removed; no verification UI
 
   return (
     <header className={`bg-gradient-to-r ${gradientClasses} text-white sticky top-0 z-50`}>
@@ -45,8 +42,6 @@ export function Header() {
               <option value="sunset">Sunset</option>
               <option value="forest">Forest</option>
             </select>
-            
-            {/* Civic Verification Badge removed */}
             
             <WalletMultiButton className="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2 px-3 rounded-md" />
           </div>

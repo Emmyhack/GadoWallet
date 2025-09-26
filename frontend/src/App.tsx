@@ -12,9 +12,6 @@ function App() {
             <div className="min-h-screen">
               <Header />
               <main className="container mx-auto px-4 py-8">
-                <nav className="mb-6 flex items-center space-x-4 text-sm">
-                  <Link to="/" className="text-blue-600 hover:underline">Dashboard</Link>
-                </nav>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                 </Routes>

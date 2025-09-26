@@ -12,7 +12,7 @@ This guide covers the complete deployment process for the Gado Wallet Solana inh
 ##  Current Program ID
 
 ```
-8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE
+EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu
 ```
 
 ##  Quick Deployment
@@ -64,7 +64,7 @@ For Vercel deployment:
 
 ##  Useful Links
 
-- **Program Explorer**: [View on Solana Explorer](https://explorer.solana.com/address/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE?cluster=devnet)
+- **Program Explorer**: [View on Solana Explorer](https://explorer.solana.com/address/EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu?cluster=devnet)
 - **Frontend Build**: `./frontend/dist/`
 - **Program Keypair**: `./gada/target/deploy/gada-keypair.json`
 

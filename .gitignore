@@ -11,3 +11,4 @@ test-ledger/snapshot/
 test-ledger/snapshot-*.tar.zst
 test-ledger/genesis.*
 .DS_Store
+node_modules

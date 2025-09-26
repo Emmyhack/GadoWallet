@@ -31,6 +31,6 @@ codegen-units = 1
 panic = "abort"
 
 [dependencies]
-anchor-lang = { version = "0.31.1", features = ["derive"] }
+anchor-lang = { version = "0.31.1", features = ["derive", "init-if-needed"] }
 anchor-spl = { version = "0.31.1", default-features = false, features = ["token", "token_2022", "associated_token"] }
 

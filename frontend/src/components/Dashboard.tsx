@@ -124,7 +124,6 @@ export function Dashboard() {
           {activeTab === 'txs' && <Transactions />}
           {activeTab === 'receive' && <Receive />}
           {activeTab === 'sign' && <SignMessage />}
-          {/* Civic test tab removed */}
         </div>
       </div>
     </div>

@@ -4,7 +4,6 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@project-serum/anchor';
 import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-// Civic auth removed
 import { ProgramStatus } from './ProgramStatus';
 import { PROGRAM_ID } from '../lib/publickey-utils';
 import { getNetworkLabel } from '../lib/config';
@@ -20,7 +19,6 @@ export function InheritanceManager() {
   const [tokenMint, setTokenMint] = useState('');
   const [inactivityDays, setInactivityDays] = useState('365');
   const [message, setMessage] = useState('');
-  // Civic verification removed
 
   const handleAddHeir = async () => {
     if (!program || !publicKey) return;
@@ -255,7 +253,6 @@ export function InheritanceManager() {
 
       {/* Add Heir Form */}
       <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur rounded-lg p-6 border border-gray-200 dark:border-white/10">
-        {/* Civic verification prompt removed */}
         
         <form onSubmit={(e) => { e.preventDefault(); handleAddHeir(); }} className="space-y-4">
           <div>

@@ -83,7 +83,6 @@ const Dashboard: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Civic verification section removed */}
             
             {/* Overview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">

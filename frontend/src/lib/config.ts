@@ -21,7 +21,7 @@ export function getRpcUrl(): string {
 
 export function getProgramId(): PublicKey {
 	const fromEnv = (import.meta as any).env?.VITE_PROGRAM_ID as string | undefined;
-	const candidate = fromEnv && fromEnv.trim().length > 0 ? fromEnv.trim() : '8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE';
+	const candidate = fromEnv && fromEnv.trim().length > 0 ? fromEnv.trim() : 'EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu';
 	try {
 		return new PublicKey(candidate);
 	} catch (e) {
