@@ -12,6 +12,7 @@ import { Transactions } from './Transactions';
 import { Receive } from './Receive';
 import { SignMessage } from './SignMessage';
 import { Landing } from './Landing';
+import SmartWalletManager from './SmartWalletManager';
 import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
@@ -99,6 +100,14 @@ export function Dashboard() {
       description: t('signMessage'),
       color: 'from-slate-500 to-gray-400',
       bgColor: 'bg-slate-500/10 border-slate-500/20'
+    },
+    {
+      id: 'smart-wallet',
+      name: 'Smart Wallet',
+      icon: Wallet,
+      description: 'Automated inheritance with PDA wallets',
+      color: 'from-purple-500 to-indigo-400',
+      bgColor: 'bg-purple-500/10 border-purple-500/20'
     }
   ];
 
@@ -109,121 +118,186 @@ export function Dashboard() {
   const activeTabData = tabs.find(tab => tab.id === activeTab);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Header Section */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center space-x-3">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 backdrop-blur">
-            <Wallet className="w-8 h-8 text-violet-600 dark:text-violet-400" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600 bg-clip-text text-transparent">
-              Gada Wallet Functions
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage your Solana inheritance and transactions</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
-      {/* Function Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-        {tabs.map((tab, index) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+      <div className="relative max-w-7xl mx-auto px-4 py-8 space-y-12">
+        {/* Enhanced Header Section */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center space-x-4 mb-8">
+            <div className="relative p-4 rounded-3xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 backdrop-blur-xl border border-white/20 shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-400/20 to-fuchsia-400/20 rounded-3xl blur-xl"></div>
+              <Wallet className="relative w-12 h-12 text-white drop-shadow-lg" />
+            </div>
+            <div className="text-left">
+              <h1 className="text-5xl font-black bg-gradient-to-r from-violet-300 via-fuchsia-300 to-rose-300 bg-clip-text text-transparent mb-2 drop-shadow-sm">
+                Gada Wallet
+              </h1>
+              <p className="text-xl text-gray-300 font-medium">Next-Generation Digital Asset Management</p>
+              <p className="text-gray-400">Secure • Automated • Decentralized</p>
+            </div>
+          </div>
           
-          return (
-            <div
-              key={tab.id}
-              className={`group relative cursor-pointer transition-all duration-300 animate-fade-in ${
-                isActive ? 'scale-105' : 'hover:scale-102'
-              }`}
-              style={{ animationDelay: `${index * 50}ms` }}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {/* Card Background with Glassmorphism */}
-              <div
-                className={`relative p-6 rounded-2xl border backdrop-blur-xl transition-all duration-300 ${
-                  isActive
-                    ? `${tab.bgColor} shadow-2xl shadow-current/25`
-                    : 'bg-white/60 dark:bg-gray-900/40 border-gray-200/50 dark:border-white/10 hover:bg-white/80 dark:hover:bg-gray-800/60 shadow-lg hover:shadow-xl'
-                }`}
-              >
-                {/* Active Tab Glow Effect */}
-                {isActive && (
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r opacity-20 blur-xl transition-opacity duration-300 group-hover:opacity-30"
-                       style={{ background: `linear-gradient(135deg, ${tab.color.replace('from-', '').replace(' to-', ', ')})` }} />
-                )}
+          {/* Feature Highlights */}
+          <div className="flex justify-center space-x-8 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-gray-300">Live on Devnet</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-gray-300">Smart Contracts Verified</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+              <span className="text-gray-300">Multi-Inheritance Support</span>
+            </div>
+          </div>
+        </div>
 
-                {/* Icon Container */}
-                <div className={`relative mb-4 p-3 rounded-xl transition-all duration-300 ${
-                  isActive 
-                    ? `bg-gradient-to-br ${tab.color} text-white shadow-lg` 
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
-                }`}>
-                  <Icon className={`w-6 h-6 transition-transform duration-300 ${
-                    isActive ? 'scale-110' : 'group-hover:scale-105'
-                  }`} />
-                  
-                  {/* Floating particles for active tab */}
+        {/* Enhanced Function Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {tabs.map((tab, index) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            
+            return (
+              <div
+                key={tab.id}
+                className={`group relative cursor-pointer transition-all duration-500 hover:scale-105 ${
+                  isActive ? 'scale-105 z-10' : ''
+                }`}
+                style={{ animationDelay: `${index * 100}ms` }}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {/* Enhanced Card with Modern Glassmorphism */}
+                <div
+                  className={`relative p-6 rounded-3xl border backdrop-blur-2xl transition-all duration-500 overflow-hidden ${
+                    isActive
+                      ? 'bg-gradient-to-br from-white/20 to-white/5 border-white/30 shadow-2xl shadow-purple-500/25'
+                      : 'bg-white/10 border-white/10 hover:bg-white/15 hover:border-white/20 shadow-xl hover:shadow-2xl'
+                  }`}
+                >
+                  {/* Animated Background Gradient */}
+                  <div 
+                    className={`absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 ${
+                      isActive ? 'opacity-10' : 'group-hover:opacity-5'
+                    }`}
+                    style={{ 
+                      background: `linear-gradient(135deg, ${tab.color.replace('from-', '').replace(' to-', ', ')})` 
+                    }}
+                  />
+
+                  {/* Floating Orbs */}
                   {isActive && (
                     <>
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-white/60 rounded-full animate-ping" />
-                      <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-white/40 rounded-full animate-pulse delay-300" />
+                      <div className="absolute top-2 right-2 w-3 h-3 bg-gradient-to-r from-white/60 to-transparent rounded-full animate-pulse" />
+                      <div className="absolute bottom-3 left-3 w-2 h-2 bg-gradient-to-r from-purple-300/60 to-transparent rounded-full animate-pulse delay-1000" />
+                    </>
+                  )}
+
+                  {/* Enhanced Icon Container */}
+                  <div className={`relative mb-6 p-4 rounded-2xl transition-all duration-500 ${
+                    isActive 
+                      ? `bg-gradient-to-br ${tab.color} text-white shadow-2xl shadow-current/40` 
+                      : 'bg-white/20 text-white/80 group-hover:bg-white/30 group-hover:scale-110'
+                  }`}>
+                    <Icon className={`w-8 h-8 transition-all duration-500 ${
+                      isActive ? 'scale-110 drop-shadow-lg' : 'group-hover:scale-105'
+                    }`} />
+                    
+                    {/* Enhanced Particle Effects */}
+                    {isActive && (
+                      <>
+                        <div className="absolute -top-2 -right-2 w-4 h-4 bg-white/40 rounded-full animate-ping" />
+                        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/30 rounded-full animate-pulse delay-500" />
+                        <div className="absolute top-1 left-1 w-1 h-1 bg-white/60 rounded-full animate-pulse delay-700" />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Enhanced Text Content */}
+                  <div className="relative space-y-2">
+                    <h3 className={`font-bold text-lg transition-all duration-300 ${
+                      isActive 
+                        ? 'text-white drop-shadow-sm' 
+                        : 'text-white/90 group-hover:text-white'
+                    }`}>
+                      {tab.name}
+                    </h3>
+                    <p className={`text-sm leading-relaxed transition-all duration-300 ${
+                      isActive 
+                        ? 'text-white/80' 
+                        : 'text-white/60 group-hover:text-white/70'
+                    }`}>
+                      {tab.description}
+                    </p>
+                    
+                    {/* Progress indicator for active tab */}
+                    {isActive && (
+                      <div className="pt-3">
+                        <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-white/60 to-white/80 rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Enhanced Border Effects */}
+                  {isActive && (
+                    <>
+                      <div className="absolute inset-0 rounded-3xl border-2 border-white/30 pointer-events-none" />
+                      <div className="absolute inset-0 rounded-3xl border border-purple-300/50 pointer-events-none animate-pulse" />
                     </>
                   )}
                 </div>
-
-                {/* Text Content */}
-                <div className="relative">
-                  <h3 className={`font-semibold text-sm mb-1 transition-colors duration-300 ${
-                    isActive 
-                      ? 'text-gray-900 dark:text-white' 
-                      : 'text-gray-700 dark:text-gray-300'
-                  }`}>
-                    {tab.name}
-                  </h3>
-                  <p className={`text-xs transition-colors duration-300 ${
-                    isActive 
-                      ? 'text-gray-600 dark:text-gray-400' 
-                      : 'text-gray-500 dark:text-gray-500'
-                  }`}>
-                    {tab.description}
-                  </p>
-                </div>
-
-                {/* Active Tab Border Accent */}
-                {isActive && (
-                  <div className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
-                )}
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Active Content Panel */}
-      <div className="relative">
-        {/* Content Header */}
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-gray-50/80 to-white/80 dark:from-gray-900/60 dark:to-gray-800/60 backdrop-blur border border-gray-200/50 dark:border-white/10">
-          <div className="flex items-center space-x-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${activeTabData?.color} shadow-lg`}>
-              {activeTabData?.icon && <activeTabData.icon className="w-6 h-6 text-white" />}
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {activeTabData?.name}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                {activeTabData?.description}
-              </p>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
-        {/* Content Container */}
-        <div className="rounded-2xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-white/10 shadow-2xl overflow-hidden">
-          {/* Content with Animation */}
-          <div key={activeTab} className="p-8 animate-fade-in">
+        {/* Enhanced Active Content Panel */}
+        <div className="relative">
+          {/* Modern Content Header */}
+          <div className="mb-8 p-8 rounded-3xl bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl">
+            <div className="flex items-center space-x-6">
+              <div className={`relative p-4 rounded-2xl bg-gradient-to-br ${activeTabData?.color} shadow-2xl`}>
+                <div className="absolute inset-0 bg-white/20 rounded-2xl blur-xl"></div>
+                {activeTabData?.icon && <activeTabData.icon className="relative w-8 h-8 text-white drop-shadow-lg" />}
+              </div>
+              <div>
+                <h2 className="text-4xl font-black text-white mb-2 drop-shadow-sm">
+                  {activeTabData?.name}
+                </h2>
+                <p className="text-xl text-white/80 font-medium">
+                  {activeTabData?.description}
+                </p>
+                <div className="flex items-center space-x-4 mt-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-white/60">Ready</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-300"></div>
+                    <span className="text-sm text-white/60">Secure</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Enhanced Content Container */}
+          <div className="rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 shadow-2xl overflow-hidden">
+            {/* Content with Enhanced Animation */}
+            <div key={activeTab} className="p-8 animate-fade-in"
+                 style={{
+                   animation: 'fadeIn 0.5s ease-out forwards, slideUp 0.5s ease-out forwards'
+                 }}>
             {activeTab === 'portfolio' && <Portfolio />}
             {activeTab === 'inheritance' && <InheritanceManager />}
             {activeTab === 'transfer' && <BatchTransfer />}
@@ -233,7 +307,18 @@ export function Dashboard() {
             {activeTab === 'send' && <SendReceive />}
             {activeTab === 'txs' && <Transactions />}
             {activeTab === 'receive' && <Receive />}
-            {activeTab === 'sign' && <SignMessage />}
+              {activeTab === 'portfolio' && <Portfolio />}
+              {activeTab === 'inheritance' && <InheritanceManager />}
+              {activeTab === 'transfer' && <BatchTransfer />}
+              {activeTab === 'activity' && <ActivityManager />}
+              {activeTab === 'claim' && <ClaimAssets />}
+              {activeTab === 'stats' && <WalletStats />}
+              {activeTab === 'send' && <SendReceive />}
+              {activeTab === 'txs' && <Transactions />}
+              {activeTab === 'receive' && <Receive />}
+              {activeTab === 'sign' && <SignMessage />}
+              {activeTab === 'smart-wallet' && <SmartWalletManager />}
+            </div>
           </div>
         </div>
       </div>

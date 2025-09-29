@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, TokenAccount, Token, Transfer, Mint};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_lang::solana_program::clock::Clock;
+use anchor_lang::solana_program::system_instruction;
 
 declare_id!("EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu");
 
@@ -274,6 +275,173 @@ pub mod gada {
         
         Ok(())
     }
+
+    // ===============================================
+    // SMART WALLET INHERITANCE MODEL (NEW)
+    // ===============================================
+
+    /// Creates a Smart Wallet inheritance setup with PDA wallet ownership
+    pub fn create_smart_wallet_inheritance(
+        ctx: Context<CreateSmartWalletInheritance>,
+        heirs: Vec<HeirData>,
+        inactivity_period_seconds: i64
+    ) -> Result<()> {
+        require!(inactivity_period_seconds > 0, ErrorCode::InvalidInactivityPeriod);
+        require!(heirs.len() <= 10, ErrorCode::TooManyHeirs);
+        require!(!heirs.is_empty(), ErrorCode::NoHeirsProvided);
+
+        // Validate heir allocation percentages sum to 100
+        let total_allocation: u8 = heirs.iter().map(|h| h.allocation_percentage).sum();
+        require!(total_allocation == 100, ErrorCode::InvalidAllocation);
+
+        let smart_wallet = &mut ctx.accounts.smart_wallet;
+        smart_wallet.owner = ctx.accounts.owner.key();
+        smart_wallet.heirs = heirs;
+        smart_wallet.inactivity_period_seconds = inactivity_period_seconds;
+        smart_wallet.last_active_time = Clock::get()?.unix_timestamp;
+        smart_wallet.is_executed = false;
+        smart_wallet.bump = ctx.bumps.smart_wallet;
+
+        msg!(
+            "Smart Wallet inheritance created for owner: {}, heirs: {}, inactivity: {}s",
+            ctx.accounts.owner.key(),
+            smart_wallet.heirs.len(),
+            inactivity_period_seconds
+        );
+
+        Ok(())
+    }
+
+    /// Updates activity timestamp for Smart Wallet owner
+    pub fn update_smart_wallet_activity(ctx: Context<UpdateSmartWalletActivity>) -> Result<()> {
+        let smart_wallet = &mut ctx.accounts.smart_wallet;
+        require_keys_eq!(smart_wallet.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
+        
+        smart_wallet.last_active_time = Clock::get()?.unix_timestamp;
+        msg!("Smart Wallet activity updated for owner: {}", ctx.accounts.owner.key());
+        
+        Ok(())
+    }
+
+    /// Executes inheritance by transferring all Smart Wallet assets to heirs
+    /// Called by keepers/bots when owner is inactive past threshold
+    pub fn execute_inheritance(ctx: Context<ExecuteInheritance>) -> Result<()> {
+        let smart_wallet = &mut ctx.accounts.smart_wallet;
+        let current_timestamp = Clock::get()?.unix_timestamp;
+
+        // Validate inheritance conditions
+        require!(!smart_wallet.is_executed, ErrorCode::AlreadyExecuted);
+        require!(
+            current_timestamp - smart_wallet.last_active_time > smart_wallet.inactivity_period_seconds,
+            ErrorCode::OwnerStillActive
+        );
+
+        let wallet_balance = ctx.accounts.smart_wallet_pda.lamports();
+        
+        // Execute SOL inheritance distribution
+        if wallet_balance > 0 {
+            for heir_data in &smart_wallet.heirs {
+                let heir_amount = (wallet_balance as u128 * heir_data.allocation_percentage as u128 / 100) as u64;
+                
+                if heir_amount > 0 {
+                    // Transfer SOL from Smart Wallet PDA to heir
+                    let transfer_ix = system_instruction::transfer(
+                        &ctx.accounts.smart_wallet_pda.key(),
+                        &heir_data.heir_pubkey,
+                        heir_amount,
+                    );
+
+                    let seeds = &[
+                        b"smart_wallet",
+                        smart_wallet.owner.as_ref(),
+                        &[smart_wallet.bump],
+                    ];
+
+                    anchor_lang::solana_program::program::invoke_signed(
+                        &transfer_ix,
+                        &[
+                            ctx.accounts.smart_wallet_pda.to_account_info(),
+                            ctx.accounts.system_program.to_account_info(),
+                        ],
+                        &[seeds],
+                    )?;
+
+                    msg!(
+                        "Inherited {} SOL ({}%) to heir: {}",
+                        heir_amount,
+                        heir_data.allocation_percentage,
+                        heir_data.heir_pubkey
+                    );
+                }
+            }
+        }
+
+        smart_wallet.is_executed = true;
+        msg!("Smart Wallet inheritance executed for owner: {}", smart_wallet.owner);
+
+        Ok(())
+    }
+
+    /// Deposits SOL into the Smart Wallet PDA
+    pub fn deposit_to_smart_wallet(ctx: Context<DepositToSmartWallet>, amount: u64) -> Result<()> {
+        let smart_wallet = &ctx.accounts.smart_wallet;
+        require_keys_eq!(smart_wallet.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
+
+        // Transfer SOL from owner to Smart Wallet PDA
+        let transfer_ix = system_instruction::transfer(
+            &ctx.accounts.owner.key(),
+            &ctx.accounts.smart_wallet_pda.key(),
+            amount,
+        );
+
+        anchor_lang::solana_program::program::invoke(
+            &transfer_ix,
+            &[
+                ctx.accounts.owner.to_account_info(),
+                ctx.accounts.smart_wallet_pda.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+        )?;
+
+        msg!(
+            "Deposited {} SOL to Smart Wallet PDA: {}",
+            amount,
+            ctx.accounts.smart_wallet_pda.key()
+        );
+
+        Ok(())
+    }
+
+    /// Deposits SPL tokens into the Smart Wallet PDA
+    pub fn deposit_tokens_to_smart_wallet(
+        ctx: Context<DepositTokensToSmartWallet>,
+        amount: u64
+    ) -> Result<()> {
+        let smart_wallet = &ctx.accounts.smart_wallet;
+        require_keys_eq!(smart_wallet.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
+
+        // Validate token accounts
+        require_keys_eq!(ctx.accounts.owner_token_account.owner, ctx.accounts.owner.key(), ErrorCode::Unauthorized);
+        require_keys_eq!(ctx.accounts.owner_token_account.mint, ctx.accounts.token_mint.key(), ErrorCode::InvalidMint);
+        require_keys_eq!(ctx.accounts.smart_wallet_token_account.mint, ctx.accounts.token_mint.key(), ErrorCode::InvalidMint);
+
+        // Transfer tokens from owner to Smart Wallet PDA token account
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.owner_token_account.to_account_info(),
+            to: ctx.accounts.smart_wallet_token_account.to_account_info(),
+            authority: ctx.accounts.owner.to_account_info(),
+        };
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
+        token::transfer(cpi_ctx, amount)?;
+
+        msg!(
+            "Deposited {} tokens to Smart Wallet PDA token account",
+            amount
+        );
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -384,6 +552,122 @@ pub struct ClaimHeirCoinAssets<'info> {
     pub system_program: Program<'info, System>,
 }
 
+// ===============================================
+// SMART WALLET INHERITANCE ACCOUNTS (NEW)
+// ===============================================
+
+#[derive(Accounts)]
+pub struct CreateSmartWalletInheritance<'info> {
+    #[account(
+        init,
+        payer = owner,
+        space = SmartWallet::SPACE,
+        seeds = [b"smart_wallet", owner.key().as_ref()],
+        bump
+    )]
+    pub smart_wallet: Account<'info, SmartWallet>,
+    
+    /// CHECK: Smart Wallet PDA that will hold the assets
+    #[account(
+        mut,
+        seeds = [b"smart_wallet_pda", owner.key().as_ref()],
+        bump
+    )]
+    pub smart_wallet_pda: AccountInfo<'info>,
+    
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateSmartWalletActivity<'info> {
+    #[account(
+        mut,
+        seeds = [b"smart_wallet", owner.key().as_ref()],
+        bump = smart_wallet.bump
+    )]
+    pub smart_wallet: Account<'info, SmartWallet>,
+    pub owner: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct ExecuteInheritance<'info> {
+    #[account(
+        mut,
+        seeds = [b"smart_wallet", smart_wallet.owner.as_ref()],
+        bump = smart_wallet.bump
+    )]
+    pub smart_wallet: Account<'info, SmartWallet>,
+    
+    /// CHECK: Smart Wallet PDA that holds the assets
+    #[account(
+        mut,
+        seeds = [b"smart_wallet_pda", smart_wallet.owner.as_ref()],
+        bump
+    )]
+    pub smart_wallet_pda: AccountInfo<'info>,
+    
+    /// CHECK: Can be called by anyone (keeper/bot)
+    pub caller: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct DepositToSmartWallet<'info> {
+    #[account(
+        seeds = [b"smart_wallet", owner.key().as_ref()],
+        bump = smart_wallet.bump
+    )]
+    pub smart_wallet: Account<'info, SmartWallet>,
+    
+    /// CHECK: Smart Wallet PDA that will receive the deposit
+    #[account(
+        mut,
+        seeds = [b"smart_wallet_pda", owner.key().as_ref()],
+        bump
+    )]
+    pub smart_wallet_pda: AccountInfo<'info>,
+    
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct DepositTokensToSmartWallet<'info> {
+    #[account(
+        seeds = [b"smart_wallet", owner.key().as_ref()],
+        bump = smart_wallet.bump
+    )]
+    pub smart_wallet: Account<'info, SmartWallet>,
+    
+    #[account(mut)]
+    pub owner_token_account: Account<'info, TokenAccount>,
+    
+    #[account(
+        init_if_needed,
+        payer = owner,
+        associated_token::mint = token_mint,
+        associated_token::authority = smart_wallet_pda
+    )]
+    pub smart_wallet_token_account: Account<'info, TokenAccount>,
+    
+    /// CHECK: Smart Wallet PDA that will own the token account
+    #[account(
+        seeds = [b"smart_wallet_pda", owner.key().as_ref()],
+        bump
+    )]
+    pub smart_wallet_pda: AccountInfo<'info>,
+    
+    pub token_mint: Account<'info, Mint>,
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 pub struct TokenHeir {
     pub owner: Pubkey,
@@ -415,6 +699,33 @@ impl CoinHeir {
     pub const SPACE: usize = 8 + 32 + 32 + 8 + 8 + 1 + 8 + 1;
 }
 
+// ===============================================
+// SMART WALLET INHERITANCE DATA STRUCTURES (NEW)
+// ===============================================
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct HeirData {
+    pub heir_pubkey: Pubkey,
+    pub allocation_percentage: u8, // Percentage of inheritance (1-100)
+}
+
+#[account]
+pub struct SmartWallet {
+    pub owner: Pubkey,
+    pub heirs: Vec<HeirData>,
+    pub inactivity_period_seconds: i64,
+    pub last_active_time: i64,
+    pub is_executed: bool,
+    pub bump: u8,
+}
+
+impl SmartWallet {
+    // Account size calculation:
+    // 8 (discriminator) + 32 (owner) + 4 (vec length) + (32 + 1) * 10 (max heirs) 
+    // + 8 (inactivity_period) + 8 (last_active_time) + 1 (is_executed) + 1 (bump)
+    pub const SPACE: usize = 8 + 32 + 4 + (32 + 1) * 10 + 8 + 8 + 1 + 1;
+}
+
 #[error_code]
 pub enum ErrorCode {
     #[msg("Owner is still active.")]
@@ -433,4 +744,13 @@ pub enum ErrorCode {
     MismatchedArrays,
     #[msg("Insufficient accounts provided for batch transfer.")]
     InsufficientAccounts,
+    // Smart Wallet specific errors
+    #[msg("Too many heirs (max 10).")]
+    TooManyHeirs,
+    #[msg("No heirs provided.")]
+    NoHeirsProvided,
+    #[msg("Heir allocation percentages must sum to 100.")]
+    InvalidAllocation,
+    #[msg("Inheritance has already been executed.")]
+    AlreadyExecuted,
 }
