@@ -19,6 +19,9 @@ const MAX_PLATFORM_FEE_BPS: u16 = 200; // 2% maximum fee
 const FREE_USER_MAX_HEIRS: u8 = 1;
 const PREMIUM_USER_MAX_HEIRS: u8 = 10;
 
+// Platform admin authority (replace with your actual admin pubkey)
+const PLATFORM_ADMIN: &str = "EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu";
+
 #[program]
 pub mod gada {
     use super::*;
@@ -90,7 +93,7 @@ pub mod gada {
         
         // Transfer SOL from treasury PDA to admin
         let seeds = &[
-            b"treasury".as_ref(),
+            b"treasury",
             &[treasury.bump],
         ];
         
@@ -317,21 +320,30 @@ pub mod gada {
         Ok(())
     }
 
-    // Simple claim without complex fee structure for now - we can add fees later
     pub fn claim_heir_token_assets(ctx: Context<ClaimHeirTokenAssets>) -> Result<()> {
         let current_timestamp = Clock::get()?.unix_timestamp;
 
+        // First, do all the validation checks without borrowing mutably
         require!(!ctx.accounts.token_heir.is_claimed, ErrorCode::AlreadyClaimed);
         require!(
             current_timestamp - ctx.accounts.token_heir.last_active_time > ctx.accounts.token_heir.inactivity_period_seconds,
             ErrorCode::OwnerStillActive
         );
+        // Ensure the signer is the recorded heir
         require_keys_eq!(ctx.accounts.heir.key(), ctx.accounts.token_heir.heir, ErrorCode::Unauthorized);
+        // Validate token accounts
         require_keys_eq!(ctx.accounts.heir_token_account.owner, ctx.accounts.heir.key(), ErrorCode::Unauthorized);
         require_keys_eq!(ctx.accounts.heir_token_account.mint, ctx.accounts.token_heir.token_mint, ErrorCode::InvalidMint);
         require_keys_eq!(ctx.accounts.escrow_token_account.mint, ctx.accounts.token_heir.token_mint, ErrorCode::InvalidMint);
         require_keys_eq!(ctx.accounts.escrow_token_account.owner, ctx.accounts.token_heir.key(), ErrorCode::Unauthorized);
 
+        // Calculate platform fee
+        let config = &ctx.accounts.platform_config;
+        let total_amount = ctx.accounts.token_heir.amount;
+        let platform_fee = (total_amount as u128 * config.platform_fee_bps as u128 / 10000) as u64;
+        let heir_amount = total_amount.saturating_sub(platform_fee);
+
+        // Transfer tokens to heir (after fee deduction)
         let cpi_accounts = Transfer {
             from: ctx.accounts.escrow_token_account.to_account_info(),
             to: ctx.accounts.heir_token_account.to_account_info(),
@@ -347,9 +359,38 @@ pub mod gada {
         ]];
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, cpi_signer_seeds);
         
-        token::transfer(cpi_ctx, ctx.accounts.token_heir.amount)?;
+        token::transfer(cpi_ctx, heir_amount)?;
 
-        ctx.accounts.token_heir.is_claimed = true;
+        // Transfer platform fee to treasury token account (if fee > 0)
+        if platform_fee > 0 {
+            let fee_cpi_accounts = Transfer {
+                from: ctx.accounts.escrow_token_account.to_account_info(),
+                to: ctx.accounts.treasury_token_account.to_account_info(),
+                authority: ctx.accounts.token_heir.to_account_info(),
+            };
+            let fee_cpi_ctx = CpiContext::new_with_signer(ctx.accounts.token_program.to_account_info(), fee_cpi_accounts, cpi_signer_seeds);
+            token::transfer(fee_cpi_ctx, platform_fee)?;
+        }
+
+        // Update state
+        let token_heir = &mut ctx.accounts.token_heir;
+        token_heir.is_claimed = true;
+
+        // Update platform stats
+        let config_mut = &mut ctx.accounts.platform_config;
+        config_mut.total_fees_collected += platform_fee;
+        config_mut.total_inheritances_executed += 1;
+
+        // Update user profile
+        let user_profile = &mut ctx.accounts.user_profile;
+        user_profile.total_fees_paid += platform_fee;
+
+        msg!(
+            "Token inheritance claimed: {} to heir, {} platform fee",
+            heir_amount,
+            platform_fee
+        );
+
         Ok(())
     }
 
@@ -362,13 +403,21 @@ pub mod gada {
             current_timestamp - coin_heir.last_active_time > coin_heir.inactivity_period_seconds,
             ErrorCode::OwnerStillActive
         );
+        // Ensure the signer is the recorded heir and provided owner matches
         require_keys_eq!(ctx.accounts.heir_account.key(), coin_heir.heir, ErrorCode::Unauthorized);
         require_keys_eq!(ctx.accounts.owner_account.key(), coin_heir.owner, ErrorCode::Unauthorized);
 
-        let ix = anchor_lang::solana_program::system_instruction::transfer(
+        // Calculate platform fee
+        let config = &ctx.accounts.platform_config;
+        let total_amount = coin_heir.amount;
+        let platform_fee = (total_amount as u128 * config.platform_fee_bps as u128 / 10000) as u64;
+        let heir_amount = total_amount.saturating_sub(platform_fee);
+
+        // Transfer to heir (after fee deduction)
+        let heir_transfer_ix = anchor_lang::solana_program::system_instruction::transfer(
             &coin_heir.key(),
             &ctx.accounts.heir_account.key(),
-            coin_heir.amount,
+            heir_amount,
         );
         let seeds = &[
             b"coin_heir",
@@ -377,7 +426,7 @@ pub mod gada {
             &[coin_heir.bump],
         ];
         anchor_lang::solana_program::program::invoke_signed(
-            &ix,
+            &heir_transfer_ix,
             &[
                 coin_heir.to_account_info(),
                 ctx.accounts.heir_account.to_account_info(),
@@ -385,15 +434,51 @@ pub mod gada {
             ],
             &[seeds],
         )?;
+
+        // Transfer platform fee to treasury (if fee > 0)
+        if platform_fee > 0 {
+            let fee_transfer_ix = anchor_lang::solana_program::system_instruction::transfer(
+                &coin_heir.key(),
+                &ctx.accounts.treasury.key(),
+                platform_fee,
+            );
+            anchor_lang::solana_program::program::invoke_signed(
+                &fee_transfer_ix,
+                &[
+                    coin_heir.to_account_info(),
+                    ctx.accounts.treasury.to_account_info(),
+                    ctx.accounts.system_program.to_account_info(),
+                ],
+                &[seeds],
+            )?;
+            
+            // Update treasury balance
+            let treasury = &mut ctx.accounts.treasury;
+            treasury.total_balance += platform_fee;
+        }
         
         coin_heir.is_claimed = true;
-        msg!("Coin inheritance claimed: {}", coin_heir.amount);
+
+        // Update platform stats
+        let config_mut = &mut ctx.accounts.platform_config;
+        config_mut.total_fees_collected += platform_fee;
+        config_mut.total_inheritances_executed += 1;
+
+        // Update user profile
+        let user_profile = &mut ctx.accounts.user_profile;
+        user_profile.total_fees_paid += platform_fee;
+        
+        msg!(
+            "Coin inheritance claimed: {} to heir, {} platform fee",
+            heir_amount,
+            platform_fee
+        );
         
         Ok(())
     }
 
     // ===============================================
-    // SMART WALLET INHERITANCE MODEL
+    // SMART WALLET INHERITANCE MODEL (NEW)
     // ===============================================
 
     /// Creates a Smart Wallet inheritance setup with PDA wallet ownership
@@ -461,6 +546,7 @@ pub mod gada {
     }
 
     /// Executes inheritance by transferring all Smart Wallet assets to heirs
+    /// Called by keepers/bots when owner is inactive past threshold
     pub fn execute_inheritance(ctx: Context<ExecuteInheritance>) -> Result<()> {
         let smart_wallet = &mut ctx.accounts.smart_wallet;
         let current_timestamp = Clock::get()?.unix_timestamp;
@@ -554,7 +640,8 @@ pub mod gada {
         config_mut.total_inheritances_executed += 1;
 
         // Update user profile
-        ctx.accounts.user_profile.total_fees_paid += total_platform_fee;
+        let user_profile = &mut ctx.accounts.user_profile;
+        user_profile.total_fees_paid += total_platform_fee;
 
         msg!(
             "Smart Wallet inheritance executed for owner: {}, distributed: {} SOL, fee: {} SOL",
@@ -627,10 +714,6 @@ pub mod gada {
         Ok(())
     }
 }
-
-// ===============================================
-// ACCOUNT STRUCTURES
-// ===============================================
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
@@ -795,14 +878,47 @@ pub struct BatchTransferCoins<'info> {
 pub struct ClaimHeirTokenAssets<'info> {
     #[account(mut)]
     pub token_heir: Account<'info, TokenHeir>,
+    
+    #[account(
+        mut,
+        seeds = [b"platform_config"],
+        bump = platform_config.bump
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    
+    #[account(
+        mut,
+        seeds = [b"user_profile", token_heir.owner.as_ref()],
+        bump = user_profile.bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
     /// CHECK: This is the heir who must be a signer
     pub heir: Signer<'info>,
     #[account(mut)]
     pub heir_token_account: Account<'info, TokenAccount>,
     #[account(mut)]
     pub escrow_token_account: Account<'info, TokenAccount>,
+    
+    #[account(
+        init_if_needed,
+        payer = heir,
+        associated_token::mint = token_mint,
+        associated_token::authority = treasury_pda
+    )]
+    pub treasury_token_account: Account<'info, TokenAccount>,
+    
+    /// CHECK: Treasury PDA for fee collection
+    #[account(
+        seeds = [b"treasury"],
+        bump
+    )]
+    pub treasury_pda: AccountInfo<'info>,
+    
     pub token_mint: Account<'info, Mint>,
     pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -813,6 +929,28 @@ pub struct ClaimHeirCoinAssets<'info> {
         bump = coin_heir.bump
     )]
     pub coin_heir: Account<'info, CoinHeir>,
+    
+    #[account(
+        mut,
+        seeds = [b"platform_config"],
+        bump = platform_config.bump
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    
+    #[account(
+        mut,
+        seeds = [b"treasury"],
+        bump = treasury.bump
+    )]
+    pub treasury: Account<'info, Treasury>,
+    
+    #[account(
+        mut,
+        seeds = [b"user_profile", owner_account.key().as_ref()],
+        bump = user_profile.bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
     /// CHECK: This is the owner account
     pub owner_account: AccountInfo<'info>,
     /// CHECK: This is the heir who must be a signer
@@ -822,7 +960,7 @@ pub struct ClaimHeirCoinAssets<'info> {
 }
 
 // ===============================================
-// SMART WALLET INHERITANCE ACCOUNTS
+// SMART WALLET INHERITANCE ACCOUNTS (NEW)
 // ===============================================
 
 #[derive(Accounts)]
@@ -965,10 +1103,6 @@ pub struct DepositTokensToSmartWallet<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// ===============================================
-// DATA STRUCTURES
-// ===============================================
-
 #[account]
 pub struct TokenHeir {
     pub owner: Pubkey,
@@ -1000,6 +1134,10 @@ impl CoinHeir {
     pub const SPACE: usize = 8 + 32 + 32 + 8 + 8 + 1 + 8 + 1;
 }
 
+// ===============================================
+// SMART WALLET INHERITANCE DATA STRUCTURES (NEW)
+// ===============================================
+
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct HeirData {
     pub heir_pubkey: Pubkey,
@@ -1017,6 +1155,9 @@ pub struct SmartWallet {
 }
 
 impl SmartWallet {
+    // Account size calculation:
+    // 8 (discriminator) + 32 (owner) + 4 (vec length) + (32 + 1) * 10 (max heirs) 
+    // + 8 (inactivity_period) + 8 (last_active_time) + 1 (is_executed) + 1 (bump)
     pub const SPACE: usize = 8 + 32 + 4 + (32 + 1) * 10 + 8 + 8 + 1 + 1;
 }
 
