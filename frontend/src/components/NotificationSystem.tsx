@@ -33,60 +33,77 @@ const NotificationSystem: React.FC<NotificationSystemProps> = () => {
     try {
       setLoading(true);
       
-      // Mock notifications for demonstration
-      const mockNotifications: Notification[] = [
-        {
-          id: '1',
-          type: 'success',
-          message: 'Smart Wallet created successfully with 0.5 SOL inheritance amount',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-          read: false
-        },
-        {
-          id: '2',
-          type: 'info',
-          message: 'Activity updated for inheritance plan #2',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          read: false
-        },
-        {
-          id: '3',
-          type: 'warning',
-          message: 'Inheritance plan #1 will become claimable in 24 hours due to inactivity',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-          read: true
-        },
-        {
-          id: '4',
-          type: 'success',
-          message: 'Batch transfer completed: 3 recipients received tokens',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-          read: true
-        },
-        {
-          id: '5',
-          type: 'error',
-          message: 'Failed to claim inheritance: Owner is still active',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-          read: true
-        }
-      ];
+      if (!publicKey) {
+        setNotifications([]);
+        return;
+      }
 
-      setNotifications(mockNotifications);
-      
-      // In real implementation, fetch from program accounts:
-      // const notificationAccounts = await connection.getProgramAccounts(
-      //   getProgramId(),
-      //   {
-      //     filters: [
-      //       { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
-      //       { memcmp: { offset: 0, bytes: 'notification' } }
-      //     ]
-      //   }
-      // );
+      // Fetch real notification accounts from the blockchain
+      try {
+        const notificationAccounts = await connection.getProgramAccounts(
+          getProgramId(),
+          {
+            filters: [
+              // Filter for notification accounts belonging to this user
+              {
+                memcmp: {
+                  offset: 8, // Skip discriminator
+                  bytes: publicKey.toBase58()
+                }
+              }
+            ]
+          }
+        );
+
+        const realNotifications: Notification[] = [];
+
+        for (const account of notificationAccounts) {
+          try {
+            // Parse notification account data
+            const data = account.account.data;
+            
+            // Skip discriminator (8 bytes) + user pubkey (32 bytes) + notification_type (1 byte)
+            const messageStart = 8 + 32 + 1;
+            const messageLength = new DataView(data.buffer).getUint32(messageStart, true);
+            const messageBytes = data.slice(messageStart + 4, messageStart + 4 + messageLength);
+            const message = new TextDecoder().decode(messageBytes);
+            
+            // Parse timestamp (i64)
+            const timestampOffset = messageStart + 4 + messageLength;
+            const timestamp = new DataView(data.buffer).getBigInt64(timestampOffset, true);
+            
+            // Parse is_read (bool)
+            const isRead = data[timestampOffset + 8] === 1;
+            
+            // Parse notification type
+            const notificationType = data[8 + 32];
+            const typeMap = ['info', 'success', 'warning', 'error'];
+            
+            realNotifications.push({
+              id: account.pubkey.toString(),
+              type: typeMap[notificationType] as 'info' | 'success' | 'warning' | 'error' || 'info',
+              message,
+              timestamp: new Date(Number(timestamp) * 1000),
+              read: isRead
+            });
+          } catch (parseError) {
+            console.error('Error parsing notification account:', parseError);
+          }
+        }
+
+        // Sort by timestamp (newest first)
+        realNotifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        setNotifications(realNotifications);
+
+      } catch (fetchError) {
+        console.error("Error fetching notifications from blockchain:", fetchError);
+        // Set empty array if no notifications found
+        setNotifications([]);
+      }
       
     } catch (error) {
       console.error("Error loading notifications:", error);
+      setNotifications([]);
     } finally {
       setLoading(false);
     }

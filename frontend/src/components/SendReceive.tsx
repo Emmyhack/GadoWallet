@@ -163,71 +163,173 @@ export function SendReceive() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center space-x-3 mb-2">
-        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
-          <Send className="w-5 h-5 text-white" />
+    <div className="space-y-8">
+      {/* Professional Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-600 shadow-2xl">
+            <Send className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-white">{t('sendReceive')}</h2>
+            <p className="text-gray-300 font-medium">{t('sendReceiveSubtitle')}</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{t('sendReceive')}</h2>
-          <p className="text-gray-600">{t('sendReceiveSubtitle')}</p>
+        
+        <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-200">Ready to Send</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-md">
+      {/* Professional Tab Selector */}
+      <div className="flex space-x-2 p-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
         <button
           onClick={() => setTab('sol')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${tab === 'sol' ? 'bg-white/80 dark:bg-gray-900/60 text-gray-900 dark:text-white shadow-sm backdrop-blur' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
+          className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 flex-1 ${
+            tab === 'sol' 
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-xl transform scale-105' 
+              : 'text-gray-300 hover:text-white hover:bg-white/10'
+          }`}
         >
-          <Download className="w-4 h-4" /> <span>{t('sol')}</span>
+          <Download className="w-5 h-5" />
+          <div className="text-left">
+            <div className="font-bold">{t('sol')}</div>
+            <div className="text-xs opacity-75">Native Solana</div>
+          </div>
         </button>
         <button
           onClick={() => setTab('token')}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${tab === 'token' ? 'bg-white/80 dark:bg-gray-900/60 text-gray-900 dark:text-white shadow-sm backdrop-blur' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
+          className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 flex-1 ${
+            tab === 'token' 
+              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-xl transform scale-105' 
+              : 'text-gray-300 hover:text-white hover:bg-white/10'
+          }`}
         >
-          <Coins className="w-4 h-4" /> <span>{t('splToken')}</span>
+          <Coins className="w-5 h-5" />
+          <div className="text-left">
+            <div className="font-bold">{t('splToken')}</div>
+            <div className="text-xs opacity-75">SPL Tokens</div>
+          </div>
         </button>
       </div>
 
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('recipientAddress')}</label>
-            <input className="input-field" placeholder={t('destinationPublicKey') || ''} value={toAddress} onChange={e => setToAddress(e.target.value)} />
-            {toAddress && !isValidAddress(toAddress) && (<p className="text-red-500 text-sm mt-1">{t('invalidAddress')}</p>)}
+      {/* Professional Form Card */}
+      <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
+        <div className="p-8">
+          <div className="space-y-6">
+            {/* Recipient Address */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-200 mb-3 uppercase tracking-wider">
+                {t('recipientAddress')}
+              </label>
+              <div className="relative">
+                <input 
+                  className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 font-mono text-sm"
+                  placeholder={t('destinationPublicKey') || 'Enter recipient wallet address'} 
+                  value={toAddress} 
+                  onChange={e => setToAddress(e.target.value)} 
+                />
+                {toAddress && isValidAddress(toAddress) && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                  </div>
+                )}
+              </div>
+              {toAddress && !isValidAddress(toAddress) && (
+                <div className="mt-2 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl">
+                  <p className="text-red-300 text-sm font-medium">{t('invalidAddress')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Token Mint (for SPL tokens) */}
+            {tab === 'token' && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-200 mb-3 uppercase tracking-wider">
+                  {t('tokenMintLabel')}
+                </label>
+                <div className="relative">
+                  <input 
+                    className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 font-mono text-sm"
+                    placeholder={t('tokenMintAddress') || 'Enter token mint address'} 
+                    value={mint} 
+                    onChange={e => setMint(e.target.value)} 
+                  />
+                  {mint && isValidAddress(mint) && (
+                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                {mint && !isValidAddress(mint) && (
+                  <div className="mt-2 px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-xl">
+                    <p className="text-red-300 text-sm font-medium">{t('invalidTokenMint')}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Amount */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-200 mb-3 uppercase tracking-wider">
+                {t('amountLabel')}
+              </label>
+              <div className="relative">
+                <input 
+                  className="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300 text-xl font-bold"
+                  placeholder={tab === 'sol' ? (t('amountInSol') || '0.001') : (t('rawTokenAmount') || '100')} 
+                  value={amount} 
+                  onChange={e => setAmount(e.target.value)}
+                  type="number"
+                  step={tab === 'sol' ? '0.001' : '1'}
+                />
+                <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 font-bold">
+                  {tab === 'sol' ? 'SOL' : 'TOKENS'}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {tab === 'token' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('tokenMintLabel')}</label>
-              <input className="input-field" placeholder={t('tokenMintAddress') || ''} value={mint} onChange={e => setMint(e.target.value)} />
-              {mint && !isValidAddress(mint) && (<p className="text-red-500 text-sm mt-1">{t('invalidTokenMint')}</p>)}
+          {/* Professional Send Button */}
+          <div className="mt-8">
+            <button 
+              onClick={onSend} 
+              disabled={!toAddress || !amount || (tab === 'token' && !mint) || loading} 
+              className="w-full py-6 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 text-white font-bold rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-2xl transform hover:scale-105 flex items-center justify-center space-x-3 text-lg"
+            >
+              {loading ? (
+                <>
+                  <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{t('sending')}...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-6 h-6" />
+                  <span>Send {tab === 'sol' ? 'SOL' : 'Tokens'}</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Status Message */}
+          {message && (
+            <div className={`mt-6 p-6 rounded-2xl border ${
+              message.startsWith('Error') 
+                ? 'bg-red-500/20 text-red-200 border-red-500/30' 
+                : 'bg-green-500/20 text-green-200 border-green-500/30'
+            }`}>
+              <div className="flex items-center space-x-3">
+                <div className={`w-4 h-4 rounded-full ${
+                  message.startsWith('Error') ? 'bg-red-400' : 'bg-green-400'
+                }`}></div>
+                <p className="font-medium">{message}</p>
+              </div>
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('amountLabel')}</label>
-            <input className="input-field" placeholder={tab === 'sol' ? (t('amountInSol') || '') : (t('rawTokenAmount') || '')} value={amount} onChange={e => setAmount(e.target.value)} />
-          </div>
         </div>
-
-        <button onClick={onSend} disabled={!toAddress || !amount || (tab === 'token' && !mint) || loading} className="btn-primary w-full mt-6 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600">
-          {loading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>{t('sending')}</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4" />
-              <span>{t('send')}</span>
-            </>
-          )}
-        </button>
-
-        {message && (
-          <div className={`mt-4 p-3 rounded-md ${message.startsWith('Error') ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>{message}</div>
-        )}
       </div>
     </div>
   );

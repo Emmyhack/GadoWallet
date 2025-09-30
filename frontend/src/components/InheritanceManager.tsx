@@ -211,43 +211,61 @@ export function InheritanceManager() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
-          <Shield className="w-5 h-5 text-white" />
+    <div className="space-y-8">
+      {/* Professional Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 shadow-2xl">
+            <Shield className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-white">{t('inheritance')}</h2>
+            <p className="text-gray-300 font-medium">Secure your digital legacy</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('inheritance')}</h2>
-          <p className="text-gray-600 dark:text-gray-300">{t('whyGado')}</p>
+        
+        <div className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-gray-200">Legacy Protection</span>
+          </div>
         </div>
       </div>
 
       {/* Program Status */}
-      <ProgramStatus />
+      <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden">
+        <ProgramStatus />
+      </div>
 
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-md">
+      {/* Professional Tab Navigation */}
+      <div className="flex space-x-2 p-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
         <button
           onClick={() => setActiveTab('sol')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 flex-1 ${
             activeTab === 'sol'
-              ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-xl transform scale-105'
+              : 'text-gray-300 hover:text-white hover:bg-white/10'
           }`}
         >
-          <Coins className="w-4 h-4" />
-          <span>{t('sol') || 'SOL'}</span>
+          <Coins className="w-5 h-5" />
+          <div className="text-left">
+            <div className="font-bold">{t('sol') || 'SOL'}</div>
+            <div className="text-xs opacity-75">Native Solana</div>
+          </div>
         </button>
         <button
           onClick={() => setActiveTab('token')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex items-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 flex-1 ${
             activeTab === 'token'
-              ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              ? 'bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-xl transform scale-105'
+              : 'text-gray-300 hover:text-white hover:bg-white/10'
           }`}
         >
-          <Token className="w-4 h-4" />
-          <span>{t('token') || 'Token'}</span>
+          <Token className="w-5 h-5" />
+          <div className="text-left">
+            <div className="font-bold">{t('token') || 'Token'}</div>
+            <div className="text-xs opacity-75">SPL Tokens</div>
+          </div>
         </button>
       </div>
 

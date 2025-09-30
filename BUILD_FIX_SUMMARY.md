@@ -11,12 +11,12 @@ npm install @coral-xyz/anchor @solana/web3.js @solana/wallet-adapter-base @solan
 ```
 
 ### 2. Missing IDL and Types
-**Problem**: Components couldn't import `../lib/types/gada` and `../lib/idl/gada.json`
+**Problem**: Components couldn't import `../lib/types/gado` and `../lib/idl/gado.json`
 **Solution**: Copied generated files from Solana program to frontend
 
 ```bash
-cp /home/dextonicx/GadaWallet/gada/target/types/gada.ts /home/dextonicx/GadaWallet/frontend/src/lib/types/gada.ts
-cp /home/dextonicx/GadaWallet/gada/target/idl/gada.json /home/dextonicx/GadaWallet/frontend/src/lib/idl/gada.json
+cp /home/dextonicx/GadoWallet/gado/target/types/gado.ts /home/dextonicx/GadoWallet/frontend/src/lib/types/gado.ts
+cp /home/dextonicx/GadoWallet/gado/target/idl/gado.json /home/dextonicx/GadoWallet/frontend/src/lib/idl/gado.json
 ```
 
 ### 3. Duplicate Import

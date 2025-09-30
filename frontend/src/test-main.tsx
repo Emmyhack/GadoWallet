@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client'
 function SimpleApp() {
   return (
     <div style={{ padding: '20px' }}>
-      <h1>GadaWallet Test</h1>
+      <h1>GadoWallet Test</h1>
       <p>If you can see this, React is working!</p>
     </div>
   )

@@ -43,8 +43,8 @@ print_error() {
 
 # Get the current program ID
 get_program_id() {
-    if [ -f "gada/target/deploy/gada-keypair.json" ]; then
-        PROGRAM_ID=$(solana-keygen pubkey gada/target/deploy/gada-keypair.json)
+    if [ -f "gado/target/deploy/gado-keypair.json" ]; then
+        PROGRAM_ID=$(solana-keygen pubkey gado/target/deploy/gado-keypair.json)
     else
         PROGRAM_ID="8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE"
     fi
@@ -76,8 +76,8 @@ verify_anchor_config() {
     
     PROGRAM_ID=$(get_program_id)
     
-    if [ -f "gada/Anchor.toml" ]; then
-        if grep -q "$PROGRAM_ID" "gada/Anchor.toml"; then
+    if [ -f "gado/Anchor.toml" ]; then
+        if grep -q "$PROGRAM_ID" "gado/Anchor.toml"; then
             print_success "Anchor configuration is correct"
         else
             print_error "Anchor configuration program ID mismatch"
@@ -95,8 +95,8 @@ verify_program_source() {
     
     PROGRAM_ID=$(get_program_id)
     
-    if [ -f "gada/programs/gada/src/lib.rs" ]; then
-        if grep -q "$PROGRAM_ID" "gada/programs/gada/src/lib.rs"; then
+    if [ -f "gado/programs/gado/src/lib.rs" ]; then
+        if grep -q "$PROGRAM_ID" "gado/programs/gado/src/lib.rs"; then
             print_success "Program source has correct program ID"
         else
             print_error "Program source program ID mismatch"
@@ -146,8 +146,8 @@ verify_workflows() {
 verify_program_keypair() {
     print_status "Checking program keypair..."
     
-    if [ -f "gada/target/deploy/gada-keypair.json" ]; then
-        PROGRAM_ID=$(solana-keygen pubkey gada/target/deploy/gada-keypair.json)
+    if [ -f "gado/target/deploy/gado-keypair.json" ]; then
+        PROGRAM_ID=$(solana-keygen pubkey gado/target/deploy/gado-keypair.json)
         print_success "Program keypair exists: $PROGRAM_ID"
     else
         print_error "Program keypair not found"
@@ -166,7 +166,7 @@ check_program_deployment() {
             print_success "Program is deployed on $CLUSTER"
         else
             print_warning "Program not yet deployed on $CLUSTER"
-            print_status "Deploy with: cd gada && anchor deploy --provider.cluster $CLUSTER"
+            print_status "Deploy with: cd gado && anchor deploy --provider.cluster $CLUSTER"
         fi
     else
         print_warning "Solana CLI not available - cannot check deployment status"
@@ -202,7 +202,7 @@ main() {
         print_success "✅ All critical checks passed! Deployment is ready."
         echo ""
         echo "🚀 Next steps:"
-        echo "1. Deploy program: cd gada && anchor deploy --provider.cluster $CLUSTER"
+        echo "1. Deploy program: cd gado && anchor deploy --provider.cluster $CLUSTER"
         echo "2. Deploy frontend: cd frontend && vercel --prod"
         echo "3. Test the application"
     else

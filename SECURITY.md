@@ -4,13 +4,13 @@
 
 We currently provide security updates for the following packages and components:
 
-- `gada` Solana program: active development branch (`main`)
+- `gado` Solana program: active development branch (`main`)
 - `frontend` (Vite + React app)
-- `gada/frontend` (Vite + React app)
+- `gado/frontend` (Vite + React app)
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability, please email security reports to security@gadawallet.example with the following details:
+If you discover a security vulnerability, please email security reports to security@gadowallet.example with the following details:
 
 - Affected component (Solana program or specific frontend)
 - Vulnerability description and potential impact

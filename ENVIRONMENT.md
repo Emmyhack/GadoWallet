@@ -4,7 +4,7 @@ This project has two frontends and Solana program scripts. Configure environment
 
 Place a .env file in each app directory:
 - frontend/.env
-- gada/frontend/.env
+- gado/frontend/.env
 
 Optionally, export shell vars for scripts (e.g., CLUSTER).
 
@@ -68,7 +68,7 @@ Optionally, export shell vars for scripts (e.g., CLUSTER).
   VITE_PROGRAM_ID=11111111111111111111111111111111
   VITE_RPC_URL=http://127.0.0.1:8899
 
-Repeat the same for `gada/frontend/.env.*`.
+Repeat the same for `gado/frontend/.env.*`.
 
 ## Notes
 - After deploying your program on each cluster, update VITE_PROGRAM_ID accordingly in both frontends.

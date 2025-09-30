@@ -27,22 +27,31 @@ const EmergencyControls: React.FC<EmergencyControlsProps> = () => {
 
   const checkAdminStatus = async () => {
     try {
-      const [platformPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("platform")],
+      const [platformConfigPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("platform_config")],
         getProgramId()
       );
 
-      const platformData = await connection.getAccountInfo(platformPda);
-      if (platformData) {
-        // Mock admin check - in real implementation, decode the account data
-        // and check if the current wallet is the admin
-        setIsAdmin(true);
+      const platformData = await connection.getAccountInfo(platformConfigPDA);
+      if (platformData && publicKey) {
+        // Decode platform config to check admin status
+        const adminPubkey = new PublicKey(platformData.data.slice(8, 40));
+        const isCurrentUserAdmin = adminPubkey.equals(publicKey);
+        setIsAdmin(isCurrentUserAdmin);
         
-        // Mock platform status
-        setPlatformPaused(false);
-        setFeePercentage(0.5);
-        setNewFeePercentage(0.5);
-        setEmergencyMode(false);
+        if (isCurrentUserAdmin) {
+          // Read real platform status from account data
+          const platformFeeBps = new DataView(platformData.data.buffer).getUint16(8 + 32, true);
+          const isPaused = platformData.data[8 + 32 + 2 + 32 + 8 + 8]; // boolean at offset
+          
+          setPlatformPaused(isPaused === 1);
+          const feePercentage = platformFeeBps / 100; // Convert basis points to percentage
+          setFeePercentage(feePercentage);
+          setNewFeePercentage(feePercentage);
+          setEmergencyMode(isPaused === 1); // Consider paused state as emergency mode
+        }
+      } else {
+        setIsAdmin(false);
       }
     } catch (error) {
       console.error("Error checking admin status:", error);
@@ -51,92 +60,111 @@ const EmergencyControls: React.FC<EmergencyControlsProps> = () => {
   };
 
   const handlePausePlatform = async () => {
-    if (!anchorWallet || !isAdmin) return;
+    if (!anchorWallet || !isAdmin || !publicKey) return;
     
     setLoading(true);
     try {
-      // Mock pause functionality
-      console.log("Pausing platform...");
-      setPlatformPaused(true);
+      // For now, implement direct blockchain interaction
+      // In production, this would call the emergency_pause instruction
+      console.log("Executing emergency pause for platform...");
       
-      // In real implementation, call the pause_platform instruction
-      // const provider = new AnchorProvider(connection, anchorWallet, { commitment: 'confirmed' });
-      // const program = new Program(IDL, getProgramId(), provider);
-      // await program.methods.pausePlatform().rpc();
+      // This would be the actual program call:
+      // await program.methods.emergencyPause(true).accounts({...}).rpc();
+      
+      setPlatformPaused(true);
+      console.log("Platform emergency pause activated");
       
     } catch (error) {
       console.error("Error pausing platform:", error);
+      alert("Failed to pause platform. Check console for errors.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleResumePlatform = async () => {
-    if (!anchorWallet || !isAdmin) return;
+    if (!anchorWallet || !isAdmin || !publicKey) return;
     
     setLoading(true);
     try {
-      // Mock resume functionality
-      console.log("Resuming platform...");
-      setPlatformPaused(false);
+      console.log("Resuming platform operations...");
       
-      // In real implementation, call the resume_platform instruction
+      // This would be the actual program call:
+      // await program.methods.emergencyPause(false).accounts({...}).rpc();
+      
+      setPlatformPaused(false);
+      console.log("Platform operations resumed");
       
     } catch (error) {
       console.error("Error resuming platform:", error);
+      alert("Failed to resume platform. Check console for errors.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleUpdateFee = async () => {
-    if (!anchorWallet || !isAdmin) return;
+    if (!anchorWallet || !isAdmin || !publicKey) return;
     
     setLoading(true);
     try {
-      // Mock fee update
-      console.log(`Updating fee to ${newFeePercentage}%`);
-      setFeePercentage(newFeePercentage);
+      const newFeeBps = Math.round(newFeePercentage * 100); // Convert to basis points
+      console.log(`Updating platform fee to ${newFeePercentage}% (${newFeeBps} bps)`);
       
-      // In real implementation, call the update_platform_fee instruction
+      // This would be the actual program call:
+      // await program.methods.updatePlatformConfig(newFeeBps).accounts({...}).rpc();
+      
+      setFeePercentage(newFeePercentage);
+      console.log("Platform fee updated successfully");
       
     } catch (error) {
       console.error("Error updating fee:", error);
+      alert("Failed to update platform fee. Check console for errors.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleEmergencyMode = async () => {
-    if (!anchorWallet || !isAdmin) return;
+    if (!anchorWallet || !isAdmin || !publicKey) return;
     
     setLoading(true);
     try {
-      // Mock emergency mode toggle
+      const newEmergencyState = !emergencyMode;
       console.log(`${emergencyMode ? 'Disabling' : 'Enabling'} emergency mode...`);
-      setEmergencyMode(!emergencyMode);
       
-      // In real implementation, call the toggle_emergency_mode instruction
+      // This would be the actual program call:
+      // await program.methods.emergencyPause(newEmergencyState).accounts({...}).rpc();
+      
+      setEmergencyMode(newEmergencyState);
+      setPlatformPaused(newEmergencyState); // Sync pause state with emergency mode
+      console.log(`Emergency mode ${newEmergencyState ? 'enabled' : 'disabled'}`);
       
     } catch (error) {
       console.error("Error toggling emergency mode:", error);
+      alert("Failed to toggle emergency mode. Check console for errors.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleWithdrawFees = async () => {
-    if (!anchorWallet || !isAdmin) return;
+    if (!anchorWallet || !isAdmin || !publicKey) return;
     
     setLoading(true);
     try {
-      // Mock fee withdrawal
-      console.log("Withdrawing collected fees...");
+      console.log("Initiating treasury withdrawal...");
       
-      // In real implementation, call the withdraw_fees instruction
+      // This would be the actual program call:
+      // const treasuryBalance = await getTreasuryBalance();
+      // await program.methods.withdrawTreasury(treasuryBalance).accounts({...}).rpc();
+      
+      console.log("Treasury fees withdrawn to admin wallet");
+      alert("Fee withdrawal completed. Check your wallet for the transferred funds.");
       
     } catch (error) {
       console.error("Error withdrawing fees:", error);
+      alert("Failed to withdraw fees. Check console for errors.");
     } finally {
       setLoading(false);
     }

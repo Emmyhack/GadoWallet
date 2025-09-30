@@ -1,4 +1,4 @@
-# 🎉 Final Iteration Summary - Production Ready Gada Wallet
+# 🎉 Final Iteration Summary - Production Ready Gado Wallet
 
 ## 🚀 **Complete Project Status: PRODUCTION READY**
 
@@ -144,7 +144,7 @@ Security & Controls: ✅ Production Ready
 cd frontend && vercel --prod
 
 # 2. Deploy Program (Mainnet)
-cd ../gada && anchor deploy --provider.cluster mainnet
+cd ../gado && anchor deploy --provider.cluster mainnet
 
 # 3. Update Frontend Config
 # Update RPC URLs to mainnet endpoints
@@ -188,4 +188,4 @@ cd ../gada && anchor deploy --provider.cluster mainnet
 **💰 Revenue Model**: Active and validated  
 **⭐ Quality**: Enterprise-grade with full test coverage**
 
-The Gada Wallet platform is now a complete, business-ready solution ready for launch and user acquisition! 🎉
+The Gado Wallet platform is now a complete, business-ready solution ready for launch and user acquisition! 🎉

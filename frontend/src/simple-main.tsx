@@ -10,7 +10,7 @@ function App() {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
-          GadaWallet
+          GadoWallet
         </h1>
         <div className="bg-white rounded-lg shadow-lg p-6">
           <p className="text-lg text-gray-600 text-center">

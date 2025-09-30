@@ -1,6 +1,6 @@
-# Gada Wallet Frontend
+# Gado Wallet Frontend
 
-This is the main React + TypeScript + Vite frontend for Gada Wallet. It provides a modern, secure interface for wallet connection, heir management, batch transfers, and inheritance activity management.
+This is the main React + TypeScript + Vite frontend for Gado Wallet. It provides a modern, secure interface for wallet connection, heir management, batch transfers, and inheritance activity management.
 
 ## 🚀 Live Status
 - **Development Server**: http://localhost:5174 (auto port-conflict resolution)

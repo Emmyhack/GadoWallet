@@ -30,7 +30,7 @@ export function isValidPublicKey(key: string): boolean {
 }
 
 /**
- * Program ID for the Gada program
+ * Program ID for the Gado program
  */
 export const PROGRAM_ID = getProgramId();
 

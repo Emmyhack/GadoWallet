@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Gada Wallet Production Deployment Script
+# Gado Wallet Production Deployment Script
 # This script prepares the project for production deployment
 
 set -e
 
-echo "🚀 Gada Wallet Production Deployment"
+echo "🚀 Gado Wallet Production Deployment"
 echo "===================================="
 
 # Colors for output
@@ -58,17 +58,17 @@ fi
 print_success "All prerequisites found"
 
 # Check if we're in the project root
-if [ ! -f "README.md" ] || [ ! -d "gada" ] || [ ! -d "frontend" ]; then
+if [ ! -f "README.md" ] || [ ! -d "gado" ] || [ ! -d "frontend" ]; then
     print_error "Please run this script from the project root directory"
     exit 1
 fi
 
 # Build Solana Program
 print_status "Building Solana program..."
-cd gada
+cd gado
 
 if ! npm install; then
-    print_error "Failed to install gada dependencies"
+    print_error "Failed to install gado dependencies"
     exit 1
 fi
 
@@ -81,8 +81,8 @@ print_success "Solana program built successfully"
 
 # Copy IDL and types to frontend
 print_status "Copying IDL and types to frontend..."
-cp target/types/gada.ts ../frontend/src/lib/types/gada.ts 2>/dev/null || true
-cp target/idl/gada.json ../frontend/src/lib/idl/gada.json 2>/dev/null || true
+cp target/types/gado.ts ../frontend/src/lib/types/gado.ts 2>/dev/null || true
+cp target/idl/gado.json ../frontend/src/lib/idl/gado.json 2>/dev/null || true
 
 print_success "IDL and types copied to frontend"
 
@@ -111,7 +111,7 @@ print_status "Generating deployment summary..."
 cd ..
 
 cat > DEPLOYMENT_STATUS.md << EOF
-# Gada Wallet Deployment Status
+# Gado Wallet Deployment Status
 
 ## Build Status
 - ✅ Solana program compiled successfully
@@ -167,12 +167,12 @@ print_status "Running final checks..."
 
 # Check if all critical files exist
 critical_files=(
-    "gada/target/deploy/gada.so"
-    "gada/target/idl/gada.json"
-    "gada/target/types/gada.ts"
+    "gado/target/deploy/gado.so"
+    "gado/target/idl/gado.json"
+    "gado/target/types/gado.ts"
     "frontend/dist/index.html"
-    "frontend/src/lib/types/gada.ts"
-    "frontend/src/lib/idl/gada.json"
+    "frontend/src/lib/types/gado.ts"
+    "frontend/src/lib/idl/gado.json"
 )
 
 all_good=true
@@ -207,7 +207,7 @@ echo "Program: anchor deploy --provider.cluster mainnet"
 
 echo ""
 print_status "Project statistics:"
-echo "- Program size: $(du -sh gada/target/deploy/gada.so | cut -f1)"
+echo "- Program size: $(du -sh gado/target/deploy/gado.so | cut -f1)"
 echo "- Frontend size: $(du -sh frontend/dist | cut -f1)"
 echo "- Total project size: $(du -sh . --exclude=node_modules --exclude=target/debug | cut -f1)"
 

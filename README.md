@@ -1,4 +1,4 @@
-# Gada Wallet
+# Gado Wallet
 
 A comprehensive, business-ready digital asset inheritance platform built on Solana with advanced features including Smart Wallets, automated inheritance execution, platform fees, multi-tier user management, and real-time analytics dashboard.
 
@@ -38,14 +38,14 @@ A comprehensive, business-ready digital asset inheritance platform built on Sola
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Emmyhack/GadaWallet.git
-cd GadaWallet
+git clone https://github.com/Emmyhack/GadoWallet.git
+cd GadoWallet
 ```
 
 ### 2. Install Dependencies
 #### Backend (smart contract)
 ```bash
-cd gada
+cd gado
 npm install  # Anchor.toml is configured to use npm
 ```
 #### Frontends
@@ -53,8 +53,8 @@ npm install  # Anchor.toml is configured to use npm
 # Main frontend
 cd frontend && npm install --legacy-peer-deps
 
-# Alternative frontend (under gada/)
-cd ../gada/frontend && npm install
+# Alternative frontend (under gado/)
+cd ../gado/frontend && npm install
 ```
 
 ### 3. Build and Deploy the Smart Contract
@@ -79,7 +79,7 @@ avm install latest && avm use latest
 
 #### Configure and Deploy
 ```bash
-cd gada
+cd gado
 
 # Configure Solana CLI to devnet
 solana config set --url devnet
@@ -100,8 +100,8 @@ anchor deploy --provider.cluster devnet
 **Current Program ID**: `EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu`
 
 > **Note**: If you deploy your own instance, update the program ID in:
-> - `gada/Anchor.toml`
-> - `gada/programs/gada/src/lib.rs` (declare_id!)
+> - `gado/Anchor.toml`
+> - `gado/programs/gado/src/lib.rs` (declare_id!)
 > - Frontend configuration files
 
 ### 4. Run the Frontends
@@ -115,7 +115,7 @@ Opens at http://localhost:5174 (automatically handles port conflicts)
 
 #### Alternative Frontend
 ```bash
-cd gada/frontend
+cd gado/frontend
 npm run dev
 ```
 Opens at http://localhost:5173
@@ -202,16 +202,16 @@ See `SECURITY.md` for reporting guidelines and detailed security information.
 
 ## Project Structure
 ```
-GadaWallet/
+GadoWallet/
 ├── README.md                 # This file
 ├── SECURITY.md               # Security policies
 ├── frontend/                 # Main React frontend (Vite 7.x)
 │   ├── src/
 │   ├── package.json
 │   └── vite.config.ts       # CSP and dev server config
-├── gada/                    # Anchor workspace
+├── gado/                    # Anchor workspace
 │   ├── Anchor.toml          # Anchor configuration (npm)
-│   ├── programs/gada/       # Solana program source (Rust)
+│   ├── programs/gado/       # Solana program source (Rust)
 │   ├── tests/               # Anchor tests
 │   └── frontend/            # Alternative frontend
 └── vercel.json              # Production deployment config

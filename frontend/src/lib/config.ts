@@ -25,7 +25,7 @@ export function getProgramId(): PublicKey {
 	try {
 		return new PublicKey(candidate);
 	} catch (e) {
-		console.error('Invalid VITE_PROGRAM_ID provided. Falling back to System Program as placeholder.');
+		console.error('Invalid VITE_PROGRAM_ID provided. Using System Program ID.');
 		return new PublicKey('11111111111111111111111111111112');
 	}
 }

@@ -8,10 +8,72 @@ import {
   LAMPORTS_PER_SOL,
   PublicKey 
 } from "@solana/web3.js";
-import { SmartWalletClient } from "./smart-wallet-client";
+
+export class SmartWalletClient {
+  private program: Program<Gada>;
+  private connection: Connection;
+
+  constructor(program: Program<Gada>, connection: Connection) {
+    this.program = program;
+    this.connection = connection;
+  }
+
+  async getSmartWallet(ownerPublicKey: PublicKey) {
+    try {
+      const [smartWalletPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("smart_wallet"), ownerPublicKey.toBuffer()],
+        this.program.programId
+      );
+
+      const smartWallet = await this.program.account.smartWallet.fetch(smartWalletPda);
+      return { data: smartWallet, publicKey: smartWalletPda };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async isOwnerInactive(ownerPublicKey: PublicKey): Promise<boolean> {
+    const smartWallet = await this.getSmartWallet(ownerPublicKey);
+    if (!smartWallet) return false;
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeSinceLastActivity = currentTime - smartWallet.data.lastActivityTimestamp.toNumber();
+    const inactivityPeriod = smartWallet.data.inactivityPeriod.toNumber();
+
+    return timeSinceLastActivity > inactivityPeriod;
+  }
+
+  async getSmartWalletBalance(ownerPublicKey: PublicKey): Promise<number> {
+    const [smartWalletPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("smart_wallet"), ownerPublicKey.toBuffer()],
+      this.program.programId
+    );
+
+    const balance = await this.connection.getBalance(smartWalletPda);
+    return balance / LAMPORTS_PER_SOL;
+  }
+
+  async executeInheritance(ownerPublicKey: PublicKey, keeper: Keypair): Promise<string> {
+    const [smartWalletPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("smart_wallet"), ownerPublicKey.toBuffer()],
+      this.program.programId
+    );
+
+    const tx = await this.program.methods
+      .executeInheritance()
+      .accounts({
+        smartWallet: smartWalletPda,
+        keeper: keeper.publicKey,
+      })
+      .signers([keeper])
+      .rpc();
+
+    return tx;
+  }
+}
 
 // Load the IDL
-import IDL from "./target/idl/gada.json";
+const IDL = require("./target/idl/gada.json");
 
 /**
  * Keeper Bot for Smart Wallet Inheritance
@@ -20,7 +82,6 @@ import IDL from "./target/idl/gada.json";
  * In production, this would run as a scheduled service (cron job, cloud function, etc.)
  */
 export class InheritanceKeeperBot {
-  private smartWalletClient: SmartWalletClient;
   private program: Program<Gada>;
   private keeperWallet: Keypair;
   private connection: Connection;
@@ -33,7 +94,6 @@ export class InheritanceKeeperBot {
     this.program = program;
     this.connection = connection;
     this.keeperWallet = keeperWallet;
-    this.smartWalletClient = new SmartWalletClient(program, connection);
   }
 
   /**
@@ -44,7 +104,7 @@ export class InheritanceKeeperBot {
       console.log(`🔍 Checking Smart Wallet for owner: ${ownerPublicKey.toString()}`);
 
       // Get Smart Wallet data
-      const smartWallet = await this.smartWalletClient.getSmartWallet(ownerPublicKey);
+      const smartWallet = await this.getSmartWallet(ownerPublicKey);
       
       if (!smartWallet) {
         console.log("❌ Smart Wallet not found");
@@ -57,7 +117,7 @@ export class InheritanceKeeperBot {
       }
 
       // Check if owner is inactive
-      const isInactive = await this.smartWalletClient.isOwnerInactive(ownerPublicKey);
+      const isInactive = await this.isOwnerInactive(ownerPublicKey);
       
       if (!isInactive) {
         console.log("⏰ Owner is still active");
@@ -65,7 +125,7 @@ export class InheritanceKeeperBot {
       }
 
       // Get Smart Wallet balance to see if there are assets to distribute
-      const balance = await this.smartWalletClient.getSmartWalletBalance(ownerPublicKey);
+      const balance = await this.getSmartWalletBalance(ownerPublicKey);
       
       if (balance === 0) {
         console.log("💰 No assets to distribute");
@@ -76,7 +136,7 @@ export class InheritanceKeeperBot {
 
       // Execute inheritance
       console.log("🚀 Executing inheritance...");
-      const tx = await this.smartWalletClient.executeInheritance(
+      const tx = await this.executeInheritance(
         ownerPublicKey,
         this.keeperWallet
       );
@@ -139,6 +199,59 @@ export class InheritanceKeeperBot {
       address: this.keeperWallet.publicKey.toString(),
       balance: balance / LAMPORTS_PER_SOL
     };
+  }
+
+  async getSmartWallet(ownerPublicKey: PublicKey) {
+    try {
+      const [smartWalletPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("smart_wallet"), ownerPublicKey.toBuffer()],
+        this.program.programId
+      );
+
+      const smartWallet = await this.program.account.smartWallet.fetch(smartWalletPda);
+      return { data: smartWallet, publicKey: smartWalletPda };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async isOwnerInactive(ownerPublicKey: PublicKey): Promise<boolean> {
+    const smartWallet = await this.getSmartWallet(ownerPublicKey);
+    if (!smartWallet) return false;
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    const timeSinceLastActivity = currentTime - smartWallet.data.lastActivityTimestamp.toNumber();
+    const inactivityPeriod = smartWallet.data.inactivityPeriod.toNumber();
+
+    return timeSinceLastActivity > inactivityPeriod;
+  }
+
+  async getSmartWalletBalance(ownerPublicKey: PublicKey): Promise<number> {
+    const [smartWalletPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("smart_wallet"), ownerPublicKey.toBuffer()],
+      this.program.programId
+    );
+
+    const balance = await this.connection.getBalance(smartWalletPda);
+    return balance / LAMPORTS_PER_SOL;
+  }
+
+  async executeInheritance(ownerPublicKey: PublicKey, keeper: Keypair): Promise<string> {
+    const [smartWalletPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("smart_wallet"), ownerPublicKey.toBuffer()],
+      this.program.programId
+    );
+
+    const tx = await this.program.methods
+      .executeInheritance()
+      .accounts({
+        smartWallet: smartWalletPda,
+        keeper: keeper.publicKey,
+      })
+      .signers([keeper])
+      .rpc();
+
+    return tx;
   }
 }
 

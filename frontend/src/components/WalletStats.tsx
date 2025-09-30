@@ -131,14 +131,24 @@ export function WalletStats() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="w-8 h-8 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 rounded-md flex items-center justify-center">
-          <BarChart3 className="w-5 h-5 text-white" />
+    <div className="space-y-8">
+      {/* Professional Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-600 shadow-2xl">
+            <BarChart3 className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold text-white">{t('walletStatistics')}</h2>
+            <p className="text-gray-300 font-medium">{t('walletStatsOverview')}</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{t('walletStatistics')}</h2>
-          <p className="text-gray-600 dark:text-gray-300">{t('walletStatsOverview')}</p>
+        
+        <div className="px-6 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
+          <div className="text-center">
+            <div className="text-sm font-medium text-gray-200">Balance</div>
+            <div className="text-2xl font-bold text-white">{formatSOL(stats.balance)} SOL</div>
+          </div>
         </div>
       </div>
 

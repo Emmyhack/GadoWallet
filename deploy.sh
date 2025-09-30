@@ -57,16 +57,16 @@ check_dependencies() {
 generate_program_keypair() {
     print_status "Generating new program keypair..."
     
-    mkdir -p gada/target/deploy
+    mkdir -p gado/target/deploy
     
-    if [ ! -f "gada/target/deploy/gada-keypair.json" ]; then
-        solana-keygen new --no-bip39-passphrase --outfile gada/target/deploy/gada-keypair.json --force
+    if [ ! -f "gado/target/deploy/gado-keypair.json" ]; then
+        solana-keygen new --no-bip39-passphrase --outfile gado/target/deploy/gado-keypair.json --force
         print_success "Generated new program keypair"
     else
         print_warning "Program keypair already exists"
     fi
     
-    PROGRAM_ID=$(solana-keygen pubkey gada/target/deploy/gada-keypair.json)
+    PROGRAM_ID=$(solana-keygen pubkey gado/target/deploy/gado-keypair.json)
     print_success "Program ID: $PROGRAM_ID"
 }
 
@@ -82,14 +82,14 @@ update_program_id() {
     fi
     
     # Update Anchor configuration
-    if [ -f "gada/Anchor.toml" ]; then
-        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" gada/Anchor.toml
+    if [ -f "gado/Anchor.toml" ]; then
+        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" gado/Anchor.toml
         print_success "Updated Anchor configuration"
     fi
     
     # Update program lib.rs
-    if [ -f "gada/programs/gada/src/lib.rs" ]; then
-        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" gada/programs/gada/src/lib.rs
+    if [ -f "gado/programs/gado/src/lib.rs" ]; then
+        sed -i.bak "s/8N4Mjyw7ThUFdkJ1LbrAnCzfxSpxknqCZhkGHDCcaMRE/$PROGRAM_ID/g" gado/programs/gado/src/lib.rs
         print_success "Updated program source"
     fi
     
@@ -161,7 +161,7 @@ main() {
     
     # Generate program keypair and get program ID
     generate_program_keypair
-    PROGRAM_ID=$(solana-keygen pubkey gada/target/deploy/gada-keypair.json)
+    PROGRAM_ID=$(solana-keygen pubkey gado/target/deploy/gado-keypair.json)
     
     # Update program ID in all configuration files
     update_program_id "$PROGRAM_ID"

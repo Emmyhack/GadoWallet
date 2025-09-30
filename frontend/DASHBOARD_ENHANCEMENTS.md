@@ -1,8 +1,8 @@
-# 🎨 Enhanced Gada Wallet Dashboard UI
+# 🎨 Enhanced Gado Wallet Dashboard UI
 
 ## ✨ Major UI/UX Improvements
 
-The Gada Wallet dashboard has been completely redesigned with a modern, elegant interface that combines functionality with stunning visual appeal.
+The Gado Wallet dashboard has been completely redesigned with a modern, elegant interface that combines functionality with stunning visual appeal.
 
 ### 🌟 Key Visual Enhancements
 
@@ -194,4 +194,4 @@ The new dashboard addresses common user experience issues:
 - **Voice Navigation**: Accessibility enhancement
 - **Gesture Support**: Touch gesture recognition
 
-The enhanced dashboard transforms the Gada Wallet experience from functional to exceptional, creating an interface that users will love to interact with while maintaining all the powerful inheritance and transaction features.
+The enhanced dashboard transforms the Gado Wallet experience from functional to exceptional, creating an interface that users will love to interact with while maintaining all the powerful inheritance and transaction features.

@@ -6,8 +6,8 @@ import { toast } from 'react-hot-toast';
 import { Settings, Shield, AlertTriangle, CheckCircle2, Loader } from 'lucide-react';
 
 // Import the IDL and types
-import { Gada } from '../lib/types/gada';
-import IDL from '../lib/idl/gada.json';
+import { Gado } from '../lib/types/gado';
+import IDL from '../lib/idl/gado.json';
 
 const PROGRAM_ID = new PublicKey("EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu");
 
@@ -21,7 +21,7 @@ interface PlatformStatus {
 export default function PlatformStatus() {
   const { publicKey, wallet } = useWallet();
   const [connection] = useState(() => new Connection('https://api.devnet.solana.com', 'confirmed'));
-  const [program, setProgram] = useState<Program<Gada> | null>(null);
+  const [program, setProgram] = useState<Program<Gado> | null>(null);
   const [status, setStatus] = useState<PlatformStatus>({
     isInitialized: false,
     hasUserProfile: false,
@@ -42,7 +42,7 @@ export default function PlatformStatus() {
           { commitment: 'confirmed' }
         );
         
-        const programInstance = new Program(IDL as any, provider) as Program<Gada>;
+        const programInstance = new Program(IDL as any, provider) as Program<Gado>;
         setProgram(programInstance);
       } catch (error) {
         console.error('Failed to initialize program:', error);
@@ -225,7 +225,7 @@ export default function PlatformStatus() {
           <Settings className="w-8 h-8 text-blue-400" />
           <div>
             <h2 className="text-2xl font-bold text-white">Platform Status</h2>
-            <p className="text-gray-300">Current state of the Gada Wallet platform</p>
+            <p className="text-gray-300">Current state of the Gado Wallet platform</p>
           </div>
         </div>
 
@@ -369,7 +369,7 @@ export default function PlatformStatus() {
             <ul className="text-blue-200 text-sm space-y-1">
               <li>• Platform initialization is a one-time setup that creates the core configuration</li>
               <li>• User profiles are required for Smart Wallet creation and inheritance features</li>
-              <li>• All transactions are performed on Solana devnet for testing</li>
+              <li>• All transactions are secured on the Solana blockchain</li>
               <li>• Your wallet will be used to sign and pay for initialization transactions</li>
             </ul>
           </div>

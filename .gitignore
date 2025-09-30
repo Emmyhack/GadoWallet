@@ -1,9 +1,9 @@
-gada/target/
-gada/node_modules/
+gado/target/
+gado/node_modules/
 frontend/node_modules/
-gada/frontend/node_modules/
+gado/frontend/node_modules/
 frontend/dist/
-gada/frontend/dist/
+gado/frontend/dist/
 .env
 .env.*
 test-ledger/rocksdb/

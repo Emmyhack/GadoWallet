@@ -6,8 +6,8 @@ import {
   PublicKey,
   LAMPORTS_PER_SOL 
 } from "@solana/web3.js";
-import { Gada } from "../lib/types/gada";
-import IDL from "../lib/idl/gada.json";
+import { Gado } from "../lib/types/gado";
+import IDL from "../lib/idl/gado.json";
 
 const PROGRAM_ID = new PublicKey("EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu");
 
@@ -26,7 +26,7 @@ export interface SmartWalletInfo {
 
 export class KeeperBotService {
   private connection: Connection;
-  private program: Program<Gada> | null = null;
+  private program: Program<Gado> | null = null;
   private keeperWallet: Keypair | null = null;
 
   constructor(connection: Connection) {
@@ -43,7 +43,7 @@ export class KeeperBotService {
         { commitment: 'confirmed' }
       );
       
-      this.program = new Program(IDL as any, provider) as Program<Gada>;
+      this.program = new Program(IDL as any, provider) as Program<Gado>;
     }
   }
 

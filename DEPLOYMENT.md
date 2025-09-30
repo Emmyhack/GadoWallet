@@ -43,7 +43,7 @@ For Vercel deployment:
 
 2. **Deploy Solana Program** (requires Anchor CLI):
    ```bash
-   cd gada
+   cd gado
    anchor build
    anchor deploy
    ```
@@ -51,8 +51,8 @@ For Vercel deployment:
 ## 🔧 Configuration Files Updated
 
 - `frontend/src/lib/publickey-utils.ts` - Frontend program ID
-- `gada/Anchor.toml` - Anchor configuration
-- `gada/programs/gada/src/lib.rs` - Program source code
+- `gado/Anchor.toml` - Anchor configuration
+- `gado/programs/gado/src/lib.rs` - Program source code
 - GitHub Actions workflows for automated deployment
 
 ##  Issues Resolved
@@ -66,7 +66,7 @@ For Vercel deployment:
 
 - **Program Explorer**: [View on Solana Explorer](https://explorer.solana.com/address/EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu?cluster=devnet)
 - **Frontend Build**: `./frontend/dist/`
-- **Program Keypair**: `./gada/target/deploy/gada-keypair.json`
+- **Program Keypair**: `./gado/target/deploy/gado-keypair.json`
 
 ##  Next Steps
 
