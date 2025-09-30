@@ -57,6 +57,35 @@ export type Gada = {
           }
         },
         {
+          "name": "userProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
           "name": "owner",
           "writable": true,
           "signer": true
@@ -77,6 +106,125 @@ export type Gada = {
         {
           "name": "inactivityPeriodSeconds",
           "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "addMultiTokenInheritance",
+      "docs": [
+        "Add multiple tokens to Smart Wallet inheritance"
+      ],
+      "discriminator": [
+        164,
+        63,
+        127,
+        252,
+        58,
+        254,
+        84,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "smartWallet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  109,
+                  97,
+                  114,
+                  116,
+                  95,
+                  119,
+                  97,
+                  108,
+                  108,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "userProfile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "tokenAllocations",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "tokenAllocation"
+              }
+            }
+          }
         }
       ]
     },
@@ -124,6 +272,35 @@ export type Gada = {
               {
                 "kind": "account",
                 "path": "tokenMint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
               }
             ]
           }
@@ -434,6 +611,104 @@ export type Gada = {
       "args": []
     },
     {
+      "name": "createPartner",
+      "docs": [
+        "Create a white-label partner configuration"
+      ],
+      "discriminator": [
+        220,
+        20,
+        67,
+        171,
+        205,
+        106,
+        128,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "partnerConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  110,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "partnerName"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platformConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "partnerAuthority"
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "platformConfig"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "partnerName",
+          "type": "string"
+        },
+        {
+          "name": "feeShareBps",
+          "type": "u16"
+        },
+        {
+          "name": "customBranding",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "createSmartWalletInheritance",
       "docs": [
         "Creates a Smart Wallet inheritance setup with PDA wallet ownership"
@@ -469,6 +744,35 @@ export type Gada = {
                   108,
                   101,
                   116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
                 ]
               },
               {
@@ -831,10 +1135,68 @@ export type Gada = {
       ]
     },
     {
+      "name": "emergencyPause",
+      "docs": [
+        "Emergency pause/unpause platform (admin only)"
+      ],
+      "discriminator": [
+        21,
+        143,
+        27,
+        142,
+        200,
+        181,
+        210,
+        255
+      ],
+      "accounts": [
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "platformConfig"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "executeInheritance",
       "docs": [
-        "Executes inheritance by transferring all Smart Wallet assets to heirs",
-        "Called by keepers/bots when owner is inactive past threshold"
+        "Executes inheritance by transferring all Smart Wallet assets to heirs"
       ],
       "discriminator": [
         108,
@@ -867,6 +1229,85 @@ export type Gada = {
                   108,
                   101,
                   116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "smart_wallet.owner",
+                "account": "smartWallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "userProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
                 ]
               },
               {
@@ -934,8 +1375,264 @@ export type Gada = {
         155,
         237
       ],
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
       "args": []
+    },
+    {
+      "name": "initializeUserProfile",
+      "docs": [
+        "Initialize or update user profile with subscription status"
+      ],
+      "discriminator": [
+        192,
+        144,
+        204,
+        140,
+        113,
+        25,
+        59,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "userProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "isPremium",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "logNotification",
+      "docs": [
+        "Log notification event for inheritance triggers"
+      ],
+      "discriminator": [
+        203,
+        173,
+        83,
+        232,
+        3,
+        171,
+        248,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "notification",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  111,
+                  116,
+                  105,
+                  102,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "arg",
+                "path": "timestamp"
+              }
+            ]
+          }
+        },
+        {
+          "name": "userProfile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "timestamp",
+          "type": "i64"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        },
+        {
+          "name": "notificationType",
+          "type": {
+            "defined": {
+              "name": "notificationType"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "updateActivity",
@@ -992,6 +1689,65 @@ export type Gada = {
       "args": []
     },
     {
+      "name": "updatePlatformConfig",
+      "docs": [
+        "Update platform configuration (admin only)"
+      ],
+      "discriminator": [
+        195,
+        60,
+        76,
+        129,
+        146,
+        45,
+        67,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "platformConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "platformConfig"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "newFeeBps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "updateSmartWalletActivity",
       "docs": [
         "Updates activity timestamp for Smart Wallet owner"
@@ -1042,6 +1798,63 @@ export type Gada = {
         }
       ],
       "args": []
+    },
+    {
+      "name": "withdrawTreasury",
+      "docs": [
+        "Withdraw fees from treasury (admin only)"
+      ],
+      "discriminator": [
+        40,
+        63,
+        122,
+        158,
+        144,
+        216,
+        83,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1056,6 +1869,45 @@ export type Gada = {
         253,
         114,
         136
+      ]
+    },
+    {
+      "name": "notification",
+      "discriminator": [
+        68,
+        105,
+        46,
+        119,
+        132,
+        75,
+        193,
+        214
+      ]
+    },
+    {
+      "name": "partnerConfig",
+      "discriminator": [
+        212,
+        110,
+        106,
+        253,
+        66,
+        131,
+        77,
+        96
+      ]
+    },
+    {
+      "name": "platformConfig",
+      "discriminator": [
+        160,
+        78,
+        128,
+        0,
+        248,
+        83,
+        230,
+        160
       ]
     },
     {
@@ -1082,6 +1934,32 @@ export type Gada = {
         253,
         231,
         68
+      ]
+    },
+    {
+      "name": "treasury",
+      "discriminator": [
+        238,
+        239,
+        123,
+        238,
+        89,
+        1,
+        168,
+        253
+      ]
+    },
+    {
+      "name": "userProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
       ]
     }
   ],
@@ -1145,6 +2023,56 @@ export type Gada = {
       "code": 6011,
       "name": "alreadyExecuted",
       "msg": "Inheritance has already been executed."
+    },
+    {
+      "code": 6012,
+      "name": "feeTooHigh",
+      "msg": "Platform fee is too high (max 2%)."
+    },
+    {
+      "code": 6013,
+      "name": "insufficientTreasuryBalance",
+      "msg": "Insufficient treasury balance."
+    },
+    {
+      "code": 6014,
+      "name": "customInactivityNotAllowed",
+      "msg": "Custom inactivity periods not allowed for free users."
+    },
+    {
+      "code": 6015,
+      "name": "notPlatformAdmin",
+      "msg": "Not authorized as platform admin."
+    },
+    {
+      "code": 6016,
+      "name": "invalidFeeShare",
+      "msg": "Invalid fee share percentage (max 50%)."
+    },
+    {
+      "code": 6017,
+      "name": "partnerNameTooLong",
+      "msg": "Partner name too long (max 32 characters)."
+    },
+    {
+      "code": 6018,
+      "name": "messageTooLong",
+      "msg": "Message too long (max 200 characters)."
+    },
+    {
+      "code": 6019,
+      "name": "tooManyTokens",
+      "msg": "Too many tokens (max 20 per Smart Wallet)."
+    },
+    {
+      "code": 6020,
+      "name": "platformPaused",
+      "msg": "Platform is currently paused."
+    },
+    {
+      "code": 6021,
+      "name": "pauseDurationExceeded",
+      "msg": "Emergency pause duration exceeded."
     }
   ],
   "types": [
@@ -1201,6 +2129,189 @@ export type Gada = {
       }
     },
     {
+      "name": "notification",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "notificationType",
+            "type": {
+              "defined": {
+                "name": "notificationType"
+              }
+            }
+          },
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "isRead",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "notificationPreferences",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "inactivityWarnings",
+            "type": "bool"
+          },
+          {
+            "name": "inheritanceUpdates",
+            "type": "bool"
+          },
+          {
+            "name": "feeNotifications",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "notificationType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "inheritanceTriggered"
+          },
+          {
+            "name": "inactivityWarning"
+          },
+          {
+            "name": "feeCollection"
+          },
+          {
+            "name": "systemMaintenance"
+          },
+          {
+            "name": "securityAlert"
+          }
+        ]
+      }
+    },
+    {
+      "name": "partnerConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "partnerAuthority",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "feeShareBps",
+            "type": "u16"
+          },
+          {
+            "name": "customBranding",
+            "type": "bool"
+          },
+          {
+            "name": "totalReferrals",
+            "type": "u32"
+          },
+          {
+            "name": "totalFeesEarned",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "platformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "platformFeeBps",
+            "type": "u16"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "totalFeesCollected",
+            "type": "u64"
+          },
+          {
+            "name": "totalInheritancesExecuted",
+            "type": "u64"
+          },
+          {
+            "name": "isPaused",
+            "type": "bool"
+          },
+          {
+            "name": "pauseTimestamp",
+            "type": "i64"
+          },
+          {
+            "name": "totalUsers",
+            "type": "u64"
+          },
+          {
+            "name": "premiumUsers",
+            "type": "u64"
+          },
+          {
+            "name": "totalMultiTokenWallets",
+            "type": "u64"
+          },
+          {
+            "name": "totalInheritanceValue",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "smartWallet",
       "type": {
         "kind": "struct",
@@ -1232,7 +2343,41 @@ export type Gada = {
             "type": "bool"
           },
           {
+            "name": "tokenAllocations",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "tokenAllocation"
+                }
+              }
+            }
+          },
+          {
+            "name": "notificationPreferences",
+            "type": {
+              "defined": {
+                "name": "notificationPreferences"
+              }
+            }
+          },
+          {
             "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "tokenAllocation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tokenMint",
+            "type": "pubkey"
+          },
+          {
+            "name": "allocationPercentage",
             "type": "u8"
           }
         ]
@@ -1270,6 +2415,68 @@ export type Gada = {
           {
             "name": "inactivityPeriodSeconds",
             "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasury",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "totalBalance",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "userProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "isPremium",
+            "type": "bool"
+          },
+          {
+            "name": "totalInheritancesCreated",
+            "type": "u32"
+          },
+          {
+            "name": "totalFeesPaid",
+            "type": "u64"
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "totalNotifications",
+            "type": "u32"
+          },
+          {
+            "name": "referralPartner",
+            "type": {
+              "option": "pubkey"
+            }
           },
           {
             "name": "bump",

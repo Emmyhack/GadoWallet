@@ -13,6 +13,8 @@ import { Receive } from './Receive';
 import { SignMessage } from './SignMessage';
 import { Landing } from './Landing';
 import SmartWalletManager from './SmartWalletManager';
+import Analytics from './Analytics';
+import EmergencyControls from './EmergencyControls';
 import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
@@ -108,6 +110,22 @@ export function Dashboard() {
       description: 'Automated inheritance with PDA wallets',
       color: 'from-purple-500 to-indigo-400',
       bgColor: 'bg-purple-500/10 border-purple-500/20'
+    },
+    {
+      id: 'analytics',
+      name: 'Analytics',
+      icon: TrendingUp,
+      description: 'Platform metrics and revenue analytics',
+      color: 'from-emerald-500 to-teal-400',
+      bgColor: 'bg-emerald-500/10 border-emerald-500/20'
+    },
+    {
+      id: 'emergency',
+      name: 'Emergency',
+      icon: Shield,
+      description: 'Platform administration and emergency controls',
+      color: 'from-red-500 to-orange-400',
+      bgColor: 'bg-red-500/10 border-red-500/20'
     }
   ];
 
@@ -230,6 +248,8 @@ export function Dashboard() {
                   {activeTab === 'receive' && <Receive />}
                   {activeTab === 'sign' && <SignMessage />}
                   {activeTab === 'smart-wallet' && <SmartWalletManager />}
+                  {activeTab === 'analytics' && <Analytics />}
+                  {activeTab === 'emergency' && <EmergencyControls />}
                 </div>
               </div>
             </div>

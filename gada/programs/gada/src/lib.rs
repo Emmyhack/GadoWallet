@@ -19,6 +19,12 @@ const MAX_PLATFORM_FEE_BPS: u16 = 200; // 2% maximum fee
 const FREE_USER_MAX_HEIRS: u8 = 1;
 const PREMIUM_USER_MAX_HEIRS: u8 = 10;
 
+// Advanced Features Constants
+const MAX_SUPPORTED_TOKENS: u8 = 20; // Maximum tokens per Smart Wallet
+const EMERGENCY_PAUSE_DURATION: i64 = 7 * 24 * 60 * 60; // 7 days
+const NOTIFICATION_BUFFER_SIZE: usize = 100; // Maximum notifications to store
+const WHITE_LABEL_MAX_PARTNERS: u8 = 50; // Maximum white-label partners
+
 #[program]
 pub mod gada {
     use super::*;
@@ -33,6 +39,12 @@ pub mod gada {
         config.treasury = treasury.key();
         config.total_fees_collected = 0;
         config.total_inheritances_executed = 0;
+        config.is_paused = false;
+        config.pause_timestamp = 0;
+        config.total_users = 0;
+        config.premium_users = 0;
+        config.total_multi_token_wallets = 0;
+        config.total_inheritance_value = 0;
         config.bump = ctx.bumps.platform_config;
         
         // Initialize treasury
@@ -56,7 +68,16 @@ pub mod gada {
         user_profile.total_inheritances_created = 0;
         user_profile.total_fees_paid = 0;
         user_profile.created_at = Clock::get()?.unix_timestamp;
+        user_profile.total_notifications = 0;
+        user_profile.referral_partner = None;
         user_profile.bump = ctx.bumps.user_profile;
+        
+        // Update platform statistics
+        let config = &mut ctx.accounts.platform_config;
+        config.total_users += 1;
+        if is_premium {
+            config.premium_users += 1;
+        }
         
         msg!(
             "User profile initialized: {} (Premium: {})",
@@ -115,6 +136,86 @@ pub mod gada {
         treasury_mut.total_balance = treasury_mut.total_balance.saturating_sub(amount);
         
         msg!("Withdrawn {} lamports from treasury", amount);
+        Ok(())
+    }
+
+    /// Emergency pause/unpause platform (admin only)
+    pub fn emergency_pause(
+        ctx: Context<EmergencyControl>,
+        paused: bool
+    ) -> Result<()> {
+        let config = &mut ctx.accounts.platform_config;
+        config.is_paused = paused;
+        config.pause_timestamp = if paused { 
+            Clock::get()?.unix_timestamp 
+        } else { 
+            0 
+        };
+        
+        msg!("Platform emergency pause status: {}", paused);
+        Ok(())
+    }
+
+    /// Create a white-label partner configuration
+    pub fn create_partner(
+        ctx: Context<CreatePartner>,
+        partner_name: String,
+        fee_share_bps: u16, // Basis points of fees shared with partner
+        custom_branding: bool
+    ) -> Result<()> {
+        require!(fee_share_bps <= 5000, ErrorCode::InvalidFeeShare); // Max 50% share
+        require!(partner_name.len() <= 32, ErrorCode::PartnerNameTooLong);
+        
+        let partner = &mut ctx.accounts.partner_config;
+        partner.admin = ctx.accounts.admin.key();
+        partner.partner_authority = ctx.accounts.partner_authority.key();
+        partner.name = partner_name;
+        partner.fee_share_bps = fee_share_bps;
+        partner.custom_branding = custom_branding;
+        partner.total_referrals = 0;
+        partner.total_fees_earned = 0;
+        partner.is_active = true;
+        partner.created_at = Clock::get()?.unix_timestamp;
+        partner.bump = ctx.bumps.partner_config;
+        
+        msg!("Partner created: {}", partner.name);
+        Ok(())
+    }
+
+    /// Log notification event for inheritance triggers
+    pub fn log_notification(
+        ctx: Context<LogNotification>,
+        timestamp: i64,
+        message: String,
+        notification_type: NotificationType,
+    ) -> Result<()> {
+        let notification = &mut ctx.accounts.notification;
+        notification.user = ctx.accounts.user.key();
+        notification.message = message;
+        notification.notification_type = notification_type;
+        notification.timestamp = timestamp;
+        notification.is_read = false;
+        Ok(())
+    }
+
+    /// Add multiple tokens to Smart Wallet inheritance
+    pub fn add_multi_token_inheritance(
+        ctx: Context<AddMultiTokenInheritance>,
+        token_allocations: Vec<TokenAllocation>
+    ) -> Result<()> {
+        require!(
+            token_allocations.len() <= MAX_SUPPORTED_TOKENS as usize,
+            ErrorCode::TooManyTokens
+        );
+        
+        let smart_wallet = &mut ctx.accounts.smart_wallet;
+        smart_wallet.token_allocations = token_allocations.clone();
+        
+        // Update analytics
+        let config = &mut ctx.accounts.platform_config;
+        config.total_multi_token_wallets += 1;
+        
+        msg!("Multi-token inheritance added with {} token types", token_allocations.len());
         Ok(())
     }
 
@@ -433,6 +534,8 @@ pub mod gada {
         smart_wallet.inactivity_period_seconds = inactivity_period_seconds;
         smart_wallet.last_active_time = Clock::get()?.unix_timestamp;
         smart_wallet.is_executed = false;
+        smart_wallet.token_allocations = Vec::new();
+        smart_wallet.notification_preferences = NotificationPreferences::default();
         smart_wallet.bump = ctx.bumps.smart_wallet;
 
         // Update user profile
@@ -667,6 +770,13 @@ pub struct InitializeUserProfile<'info> {
         bump
     )]
     pub user_profile: Account<'info, UserProfile>,
+    
+    #[account(
+        mut,
+        seeds = [b"platform_config"],
+        bump = platform_config.bump
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
     
     #[account(mut)]
     pub user: Signer<'info>,
@@ -1013,11 +1123,20 @@ pub struct SmartWallet {
     pub inactivity_period_seconds: i64,
     pub last_active_time: i64,
     pub is_executed: bool,
+    pub token_allocations: Vec<TokenAllocation>,
+    pub notification_preferences: NotificationPreferences,
     pub bump: u8,
 }
 
 impl SmartWallet {
-    pub const SPACE: usize = 8 + 32 + 4 + (32 + 1) * 10 + 8 + 8 + 1 + 1;
+    pub const SPACE: usize = 8 + 32 + 4 + (32 + 1) * 10 + 8 + 8 + 1 + 4 + (32 + 1) * 20 + 1 + 1 + 1 + 1;
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+pub struct NotificationPreferences {
+    pub inactivity_warnings: bool,
+    pub inheritance_updates: bool,
+    pub fee_notifications: bool,
 }
 
 // ===============================================
@@ -1031,11 +1150,17 @@ pub struct PlatformConfig {
     pub treasury: Pubkey,
     pub total_fees_collected: u64,
     pub total_inheritances_executed: u64,
+    pub is_paused: bool,
+    pub pause_timestamp: i64,
+    pub total_users: u64,
+    pub premium_users: u64,
+    pub total_multi_token_wallets: u64,
+    pub total_inheritance_value: u64,
     pub bump: u8,
 }
 
 impl PlatformConfig {
-    pub const SPACE: usize = 8 + 32 + 2 + 32 + 8 + 8 + 1;
+    pub const SPACE: usize = 8 + 32 + 2 + 32 + 8 + 8 + 1 + 8 + 8 + 8 + 8 + 8 + 1;
 }
 
 #[account]
@@ -1056,11 +1181,183 @@ pub struct UserProfile {
     pub total_inheritances_created: u32,
     pub total_fees_paid: u64,
     pub created_at: i64,
+    pub total_notifications: u32,
+    pub referral_partner: Option<Pubkey>,
     pub bump: u8,
 }
 
 impl UserProfile {
-    pub const SPACE: usize = 8 + 32 + 1 + 4 + 8 + 8 + 1;
+    pub const SPACE: usize = 8 + 32 + 1 + 4 + 8 + 8 + 4 + 1 + 32 + 1;
+}
+
+// ===============================================
+// ADVANCED FEATURES DATA STRUCTURES
+// ===============================================
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+pub struct TokenAllocation {
+    pub token_mint: Pubkey,
+    pub allocation_percentage: u8, // Percentage for this token type
+}
+
+#[account]
+pub struct PartnerConfig {
+    pub admin: Pubkey,
+    pub partner_authority: Pubkey,
+    pub name: String,
+    pub fee_share_bps: u16, // Basis points of fees shared with partner
+    pub custom_branding: bool,
+    pub total_referrals: u32,
+    pub total_fees_earned: u64,
+    pub is_active: bool,
+    pub created_at: i64,
+    pub bump: u8,
+}
+
+impl PartnerConfig {
+    pub const SPACE: usize = 8 + 32 + 32 + 4 + 32 + 2 + 1 + 4 + 8 + 1 + 8 + 1;
+}
+
+#[account]
+pub struct Notification {
+    pub user: Pubkey,
+    pub notification_type: NotificationType,
+    pub message: String,
+    pub timestamp: i64,
+    pub is_read: bool,
+    pub bump: u8,
+}
+
+impl Notification {
+    pub const SPACE: usize = 8 + 32 + 1 + 4 + 200 + 8 + 1 + 1;
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq)]
+pub enum NotificationType {
+    InheritanceTriggered,
+    InactivityWarning,
+    FeeCollection,
+    SystemMaintenance,
+    SecurityAlert,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct PlatformAnalytics {
+    pub total_users: u64,
+    pub premium_users: u64,
+    pub total_inheritances_executed: u64,
+    pub total_fees_collected: u64,
+    pub treasury_balance: u64,
+    pub total_multi_token_wallets: u64,
+    pub average_inheritance_value: u64,
+    pub platform_uptime_percentage: f64,
+}
+
+// ===============================================
+// ADVANCED ACCOUNT STRUCTURES
+// ===============================================
+
+#[derive(Accounts)]
+pub struct EmergencyControl<'info> {
+    #[account(
+        mut,
+        seeds = [b"platform_config"],
+        bump = platform_config.bump,
+        has_one = admin
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    pub admin: Signer<'info>,
+}
+
+#[derive(Accounts)]
+#[instruction(partner_name: String)]
+pub struct CreatePartner<'info> {
+    #[account(
+        init,
+        payer = admin,
+        space = PartnerConfig::SPACE,
+        seeds = [b"partner", partner_name.as_bytes()],
+        bump
+    )]
+    pub partner_config: Account<'info, PartnerConfig>,
+    
+    #[account(
+        seeds = [b"platform_config"],
+        bump = platform_config.bump,
+        has_one = admin
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    
+    /// CHECK: Partner authority public key
+    pub partner_authority: AccountInfo<'info>,
+    
+    #[account(mut)]
+    pub admin: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(timestamp: i64)]
+pub struct LogNotification<'info> {
+    #[account(
+        init,
+        payer = user,
+        space = Notification::SPACE,
+        seeds = [b"notification", user.key().as_ref(), &timestamp.to_le_bytes()],
+        bump
+    )]
+    pub notification: Account<'info, Notification>,
+    
+    #[account(
+        mut,
+        seeds = [b"user_profile", user.key().as_ref()],
+        bump = user_profile.bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct AddMultiTokenInheritance<'info> {
+    #[account(
+        mut,
+        seeds = [b"smart_wallet", owner.key().as_ref()],
+        bump = smart_wallet.bump
+    )]
+    pub smart_wallet: Account<'info, SmartWallet>,
+    
+    #[account(
+        mut,
+        seeds = [b"platform_config"],
+        bump = platform_config.bump
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    
+    #[account(
+        seeds = [b"user_profile", owner.key().as_ref()],
+        bump = user_profile.bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
+    pub owner: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct GetAnalytics<'info> {
+    #[account(
+        seeds = [b"platform_config"],
+        bump = platform_config.bump
+    )]
+    pub platform_config: Account<'info, PlatformConfig>,
+    
+    #[account(
+        seeds = [b"treasury"],
+        bump = treasury.bump
+    )]
+    pub treasury: Account<'info, Treasury>,
 }
 
 #[error_code]
@@ -1099,4 +1396,17 @@ pub enum ErrorCode {
     CustomInactivityNotAllowed,
     #[msg("Not authorized as platform admin.")]
     NotPlatformAdmin,
+    // Advanced features errors
+    #[msg("Invalid fee share percentage (max 50%).")]
+    InvalidFeeShare,
+    #[msg("Partner name too long (max 32 characters).")]
+    PartnerNameTooLong,
+    #[msg("Message too long (max 200 characters).")]
+    MessageTooLong,
+    #[msg("Too many tokens (max 20 per Smart Wallet).")]
+    TooManyTokens,
+    #[msg("Platform is currently paused.")]
+    PlatformPaused,
+    #[msg("Emergency pause duration exceeded.")]
+    PauseDurationExceeded,
 }

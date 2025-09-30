@@ -3,6 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Shield, CheckCircle, AlertTriangle } from 'lucide-react';
 import i18n from '../lib/i18n';
 import { useTheme } from '../lib/theme';
+import NotificationSystem from './NotificationSystem';
 
 export function Header() {
   const { gradient, setGradient, gradientClasses } = useTheme();
@@ -42,6 +43,8 @@ export function Header() {
               <option value="sunset">Sunset</option>
               <option value="forest">Forest</option>
             </select>
+
+            {connected && <NotificationSystem />}
             
             <WalletMultiButton className="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2 px-3 rounded-md" />
           </div>

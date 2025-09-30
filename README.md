@@ -1,6 +1,6 @@
 # Gada Wallet
 
-Gada Wallet is a decentralized application (DApp) for managing Solana (SOL) and SPL token inheritance. Users can designate heirs, set inactivity periods, and allow heirs to claim assets securely after the configured timeframe. The project consists of a Solana smart contract built with Anchor and modern React/TypeScript frontends.
+A comprehensive, business-ready digital asset inheritance platform built on Solana with advanced features including Smart Wallets, automated inheritance execution, platform fees, multi-tier user management, and real-time analytics dashboard.
 
 ## 🚀 Live Deployment
 - **Program ID**: `EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu`

@@ -51,6 +51,35 @@
           }
         },
         {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
           "name": "owner",
           "writable": true,
           "signer": true
@@ -71,6 +100,125 @@
         {
           "name": "inactivity_period_seconds",
           "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "add_multi_token_inheritance",
+      "docs": [
+        "Add multiple tokens to Smart Wallet inheritance"
+      ],
+      "discriminator": [
+        164,
+        63,
+        127,
+        252,
+        58,
+        254,
+        84,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "smart_wallet",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  109,
+                  97,
+                  114,
+                  116,
+                  95,
+                  119,
+                  97,
+                  108,
+                  108,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "token_allocations",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "TokenAllocation"
+              }
+            }
+          }
         }
       ]
     },
@@ -118,6 +266,35 @@
               {
                 "kind": "account",
                 "path": "token_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
               }
             ]
           }
@@ -428,6 +605,104 @@
       "args": []
     },
     {
+      "name": "create_partner",
+      "docs": [
+        "Create a white-label partner configuration"
+      ],
+      "discriminator": [
+        220,
+        20,
+        67,
+        171,
+        205,
+        106,
+        128,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "partner_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  110,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "partner_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "partner_authority"
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "platform_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "partner_name",
+          "type": "string"
+        },
+        {
+          "name": "fee_share_bps",
+          "type": "u16"
+        },
+        {
+          "name": "custom_branding",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "create_smart_wallet_inheritance",
       "docs": [
         "Creates a Smart Wallet inheritance setup with PDA wallet ownership"
@@ -463,6 +738,35 @@
                   108,
                   101,
                   116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
                 ]
               },
               {
@@ -825,10 +1129,68 @@
       ]
     },
     {
+      "name": "emergency_pause",
+      "docs": [
+        "Emergency pause/unpause platform (admin only)"
+      ],
+      "discriminator": [
+        21,
+        143,
+        27,
+        142,
+        200,
+        181,
+        210,
+        255
+      ],
+      "accounts": [
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "platform_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
       "name": "execute_inheritance",
       "docs": [
-        "Executes inheritance by transferring all Smart Wallet assets to heirs",
-        "Called by keepers/bots when owner is inactive past threshold"
+        "Executes inheritance by transferring all Smart Wallet assets to heirs"
       ],
       "discriminator": [
         108,
@@ -861,6 +1223,85 @@
                   108,
                   101,
                   116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "smart_wallet.owner",
+                "account": "SmartWallet"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
                 ]
               },
               {
@@ -928,8 +1369,264 @@
         155,
         237
       ],
-      "accounts": [],
+      "accounts": [
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
       "args": []
+    },
+    {
+      "name": "initialize_user_profile",
+      "docs": [
+        "Initialize or update user profile with subscription status"
+      ],
+      "discriminator": [
+        192,
+        144,
+        204,
+        140,
+        113,
+        25,
+        59,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "is_premium",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "log_notification",
+      "docs": [
+        "Log notification event for inheritance triggers"
+      ],
+      "discriminator": [
+        203,
+        173,
+        83,
+        232,
+        3,
+        171,
+        248,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "notification",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  110,
+                  111,
+                  116,
+                  105,
+                  102,
+                  105,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "arg",
+                "path": "timestamp"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "timestamp",
+          "type": "i64"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        },
+        {
+          "name": "notification_type",
+          "type": {
+            "defined": {
+              "name": "NotificationType"
+            }
+          }
+        }
+      ]
     },
     {
       "name": "update_activity",
@@ -986,6 +1683,65 @@
       "args": []
     },
     {
+      "name": "update_platform_config",
+      "docs": [
+        "Update platform configuration (admin only)"
+      ],
+      "discriminator": [
+        195,
+        60,
+        76,
+        129,
+        146,
+        45,
+        67,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "platform_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "platform_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "new_fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
       "name": "update_smart_wallet_activity",
       "docs": [
         "Updates activity timestamp for Smart Wallet owner"
@@ -1036,6 +1792,63 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "withdraw_treasury",
+      "docs": [
+        "Withdraw fees from treasury (admin only)"
+      ],
+      "discriminator": [
+        40,
+        63,
+        122,
+        158,
+        144,
+        216,
+        83,
+        96
+      ],
+      "accounts": [
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "treasury"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -1050,6 +1863,45 @@
         253,
         114,
         136
+      ]
+    },
+    {
+      "name": "Notification",
+      "discriminator": [
+        68,
+        105,
+        46,
+        119,
+        132,
+        75,
+        193,
+        214
+      ]
+    },
+    {
+      "name": "PartnerConfig",
+      "discriminator": [
+        212,
+        110,
+        106,
+        253,
+        66,
+        131,
+        77,
+        96
+      ]
+    },
+    {
+      "name": "PlatformConfig",
+      "discriminator": [
+        160,
+        78,
+        128,
+        0,
+        248,
+        83,
+        230,
+        160
       ]
     },
     {
@@ -1076,6 +1928,32 @@
         253,
         231,
         68
+      ]
+    },
+    {
+      "name": "Treasury",
+      "discriminator": [
+        238,
+        239,
+        123,
+        238,
+        89,
+        1,
+        168,
+        253
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
       ]
     }
   ],
@@ -1139,6 +2017,56 @@
       "code": 6011,
       "name": "AlreadyExecuted",
       "msg": "Inheritance has already been executed."
+    },
+    {
+      "code": 6012,
+      "name": "FeeTooHigh",
+      "msg": "Platform fee is too high (max 2%)."
+    },
+    {
+      "code": 6013,
+      "name": "InsufficientTreasuryBalance",
+      "msg": "Insufficient treasury balance."
+    },
+    {
+      "code": 6014,
+      "name": "CustomInactivityNotAllowed",
+      "msg": "Custom inactivity periods not allowed for free users."
+    },
+    {
+      "code": 6015,
+      "name": "NotPlatformAdmin",
+      "msg": "Not authorized as platform admin."
+    },
+    {
+      "code": 6016,
+      "name": "InvalidFeeShare",
+      "msg": "Invalid fee share percentage (max 50%)."
+    },
+    {
+      "code": 6017,
+      "name": "PartnerNameTooLong",
+      "msg": "Partner name too long (max 32 characters)."
+    },
+    {
+      "code": 6018,
+      "name": "MessageTooLong",
+      "msg": "Message too long (max 200 characters)."
+    },
+    {
+      "code": 6019,
+      "name": "TooManyTokens",
+      "msg": "Too many tokens (max 20 per Smart Wallet)."
+    },
+    {
+      "code": 6020,
+      "name": "PlatformPaused",
+      "msg": "Platform is currently paused."
+    },
+    {
+      "code": 6021,
+      "name": "PauseDurationExceeded",
+      "msg": "Emergency pause duration exceeded."
     }
   ],
   "types": [
@@ -1195,6 +2123,189 @@
       }
     },
     {
+      "name": "Notification",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "notification_type",
+            "type": {
+              "defined": {
+                "name": "NotificationType"
+              }
+            }
+          },
+          {
+            "name": "message",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "is_read",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NotificationPreferences",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "inactivity_warnings",
+            "type": "bool"
+          },
+          {
+            "name": "inheritance_updates",
+            "type": "bool"
+          },
+          {
+            "name": "fee_notifications",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NotificationType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "InheritanceTriggered"
+          },
+          {
+            "name": "InactivityWarning"
+          },
+          {
+            "name": "FeeCollection"
+          },
+          {
+            "name": "SystemMaintenance"
+          },
+          {
+            "name": "SecurityAlert"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PartnerConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "partner_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "fee_share_bps",
+            "type": "u16"
+          },
+          {
+            "name": "custom_branding",
+            "type": "bool"
+          },
+          {
+            "name": "total_referrals",
+            "type": "u32"
+          },
+          {
+            "name": "total_fees_earned",
+            "type": "u64"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_fees_collected",
+            "type": "u64"
+          },
+          {
+            "name": "total_inheritances_executed",
+            "type": "u64"
+          },
+          {
+            "name": "is_paused",
+            "type": "bool"
+          },
+          {
+            "name": "pause_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "total_users",
+            "type": "u64"
+          },
+          {
+            "name": "premium_users",
+            "type": "u64"
+          },
+          {
+            "name": "total_multi_token_wallets",
+            "type": "u64"
+          },
+          {
+            "name": "total_inheritance_value",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "SmartWallet",
       "type": {
         "kind": "struct",
@@ -1226,7 +2337,41 @@
             "type": "bool"
           },
           {
+            "name": "token_allocations",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "TokenAllocation"
+                }
+              }
+            }
+          },
+          {
+            "name": "notification_preferences",
+            "type": {
+              "defined": {
+                "name": "NotificationPreferences"
+              }
+            }
+          },
+          {
             "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenAllocation",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "token_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "allocation_percentage",
             "type": "u8"
           }
         ]
@@ -1264,6 +2409,68 @@
           {
             "name": "inactivity_period_seconds",
             "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Treasury",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_balance",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "user",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_premium",
+            "type": "bool"
+          },
+          {
+            "name": "total_inheritances_created",
+            "type": "u32"
+          },
+          {
+            "name": "total_fees_paid",
+            "type": "u64"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "total_notifications",
+            "type": "u32"
+          },
+          {
+            "name": "referral_partner",
+            "type": {
+              "option": "pubkey"
+            }
           },
           {
             "name": "bump",

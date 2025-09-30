@@ -148,11 +148,11 @@ describe("Business Model Integration", () => {
     await program.methods
       .initialize()
       .accounts({
-        platformConfig: platformConfigPda,
+        platform_config: platformConfigPda,
         treasury: treasuryPda,
         admin: admin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([admin])
       .rpc();
 
@@ -174,10 +174,10 @@ describe("Business Model Integration", () => {
     await program.methods
       .initializeUserProfile(false)
       .accounts({
-        userProfile: freeUserProfilePda,
+        user_profile: freeUserProfilePda,
         user: freeUser.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([freeUser])
       .rpc();
 
@@ -185,10 +185,10 @@ describe("Business Model Integration", () => {
     await program.methods
       .initializeUserProfile(true)
       .accounts({
-        userProfile: premiumUserProfilePda,
+        user_profile: premiumUserProfilePda,
         user: premiumUser.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([premiumUser])
       .rpc();
 
@@ -218,12 +218,12 @@ describe("Business Model Integration", () => {
     await program.methods
       .createSmartWalletInheritance(heirs, new anchor.BN(2 * 24 * 60 * 60)) // 2 days custom period
       .accounts({
-        smartWallet: smartWalletPda,
-        userProfile: premiumUserProfilePda,
-        smartWalletPda: smartWalletAssetsPda,
+        smart_wallet: smartWalletPda,
+        user_profile: premiumUserProfilePda,
+        smart_wallet_pda: smartWalletAssetsPda,
         owner: premiumUser.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([premiumUser])
       .rpc();
 
@@ -244,11 +244,10 @@ describe("Business Model Integration", () => {
     await program.methods
       .depositToSmartWallet(depositAmount)
       .accounts({
-        smartWallet: smartWalletPda,
-        smartWalletPda: smartWalletAssetsPda,
+        smart_wallet_pda: smartWalletAssetsPda,
         owner: premiumUser.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([premiumUser])
       .rpc();
 
@@ -273,14 +272,14 @@ describe("Business Model Integration", () => {
     await program.methods
       .executeInheritance()
       .accounts({
-        smartWallet: smartWalletPda,
-        platformConfig: platformConfigPda,
+        smart_wallet: smartWalletPda,
+        platform_config: platformConfigPda,
         treasury: treasuryPda,
-        userProfile: premiumUserProfilePda,
-        smartWalletPda: smartWalletAssetsPda,
+        user_profile: premiumUserProfilePda,
+        smart_wallet_pda: smartWalletAssetsPda,
         caller: keeper.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([keeper])
       .rpc();
 
@@ -318,15 +317,15 @@ describe("Business Model Integration", () => {
       .accounts({
         treasury: treasuryPda,
         admin: admin.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([admin])
       .rpc();
 
     const finalAdminBalance = await provider.connection.getBalance(admin.publicKey);
     const finalTreasury = await program.account.treasury.fetch(treasuryPda);
 
-    console.log(`💰 Admin withdrew: ${withdrawAmount / LAMPORTS_PER_SOL} SOL from treasury`);
+    console.log(`💰 Admin withdrew: ${withdrawAmount.toNumber() / LAMPORTS_PER_SOL} SOL from treasury`);
     
     assert.ok(finalAdminBalance > initialAdminBalance);
     assert.equal(finalTreasury.totalBalance.toString(), "0");
@@ -340,9 +339,9 @@ describe("Business Model Integration", () => {
     await program.methods
       .updatePlatformConfig(newFeeBps)
       .accounts({
-        platformConfig: platformConfigPda,
+        platform_config: platformConfigPda,
         admin: admin.publicKey,
-      })
+      } as any)
       .signers([admin])
       .rpc();
 
@@ -363,12 +362,12 @@ describe("Business Model Integration", () => {
       await program.methods
         .addCoinHeir(new anchor.BN(LAMPORTS_PER_SOL), new anchor.BN(1 * 24 * 60 * 60)) // 1 day (custom)
         .accounts({
-          coinHeir: coinHeirPda,
-          userProfile: freeUserProfilePda,
+          coin_heir: coinHeirPda,
+          user_profile: freeUserProfilePda,
           owner: freeUser.publicKey,
           heir: heir1.publicKey,
-          systemProgram: SystemProgram.programId,
-        })
+          system_program: SystemProgram.programId,
+        } as any)
         .signers([freeUser])
         .rpc();
       
@@ -436,17 +435,17 @@ describe("Business Model Integration", () => {
     await program.methods
       .addTokenHeir(escrowAmount, new anchor.BN(365 * 24 * 60 * 60)) // Default 1 year
       .accounts({
-        tokenHeir: tokenHeirPda,
-        userProfile: freeUserProfilePda,
+        token_heir: tokenHeirPda,
+        user_profile: freeUserProfilePda,
         owner: freeUser.publicKey,
         heir: heir1.publicKey,
-        tokenMint: tokenMint,
-        ownerTokenAccount: freeUserTokenAccount,
-        escrowTokenAccount: escrowTokenAccount,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      })
+        token_mint: tokenMint,
+        owner_token_account: freeUserTokenAccount,
+        escrow_token_account: escrowTokenAccount,
+        token_program: TOKEN_PROGRAM_ID,
+        associated_token_program: ASSOCIATED_TOKEN_PROGRAM_ID,
+        system_program: SystemProgram.programId,
+      } as any)
       .signers([freeUser])
       .rpc();
 
