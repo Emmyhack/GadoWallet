@@ -15,6 +15,7 @@ import { Landing } from './Landing';
 import SmartWalletManager from './SmartWalletManager';
 import Analytics from './Analytics';
 import EmergencyControls from './EmergencyControls';
+import PlatformStatus from './PlatformStatus';
 import { useTranslation } from 'react-i18next';
 
 export function Dashboard() {
@@ -126,6 +127,14 @@ export function Dashboard() {
       description: 'Platform administration and emergency controls',
       color: 'from-red-500 to-orange-400',
       bgColor: 'bg-red-500/10 border-red-500/20'
+    },
+    {
+      id: 'platform-status',
+      name: 'Platform Setup',
+      icon: Shield,
+      description: 'Platform initialization and account setup',
+      color: 'from-gray-500 to-slate-400',
+      bgColor: 'bg-gray-500/10 border-gray-500/20'
     }
   ];
 
@@ -250,6 +259,7 @@ export function Dashboard() {
                   {activeTab === 'smart-wallet' && <SmartWalletManager />}
                   {activeTab === 'analytics' && <Analytics />}
                   {activeTab === 'emergency' && <EmergencyControls />}
+                  {activeTab === 'platform-status' && <PlatformStatus />}
                 </div>
               </div>
             </div>

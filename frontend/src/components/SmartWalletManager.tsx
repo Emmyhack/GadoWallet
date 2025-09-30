@@ -167,6 +167,63 @@ export default function SmartWalletManager() {
 
     setIsCreating(true);
     try {
+      // First, check if platform is initialized
+      const [platformConfigPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("platform_config")],
+        PROGRAM_ID
+      );
+
+      let platformInitialized = false;
+      try {
+        await program.account.platformConfig.fetch(platformConfigPDA);
+        platformInitialized = true;
+      } catch (error) {
+        console.log('Platform not initialized');
+        toast.error('Platform not initialized. Please contact support.');
+        setIsCreating(false);
+        return;
+      }
+
+      // Check if user profile exists and create it if not
+      const [userProfilePDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("user_profile"), publicKey.toBuffer()],
+        PROGRAM_ID
+      );
+
+      let userProfileExists = false;
+      try {
+        await program.account.userProfile.fetch(userProfilePDA);
+        userProfileExists = true;
+      } catch (error) {
+        console.log('User profile does not exist, will create it first');
+      }
+
+      // Create user profile if it doesn't exist
+      if (!userProfileExists) {
+        try {
+          const userProfileTx = await program.methods
+            .initializeUserProfile(false) // false = not premium user by default
+            .accountsPartial({
+              userProfile: userProfilePDA,
+              user: publicKey,
+              platformConfig: platformConfigPDA,
+            })
+            .rpc();
+
+          toast.success('User profile created!');
+          console.log('User profile transaction:', userProfileTx);
+          
+          // Wait a moment for the transaction to be confirmed
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } catch (profileError) {
+          console.error('Failed to create user profile:', profileError);
+          toast.error('Failed to create user profile');
+          setIsCreating(false);
+          return;
+        }
+      }
+
+      // Now create the Smart Wallet
       const programHeirs = validHeirs.map(heir => ({
         heirPubkey: new PublicKey(heir.address),
         allocationPercentage: heir.percentage,
@@ -190,6 +247,7 @@ export default function SmartWalletManager() {
         .accountsPartial({
           smartWallet: smartWalletPDA,
           smartWalletPda: smartWalletAssetPDA,
+          userProfile: userProfilePDA,
           owner: publicKey,
         })
         .rpc();
@@ -203,7 +261,8 @@ export default function SmartWalletManager() {
       }, 2000);
     } catch (error) {
       console.error('Failed to create Smart Wallet:', error);
-      toast.error('Failed to create Smart Wallet');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error('Failed to create Smart Wallet: ' + errorMessage);
     }
     setIsCreating(false);
   };
