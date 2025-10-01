@@ -3,7 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { getProgramId } from '../lib/config';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
-import { AnchorProvider } from '@project-serum/anchor';
+import { AnchorProvider } from '@coral-xyz/anchor';
 
 interface AnalyticsData {
   totalRevenue: number;

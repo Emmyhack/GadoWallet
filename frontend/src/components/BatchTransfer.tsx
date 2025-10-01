@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAnchorProgram } from '../lib/anchor';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { web3 } from '@project-serum/anchor';
+import { web3 } from '@coral-xyz/anchor';
 import { Send, Plus, Trash2, Coins, Coins as Token } from 'lucide-react';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getMint, createTransferInstruction } from '@solana/spl-token';
 import { useTranslation } from 'react-i18next';

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
 import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
-import { AnchorProvider, BN } from '@project-serum/anchor';
+import { AnchorProvider, BN } from '@coral-xyz/anchor';
 import { getProgramId } from '../lib/config';
 import { AlertTriangle, Shield, Pause, Play, Settings, DollarSign, Users, Lock } from 'lucide-react';
 

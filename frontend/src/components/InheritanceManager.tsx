@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAnchorProgram } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { web3, BN } from '@project-serum/anchor';
+import { web3, BN } from '@coral-xyz/anchor';
 import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ProgramStatus } from './ProgramStatus';

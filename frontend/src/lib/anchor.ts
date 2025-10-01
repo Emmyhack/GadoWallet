@@ -1,9 +1,10 @@
-import { Program, AnchorProvider, web3, BN } from '@project-serum/anchor';
+import { Program, AnchorProvider, web3, BN } from '@coral-xyz/anchor';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useMemo } from 'react';
 import { PROGRAM_ID, TOKEN_PROGRAM_ID } from './publickey-utils';
 
-// Real Gado IDL
+// Import the actual IDL from the gado target directory
+// For production, you should import the actual generated IDL
 const IDL: any = {
   "version": "0.1.0",
   "name": "gado",
@@ -147,16 +148,14 @@ const IDL: any = {
   ]
 };
 
-export type Gado = Program<typeof IDL>;
+// Using any type to avoid complex type inference issues
 
-export function useAnchorProgram(): Gado | undefined {
+export function useAnchorProgram() {
   const { connection } = useConnection();
   const wallet = useWallet();
 
   return useMemo(() => {
-    if (!wallet || !connection || !wallet.connected) {
-      return undefined;
-    }
+    if (!wallet || !wallet.publicKey) return null;
 
     const provider = new AnchorProvider(
       connection,
@@ -164,7 +163,7 @@ export function useAnchorProgram(): Gado | undefined {
       { commitment: 'confirmed' }
     );
 
-    return new Program(IDL, PROGRAM_ID, provider);
+    return new Program(IDL as any, provider) as any;
   }, [connection, wallet]);
 }
 
@@ -183,13 +182,13 @@ export function getTokenHeirPDA(owner: web3.PublicKey, heir: web3.PublicKey, tok
 }
 
 export async function addCoinHeir(
-  program: Gado,
+  program: any,
   heir: web3.PublicKey,
   amount: BN,
   inactivityPeriodSeconds: number
 ) {
   const [coinHeirPDA] = getCoinHeirPDA(program.provider.publicKey!, heir);
-  return await program.methods
+  return await ((program.methods as any) as any)
     .addCoinHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
       coinHeir: coinHeirPDA,
@@ -201,7 +200,7 @@ export async function addCoinHeir(
 }
 
 export async function addTokenHeir(
-  program: Gado,
+  program: any,
   heir: web3.PublicKey,
   tokenMint: web3.PublicKey,
   ownerTokenAccount: web3.PublicKey,
@@ -213,7 +212,7 @@ export async function addTokenHeir(
     [Buffer.from('token_heir'), program.provider.publicKey!.toBuffer(), heir.toBuffer(), tokenMint.toBuffer()],
     PROGRAM_ID
   );
-  return await program.methods
+  return await (program.methods as any)
     .addTokenHeir(amount, new BN(inactivityPeriodSeconds))
     .accounts({
       tokenHeir: tokenHeirPDA,
@@ -229,8 +228,8 @@ export async function addTokenHeir(
     .rpc();
 }
 
-export async function updateActivity(program: Gado, tokenHeirPDA: web3.PublicKey) {
-  return await program.methods
+export async function updateActivity(program: any, tokenHeirPDA: web3.PublicKey) {
+  return await (program.methods as any)
     .updateActivity()
     .accounts({
       tokenHeir: tokenHeirPDA,
@@ -239,8 +238,8 @@ export async function updateActivity(program: Gado, tokenHeirPDA: web3.PublicKey
     .rpc();
 }
 
-export async function updateCoinActivity(program: Gado, coinHeirPDA: web3.PublicKey) {
-  return await program.methods
+export async function updateCoinActivity(program: any, coinHeirPDA: web3.PublicKey) {
+  return await (program.methods as any)
     .updateCoinActivity()
     .accounts({
       coinHeir: coinHeirPDA,
@@ -250,11 +249,11 @@ export async function updateCoinActivity(program: Gado, coinHeirPDA: web3.Public
 }
 
 export async function claimHeirCoinAssets(
-  program: Gado,
+  program: any,
   coinHeirPDA: web3.PublicKey,
   ownerAccount: web3.PublicKey
 ) {
-  return await program.methods
+  return await (program.methods as any)
     .claimHeirCoinAssets()
     .accounts({
       coinHeir: coinHeirPDA,
@@ -266,7 +265,7 @@ export async function claimHeirCoinAssets(
 }
 
 export async function claimHeirTokenAssets(
-  program: Gado,
+  program: any,
   tokenHeirPDA: web3.PublicKey,
   tokenMint: web3.PublicKey,
   heirTokenAccount: web3.PublicKey,
@@ -275,7 +274,7 @@ export async function claimHeirTokenAssets(
     [Buffer.from('token_heir'), program.provider.publicKey!.toBuffer(), program.provider.publicKey!.toBuffer(), tokenMint.toBuffer()],
     PROGRAM_ID
   );
-  return await program.methods
+  return await (program.methods as any)
     .claimHeirTokenAssets()
     .accounts({
       tokenHeir: tokenHeirPDA,
@@ -289,11 +288,11 @@ export async function claimHeirTokenAssets(
 }
 
 export async function batchTransferCoins(
-  program: Gado,
+  program: any,
   recipients: web3.PublicKey[],
   amounts: BN[]
 ) {
-  return await program.methods
+  return await (program.methods as any)
     .batchTransferCoins(recipients, amounts)
     .accounts({
       fromAccount: program.provider.publicKey!,
@@ -308,13 +307,13 @@ export async function batchTransferCoins(
 }
 
 export async function batchTransferTokens(
-  program: Gado,
+  program: any,
   fromTokenAccount: web3.PublicKey,
   recipients: web3.PublicKey[],
   toTokenAccounts: web3.PublicKey[],
   amounts: BN[]
 ) {
-  return await program.methods
+  return await (program.methods as any)
     .batchTransferTokens(recipients, amounts)
     .accounts({
       fromTokenAccount: fromTokenAccount,
@@ -329,20 +328,20 @@ export async function batchTransferTokens(
     .rpc();
 }
 
-export async function listCoinHeirsByOwner(program: Gado, owner: web3.PublicKey) {
+export async function listCoinHeirsByOwner(program: any, owner: web3.PublicKey) {
   return await (program as any).account.coinHeir.all([
     { memcmp: { offset: 8, bytes: owner.toBase58() } },
   ]);
 }
 
-export async function listCoinHeirsByHeir(program: Gado, heir: web3.PublicKey) {
+export async function listCoinHeirsByHeir(program: any, heir: web3.PublicKey) {
   return await (program as any).account.coinHeir.all([
     { memcmp: { offset: 8 + 32, bytes: heir.toBase58() } },
   ]);
 }
 
 export async function listCoinHeirsByOwnerAndHeir(
-  program: Gado,
+  program: any,
   owner: web3.PublicKey,
   heir: web3.PublicKey,
 ) {
@@ -352,20 +351,20 @@ export async function listCoinHeirsByOwnerAndHeir(
   ]);
 }
 
-export async function listTokenHeirsByOwner(program: Gado, owner: web3.PublicKey) {
+export async function listTokenHeirsByOwner(program: any, owner: web3.PublicKey) {
   return await (program as any).account.tokenHeir.all([
     { memcmp: { offset: 8, bytes: owner.toBase58() } },
   ]);
 }
 
-export async function listTokenHeirsByHeir(program: Gado, heir: web3.PublicKey) {
+export async function listTokenHeirsByHeir(program: any, heir: web3.PublicKey) {
   return await (program as any).account.tokenHeir.all([
     { memcmp: { offset: 8 + 32, bytes: heir.toBase58() } },
   ]);
 }
 
 export async function listTokenHeirsByOwnerAndHeir(
-  program: Gado,
+  program: any,
   owner: web3.PublicKey,
   heir: web3.PublicKey,
 ) {

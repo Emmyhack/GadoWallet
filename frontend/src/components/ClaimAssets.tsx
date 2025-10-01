@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAnchorProgram, listCoinHeirsByOwnerAndHeir, listTokenHeirsByOwnerAndHeir, isHeirClaimable } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { web3 } from '@project-serum/anchor';
+import { web3 } from '@coral-xyz/anchor';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
 import { Gift, Search, AlertTriangle, CheckCircle, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
