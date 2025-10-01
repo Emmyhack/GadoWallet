@@ -3,6 +3,19 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useMemo } from 'react';
 import { PROGRAM_ID, TOKEN_PROGRAM_ID } from './publickey-utils';
 
+// Additional BN import to ensure compatibility
+import * as anchor from '@coral-xyz/anchor';
+
+// Helper function to safely create BN objects
+export function createBN(value: string | number): BN {
+  try {
+    return new anchor.BN(value);
+  } catch (error) {
+    console.error('Error creating BN:', error, 'value:', value);
+    return new anchor.BN(0);
+  }
+}
+
 // Import the actual IDL from the gado target directory
 // For production, you should import the actual generated IDL
 const IDL: any = {
@@ -155,15 +168,22 @@ export function useAnchorProgram() {
   const wallet = useWallet();
 
   return useMemo(() => {
-    if (!wallet || !wallet.publicKey) return null;
+    if (!wallet || !wallet.publicKey || !connection) {
+      return null;
+    }
 
-    const provider = new AnchorProvider(
-      connection,
-      wallet as any,
-      { commitment: 'confirmed' }
-    );
+    try {
+      const provider = new AnchorProvider(
+        connection,
+        wallet as any,
+        { commitment: 'confirmed' }
+      );
 
-    return new Program(IDL as any, provider) as any;
+      return new Program(IDL as any, provider) as any;
+    } catch (error) {
+      console.error('Error creating anchor program:', error);
+      return null;
+    }
   }, [connection, wallet]);
 }
 
@@ -187,9 +207,16 @@ export async function addCoinHeir(
   amount: BN,
   inactivityPeriodSeconds: number
 ) {
+  if (!program || !program.provider || !program.provider.publicKey) {
+    throw new Error('Program or provider not initialized');
+  }
+  if (!amount || !amount._bn) {
+    throw new Error('Invalid amount parameter - must be a valid BN');
+  }
+  
   const [coinHeirPDA] = getCoinHeirPDA(program.provider.publicKey!, heir);
   return await ((program.methods as any) as any)
-    .addCoinHeir(amount, new BN(inactivityPeriodSeconds))
+    .addCoinHeir(amount, createBN(inactivityPeriodSeconds))
     .accounts({
       coinHeir: coinHeirPDA,
       owner: program.provider.publicKey!,
@@ -213,7 +240,7 @@ export async function addTokenHeir(
     PROGRAM_ID
   );
   return await (program.methods as any)
-    .addTokenHeir(amount, new BN(inactivityPeriodSeconds))
+    .addTokenHeir(amount, createBN(inactivityPeriodSeconds))
     .accounts({
       tokenHeir: tokenHeirPDA,
       owner: program.provider.publicKey!,
