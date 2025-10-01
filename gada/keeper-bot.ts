@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
-import { Gada } from "./target/types/gada";
+import { Gado } from "./target/types/gado";
 import { 
   Connection, 
   Keypair, 
@@ -10,10 +10,10 @@ import {
 } from "@solana/web3.js";
 
 export class SmartWalletClient {
-  private program: Program<Gada>;
+  private program: Program<Gado>;
   private connection: Connection;
 
-  constructor(program: Program<Gada>, connection: Connection) {
+  constructor(program: Program<Gado>, connection: Connection) {
     this.program = program;
     this.connection = connection;
   }
@@ -82,12 +82,12 @@ const IDL = require("./target/idl/gada.json");
  * In production, this would run as a scheduled service (cron job, cloud function, etc.)
  */
 export class InheritanceKeeperBot {
-  private program: Program<Gada>;
+  private program: Program<Gado>;
   private keeperWallet: Keypair;
   private connection: Connection;
 
   constructor(
-    program: Program<Gada>, 
+    program: Program<Gado>, 
     connection: Connection,
     keeperWallet: Keypair
   ) {
@@ -282,7 +282,7 @@ async function runKeeperBot() {
   });
   anchor.setProvider(provider);
 
-  const program = new Program(IDL as any, provider) as Program<Gada>;
+  const program = new Program(IDL as any, provider) as Program<Gado>;
 
   // Create keeper bot instance
   const keeperBot = new InheritanceKeeperBot(program, connection, keeperWallet);

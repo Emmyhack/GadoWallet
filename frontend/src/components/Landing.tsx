@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useTranslation } from 'react-i18next';
+import Logo from './Logo';
 
 export function Landing() {
   const { t } = useTranslation();
@@ -29,21 +30,75 @@ export function Landing() {
     <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
       {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
+        {/* CSS Grid Network Pattern */}
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(59, 130, 246, 0.3) 1px, transparent 1px),
+              linear-gradient(rgba(139, 92, 246, 0.2) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(139, 92, 246, 0.2) 1px, transparent 1px)
+            `,
+            backgroundSize: `100px 100px, 100px 100px, 20px 20px, 20px 20px`,
+            backgroundPosition: `-2px -2px, -2px -2px, -1px -1px, -1px -1px`
+          }}
+        />
+        
+        {/* Animated Network Nodes */}
+        <div className="absolute inset-0">
+          {/* Network dots */}
+          <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-pulse opacity-60"></div>
+          <div className="absolute top-1/3 left-1/2 w-3 h-3 bg-purple-400 rounded-full animate-pulse opacity-50" style={{ animationDelay: '0.5s' }}></div>
+          <div className="absolute top-1/2 left-3/4 w-2 h-2 bg-cyan-400 rounded-full animate-pulse opacity-70" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute top-2/3 left-1/3 w-3 h-3 bg-violet-400 rounded-full animate-pulse opacity-50" style={{ animationDelay: '1.5s' }}></div>
+          <div className="absolute top-3/4 left-2/3 w-2 h-2 bg-blue-500 rounded-full animate-pulse opacity-60" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/5 right-1/4 w-2 h-2 bg-purple-500 rounded-full animate-pulse opacity-50" style={{ animationDelay: '2.5s' }}></div>
+          <div className="absolute top-2/5 right-1/3 w-3 h-3 bg-cyan-500 rounded-full animate-pulse opacity-60" style={{ animationDelay: '3s' }}></div>
+          <div className="absolute bottom-1/4 left-1/5 w-2 h-2 bg-indigo-400 rounded-full animate-pulse opacity-70" style={{ animationDelay: '0.8s' }}></div>
+          <div className="absolute bottom-1/3 right-1/5 w-2 h-2 bg-blue-300 rounded-full animate-pulse opacity-50" style={{ animationDelay: '1.2s' }}></div>
+          
+          {/* Connection lines using CSS */}
+          <div className="absolute top-1/4 left-1/4 w-48 h-0.5 bg-gradient-to-r from-blue-400 to-transparent opacity-30 transform rotate-12 animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+          <div className="absolute top-1/3 left-1/2 w-32 h-0.5 bg-gradient-to-r from-purple-400 to-transparent opacity-25 transform -rotate-45 animate-pulse" style={{ animationDelay: '0.8s' }}></div>
+          <div className="absolute top-2/3 left-1/3 w-40 h-0.5 bg-gradient-to-r from-violet-400 to-transparent opacity-30 transform rotate-45 animate-pulse" style={{ animationDelay: '1.3s' }}></div>
+          <div className="absolute bottom-1/4 left-1/5 w-56 h-0.5 bg-gradient-to-r from-indigo-400 to-transparent opacity-25 transform -rotate-12 animate-pulse" style={{ animationDelay: '1.8s' }}></div>
+        </div>
+        
+        {/* Original Gradient Orbs */}
         <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-600 opacity-20 blur-3xl animate-pulse" />
         <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-600 opacity-20 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-gradient-to-br from-emerald-600 via-teal-600 to-blue-600 opacity-10 blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
+      {/* Navigation Header */}
+      <header className="relative z-50 bg-white/5 backdrop-blur-xl border-b border-white/10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Logo size="md" />
+              <div>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                  Gada Wallet
+                </h1>
+                <p className="text-xs text-gray-300 font-medium">where your crypto doesn't die with you</p>
+              </div>
+            </div>
+            <WalletMultiButton className="!bg-gradient-to-r !from-blue-600 !to-purple-600 hover:!from-blue-700 hover:!to-purple-700 !border-none !rounded-xl !px-6 !py-3 !font-semibold !transition-all !duration-300 transform hover:!scale-105" />
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="relative container mx-auto px-4 py-20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-full px-4 py-2 mb-6">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 rounded-full px-3 py-2 mb-6 text-center">
               <Crown className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm font-medium text-purple-200">Next-Gen Smart Wallet with Premium Features</span>
+              <span className="text-xs sm:text-sm font-medium text-purple-200">Next-Gen Smart Wallet with Premium Features</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent mb-6 px-4">
               Your Complete Web3
               <br />
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
@@ -51,16 +106,16 @@ export function Landing() {
               </span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-4">
               Create smart wallets with unique addresses, manage inheritance with premium features, 
               and receive real-time notifications for every transaction. Your legacy, secured on-chain.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <WalletMultiButton className="bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 text-white font-bold py-4 px-8 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-200" />
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 px-4">
+              <WalletMultiButton className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 text-white font-bold py-4 px-6 sm:px-8 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-200 text-center" />
               <a 
                 href="#features" 
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl hover:bg-white/20 transition-all duration-200 font-semibold"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl hover:bg-white/20 transition-all duration-200 font-semibold"
               >
                 <Play className="w-5 h-5" />
                 Explore Features

@@ -303,7 +303,7 @@ export class SmartWalletClient {
     const amountLamports = amountSol * LAMPORTS_PER_SOL;
 
     const tx = await this.program.methods
-      .withdrawSol(new anchor.BN(amountLamports))
+      .withdrawFromSmartWallet(new anchor.BN(amountLamports))
       .accountsPartial({
         smartWallet: smartWalletPDA,
         smartWalletPda: smartWalletAssetPDA,
@@ -344,7 +344,7 @@ export class SmartWalletClient {
     );
 
     const tx = await this.program.methods
-      .withdrawTokens(new anchor.BN(amount))
+      .withdrawTokensFromSmartWallet(new anchor.BN(amount))
       .accountsPartial({
         smartWallet: smartWalletPDA,
         smartWalletTokenAccount: smartWalletTokenAccount,

@@ -1,5 +1,30 @@
-gado/target/
-gado/node_modules/
+# Build outputs
+gada/target/
+frontend/dist/
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Test ledger
+test-ledger/
+
+# OS files
+.DS_Store
+*:Zone.Identifier
+
+# IDE files
+.vscode/settings.json
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*ado/node_modules/
 frontend/node_modules/
 gado/frontend/node_modules/
 frontend/dist/

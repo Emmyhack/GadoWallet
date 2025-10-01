@@ -23,7 +23,9 @@
   "include": [
     "programs/**/*",
     "tests/**/*", 
-    "migrations/**/*"
+    "migrations/**/*",
+    "*.ts",
+    "*.js"
   ],
   "exclude": [
     "node_modules",
