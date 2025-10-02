@@ -193,7 +193,20 @@ const resources = {
       copyAddress: 'Copy Address',
 
       // Header
-      tagline: 'Secure Digital Inheritance'
+      tagline: 'Secure Digital Inheritance',
+
+      // Language Suggestion
+      languageSuggestion: {
+        title: 'Language Suggestion',
+        detectedLocation: 'Detected from {{country}}',
+        message: 'We noticed you\'re visiting from {{country}}. Would you like to switch to {{language}} for a better experience?',
+        currentLanguage: 'Current',
+        suggestedLanguage: 'Suggested',
+        switchTo: 'Switch to {{language}}',
+        dismiss: 'Not now',
+        changing: 'Changing...',
+        footerNote: 'You can always change the language later in settings. This suggestion won\'t appear again for {{country}}.'
+      }
     }
   },
   es: {
@@ -387,7 +400,20 @@ const resources = {
       copyAddress: 'Copiar dirección',
 
       // Header
-      tagline: 'Herencia digital segura'
+      tagline: 'Herencia digital segura',
+
+      // Language Suggestion
+      languageSuggestion: {
+        title: 'Sugerencia de Idioma',
+        detectedLocation: 'Detectado desde {{country}}',
+        message: 'Notamos que estás visitando desde {{country}}. ¿Te gustaría cambiar a {{language}} para una mejor experiencia?',
+        currentLanguage: 'Actual',
+        suggestedLanguage: 'Sugerido',
+        switchTo: 'Cambiar a {{language}}',
+        dismiss: 'Ahora no',
+        changing: 'Cambiando...',
+        footerNote: 'Siempre puedes cambiar el idioma más tarde en configuración. Esta sugerencia no aparecerá de nuevo para {{country}}.'
+      }
     }
   },
   yo: {
@@ -581,7 +607,20 @@ const resources = {
       copyAddress: 'Da adirẹsi kọ',
 
       // Header
-      tagline: 'Ìjogún onígbàgbọ́ tó dáa'
+      tagline: 'Ìjogún onígbàgbọ́ tó dáa',
+
+      // Language Suggestion
+      languageSuggestion: {
+        title: 'Ìmọ̀ràn Èdè',
+        detectedLocation: 'Tí à mọ̀ láti {{country}}',
+        message: 'A mọ̀ pé o ń ṣàbẹ̀wò láti {{country}}. Ṣé o fẹ́ yí padà sí {{language}} fún ìrírí tó dára jùlọ?',
+        currentLanguage: 'Lọ́wọ́lọ́wọ́',
+        suggestedLanguage: 'Ìmọ̀ràn',
+        switchTo: 'Yí padà sí {{language}}',
+        dismiss: 'Kò ṣí nísinsin yìí',
+        changing: 'Ń yí padà...',
+        footerNote: 'O lè yi èdè padà nígbàkugbà nínú àwọn ètò. Ìmọ̀ràn yìí kò ní han mọ́ fún {{country}}.'
+      }
     }
   },
   ha: {
@@ -775,7 +814,20 @@ const resources = {
       copyAddress: 'Kwafi adireshi',
 
       // Header
-      tagline: 'Tsaron gādon dijital'
+      tagline: 'Tsaron gādon dijital',
+
+      // Language Suggestion
+      languageSuggestion: {
+        title: 'Shawarar Harshe',
+        detectedLocation: 'An gano daga {{country}}',
+        message: 'Mun lura cewa kana ziyarta daga {{country}}. Kana son canza zuwa {{language}} don samun ingantacciyar halarci?',
+        currentLanguage: 'Na yanzu',
+        suggestedLanguage: 'Shawarwari',
+        switchTo: 'Canza zuwa {{language}}',
+        dismiss: 'Ba yanzu ba',
+        changing: 'Ana canzawa...',
+        footerNote: 'Koyaushe zaka iya canza harshen daga baya a cikin saiti. Wannan shawarar ba za ta sake bayyana ga {{country}} ba.'
+      }
     }
   },
   fr: {
@@ -969,7 +1021,20 @@ const resources = {
       copyAddress: 'Copier l’adresse',
 
       // Header
-      tagline: 'Héritage numérique sécurisé'
+      tagline: 'Héritage numérique sécurisé',
+
+      // Language Suggestion
+      languageSuggestion: {
+        title: 'Suggestion de Langue',
+        detectedLocation: 'Détecté depuis {{country}}',
+        message: 'Nous avons remarqué que vous visitez depuis {{country}}. Souhaitez-vous passer à {{language}} pour une meilleure expérience?',
+        currentLanguage: 'Actuel',
+        suggestedLanguage: 'Suggéré',
+        switchTo: 'Passer à {{language}}',
+        dismiss: 'Pas maintenant',
+        changing: 'Changement...',
+        footerNote: 'Vous pouvez toujours changer la langue plus tard dans les paramètres. Cette suggestion n\'apparaîtra plus pour {{country}}.'
+      }
     }
   },
   zh: {
@@ -1163,7 +1228,20 @@ const resources = {
       copyAddress: '复制地址',
 
       // Header
-      tagline: '安全的数字继承'
+      tagline: '安全的数字继承',
+
+      // Language Suggestion
+      languageSuggestion: {
+        title: '语言建议',
+        detectedLocation: '从{{country}}检测到',
+        message: '我们注意到您从{{country}}访问。您是否想切换到{{language}}以获得更好的体验？',
+        currentLanguage: '当前',
+        suggestedLanguage: '建议',
+        switchTo: '切换到{{language}}',
+        dismiss: '暂不',
+        changing: '正在更改...',
+        footerNote: '您可以随时在设置中更改语言。此建议不会再为{{country}}显示。'
+      }
     }
   }
 };

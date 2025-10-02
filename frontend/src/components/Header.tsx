@@ -1,9 +1,9 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { CheckCircle } from 'lucide-react';
-import i18n from '../lib/i18n';
 import NotificationSystem from './NotificationSystem';
 import Logo from './Logo';
+import LanguageSelector from './LanguageSelector';
 
 export function Header() {
   const { connected } = useWallet();
@@ -19,18 +19,8 @@ export function Header() {
 
           {/* Navigation & Controls */}
           <div className="flex items-center space-x-6">
-            {/* Language Controls */}
-            <div className="flex items-center space-x-4">
-              <select
-                value={i18n.language}
-                onChange={(e) => i18n.changeLanguage(e.target.value)}
-                className="bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="en" className="bg-gray-800">English</option>
-                <option value="es" className="bg-gray-800">Español</option>
-                <option value="fr" className="bg-gray-800">Français</option>
-              </select>
-            </div>
+            {/* Language Selector */}
+            <LanguageSelector />
 
             {/* Status Indicators */}
             {connected && (

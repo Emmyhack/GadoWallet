@@ -3,12 +3,20 @@ import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import SmartWalletManager from './components/SmartWalletManager';
+import LanguageSuggestionModal from './components/LanguageSuggestionModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useGeoLanguage } from './hooks/useGeoLanguage';
+
+// Import test utilities in development
+if (import.meta.env.DEV) {
+  import('./lib/geo-language-test');
+}
 
 function AppContent() {
   const { connected } = useWallet();
+  const { suggestion, showModal, hideModal } = useGeoLanguage();
 
   return (
     <Router>
@@ -21,6 +29,15 @@ function AppContent() {
           </Routes>
           <Toaster position="top-right" />
         </main>
+        
+        {/* Language Suggestion Modal */}
+        {suggestion && (
+          <LanguageSuggestionModal
+            isOpen={showModal}
+            onClose={hideModal}
+            suggestion={suggestion}
+          />
+        )}
       </div>
     </Router>
   );
