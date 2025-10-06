@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useAnchorProgram } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { web3, BN } from '@coral-xyz/anchor';
-import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
+import { Shield, Plus, Coins, Coins as Token, Mail, Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ProgramStatus } from './ProgramStatus';
+import { EmailService, InheritanceEmailData } from '../lib/emailService';
 import { PROGRAM_ID } from '../lib/publickey-utils';
 import { getNetworkLabel } from '../lib/config';
 
@@ -17,8 +18,92 @@ export function InheritanceManager() {
   const [heirAddress, setHeirAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [tokenMint, setTokenMint] = useState('');
-  const [inactivityDays, setInactivityDays] = useState('365');
+  const [inactivityDays, setInactivityDays] = useState('2');
   const [message, setMessage] = useState('');
+  
+  // NEW: Email notification fields
+  const [heirEmail, setHeirEmail] = useState('');
+  const [heirName, setHeirName] = useState('');
+  const [personalMessage, setPersonalMessage] = useState('');
+  const [sendEmailNotification, setSendEmailNotification] = useState(true);
+  const [claimLink, setClaimLink] = useState<string | null>(null);
+
+  // Generate claim link and send email notification
+  const generateAndSendClaimLink = async (inheritanceData: any) => {
+    try {
+      // Generate unique inheritance ID (using timestamp + owner + heir)
+      const inheritanceId = `${Date.now()}_${inheritanceData.ownerAddress.slice(-8)}_${inheritanceData.heirAddress.slice(-8)}`;
+      
+      // Generate secure token (in production, use crypto.randomBytes)
+      const secureToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      // Create claim URL
+      const claimUrl = `${window.location.origin}/claim/${inheritanceId}/${secureToken}`;
+      
+      // Store claim link data (in production, this would go to a database)
+      const claimData = {
+        inheritanceId,
+        secureToken,
+        claimUrl,
+        ...inheritanceData,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + (90 * 24 * 60 * 60 * 1000)).toISOString(), // 90 days
+        isUsed: false
+      };
+      
+      // Store in localStorage for demo (replace with API call in production)
+      const existingClaims = JSON.parse(localStorage.getItem('inheritanceClaimLinks') || '[]');
+      existingClaims.push(claimData);
+      localStorage.setItem('inheritanceClaimLinks', JSON.stringify(existingClaims));
+      
+      // Send email notification (simulate API call)
+      await sendInheritanceEmail(claimData);
+      
+      setClaimLink(claimUrl);
+      setMessage(prev => prev + ` 📧 Email notification sent to ${inheritanceData.heirEmail}`);
+      
+    } catch (error) {
+      console.error('Failed to generate claim link:', error);
+      setMessage(prev => prev + ` ⚠️ Email notification failed`);
+    }
+  };
+
+  // Send inheritance email using EmailService
+  const sendInheritanceEmail = async (claimData: any) => {
+    const emailData: InheritanceEmailData = {
+      heirName: claimData.heirName,
+      heirEmail: claimData.heirEmail,
+      ownerWallet: claimData.ownerAddress,
+      heirWallet: claimData.heirAddress,
+      amount: claimData.amount,
+      assetType: claimData.assetType,
+      claimUrl: claimData.claimUrl,
+      personalMessage: claimData.personalMessage,
+      inactivityPeriod: claimData.inactivityPeriod
+    };
+    
+    return await EmailService.simulateEmailSend(emailData);
+  };
+
+  // Preview email before sending
+  const previewEmail = () => {
+    if (!heirEmail || !heirName) return;
+    
+    const emailData: InheritanceEmailData = {
+      heirName: heirName || 'Beneficiary',
+      heirEmail: heirEmail,
+      ownerWallet: publicKey?.toBase58() || 'Your Wallet',
+      heirWallet: heirAddress || 'Heir Wallet',
+      amount: amount || '0',
+      assetType: activeTab === 'sol' ? 'SOL' : 'TOKEN',
+      claimUrl: 'https://gadawallet.com/claim/preview/token',
+      personalMessage: personalMessage,
+      inactivityPeriod: parseFloat(inactivityDays) || 2
+    };
+    
+    EmailService.previewEmail(emailData);
+  };
 
   const handleAddHeir = async () => {
     if (!program || !publicKey) return;
@@ -83,6 +168,21 @@ export function InheritanceManager() {
           .rpc();
         
         setMessage(t('heirAddedSuccessfully') || `SOL heir added successfully! Amount: ${amount} SOL, Inactivity: ${daysFloat} days`);
+        
+        // Generate claim link for SOL inheritance
+        if (sendEmailNotification && heirEmail.trim()) {
+          await generateAndSendClaimLink({
+            type: 'sol',
+            heirAddress: heirPubkey.toBase58(),
+            ownerAddress: publicKey.toBase58(),
+            amount: amount,
+            assetType: 'SOL',
+            inactivityPeriod: daysFloat,
+            heirEmail: heirEmail.trim(),
+            heirName: heirName.trim() || 'Beneficiary',
+            personalMessage: personalMessage.trim()
+          });
+        }
       } else {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
         const [tokenHeirPDA] = web3.PublicKey.findProgramAddressSync(
@@ -102,13 +202,32 @@ export function InheritanceManager() {
           .rpc();
         
         setMessage(t('heirAddedSuccessfully') || `Token heir added successfully! Amount: ${amount} tokens, Inactivity: ${daysFloat} days`);
+        
+        // Generate claim link for token inheritance
+        if (sendEmailNotification && heirEmail.trim()) {
+          await generateAndSendClaimLink({
+            type: 'token',
+            heirAddress: heirPubkey.toBase58(),
+            ownerAddress: publicKey.toBase58(),
+            amount: amount,
+            assetType: 'TOKEN',
+            tokenMint: tokenMint,
+            inactivityPeriod: daysFloat,
+            heirEmail: heirEmail.trim(),
+            heirName: heirName.trim() || 'Beneficiary',
+            personalMessage: personalMessage.trim()
+          });
+        }
       }
 
       // Clear form after success
       setHeirAddress('');
       setAmount('');
       setTokenMint('');
-      setInactivityDays('365');
+      setInactivityDays('2');
+      setHeirEmail('');
+      setHeirName('');
+      setPersonalMessage('');
       
     } catch (error) {
       console.error('Error adding heir:', error);
@@ -179,7 +298,13 @@ export function InheritanceManager() {
     if (!isValidAmount(amount)) return false;
     if (!isValidDays(inactivityDays)) return false;
     if (activeTab === 'token' && (!tokenMint || !isValidAddress(tokenMint))) return false;
+    if (sendEmailNotification && (!heirEmail.trim() || !isValidEmail(heirEmail))) return false;
     return true;
+  };
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
   if (!publicKey) {
@@ -289,6 +414,115 @@ export function InheritanceManager() {
             )}
           </div>
 
+          {/* Email Notification Section */}
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <input
+                type="checkbox"
+                id="emailNotification"
+                checked={sendEmailNotification}
+                onChange={(e) => setSendEmailNotification(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label htmlFor="emailNotification" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                📧 Send claim link to heir via email
+              </label>
+            </div>
+            
+            {sendEmailNotification && (
+              <div className="space-y-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Heir's Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={heirEmail}
+                    onChange={(e) => setHeirEmail(e.target.value)}
+                    placeholder="heir@example.com"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Heir's Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={heirName}
+                    onChange={(e) => setHeirName(e.target.value)}
+                    placeholder="John Smith"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    Personal Message (Optional)
+                  </label>
+                  <textarea
+                    value={personalMessage}
+                    onChange={(e) => setPersonalMessage(e.target.value)}
+                    placeholder="A personal message for your heir..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    <p>📋 Your heir will receive an email with:</p>
+                    <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
+                      <li>Direct claim link to access their inheritance</li>
+                      <li>Instructions on how to connect their wallet</li>
+                      <li>Details about the inheritance amount and timing</li>
+                      <li>Your personal message (if provided)</li>
+                    </ul>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={previewEmail}
+                    disabled={!heirEmail || !heirName}
+                    className="ml-4 px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded text-sm flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Eye className="w-3 h-3" />
+                    <span>Preview Email</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Claim Link Display */}
+          {claimLink && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
+                ✅ Claim Link Generated
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={claimLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm"
+                  />
+                  <button
+                    onClick={() => navigator.clipboard.writeText(claimLink)}
+                    className="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Share this link with your heir. It will allow them to claim their inheritance directly.
+                </p>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'token' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -333,7 +567,7 @@ export function InheritanceManager() {
               type="number"
               value={inactivityDays}
               onChange={(e) => setInactivityDays(e.target.value)}
-              placeholder="e.g. 365"
+              placeholder="e.g. 2"
               min={1}
               max={36500}
               step={1}

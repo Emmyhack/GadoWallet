@@ -3,6 +3,7 @@ import { useAnchorProgram } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Clock, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { cacheUtils, useDebounce, usePerformanceMonitor } from '../lib/performance-utils';
 
 interface HeirInfo {
   publicKey: any;
@@ -28,27 +29,48 @@ export function ActivityManager() {
   const [tokenHeirs, setTokenHeirs] = useState<HeirInfo[]>([]);
   const [loadingHeirs, setLoadingHeirs] = useState(false);
 
+  // Performance monitoring
+  usePerformanceMonitor('ActivityManager');
+
   const loadHeirs = async () => {
     if (!program || !publicKey) return;
+    
+    const cacheKey = `heirs_${publicKey.toBase58()}`;
+    const cached = cacheUtils.get(cacheKey);
+    
+    if (cached) {
+      setSolHeirs(cached.solHeirs);
+      setTokenHeirs(cached.tokenHeirs);
+      return;
+    }
     
     try {
       setLoadingHeirs(true);
       
-      // Load SOL heirs with correct account name
-      const coinHeirs = await (program as any).account.coinHeir.all([
-        { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+      // Load heirs with optimized parallel execution
+      const [coinHeirs, tokenHeirsData] = await Promise.allSettled([
+        (program as any).account.coinHeir.all([
+          { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+        ]),
+        (program as any).account.tokenHeir.all([
+          { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
+        ])
       ]);
-      setSolHeirs(coinHeirs);
       
-      // Load Token heirs with correct account name
-      const tokenHeirsData = await (program as any).account.tokenHeir.all([
-        { memcmp: { offset: 8, bytes: publicKey.toBase58() } },
-      ]);
-      setTokenHeirs(tokenHeirsData);
+      const solHeirsData = coinHeirs.status === 'fulfilled' ? coinHeirs.value : [];
+      const tokenHeirsResult = tokenHeirsData.status === 'fulfilled' ? tokenHeirsData.value : [];
+      
+      setSolHeirs(solHeirsData);
+      setTokenHeirs(tokenHeirsResult);
+      
+      // Cache for 60 seconds
+      cacheUtils.set(cacheKey, {
+        solHeirs: solHeirsData,
+        tokenHeirs: tokenHeirsResult
+      }, 60);
       
     } catch (error) {
       console.error('Error loading heirs:', error);
-      // Set empty arrays on error to prevent stale data
       setSolHeirs([]);
       setTokenHeirs([]);
     } finally {

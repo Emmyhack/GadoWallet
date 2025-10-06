@@ -62,7 +62,7 @@ export default function SmartWalletManager() {
     { address: '', percentage: 50 },
     { address: '', percentage: 50 }
   ]);
-  const [inactivityDays, setInactivityDays] = useState<number>(365);
+  const [inactivityDays, setInactivityDays] = useState<number>(2);
   const [depositAmount, setDepositAmount] = useState<string>('');
   const [userIsPremium, setUserIsPremium] = useState<boolean>(false);
   
@@ -662,9 +662,9 @@ export default function SmartWalletManager() {
         PROGRAM_ID
       );
 
-      // For free users, always use the exact default period (365 days in seconds)
+      // For free users, always use the exact default period (2 days in seconds)
       // For premium users, allow custom periods
-      const DEFAULT_INACTIVITY_SECONDS = 365 * 24 * 60 * 60; // Exactly 365 days
+      const DEFAULT_INACTIVITY_SECONDS = 2 * 24 * 60 * 60; // Exactly 2 days
       const inactivitySeconds = userIsPremium 
         ? inactivityDays * 24 * 60 * 60 
         : DEFAULT_INACTIVITY_SECONDS;
@@ -696,7 +696,7 @@ export default function SmartWalletManager() {
       // Track Smart Wallet creation
       trackSmartWalletAction('Smart Wallet Created', {
         heirsCount: validHeirs.length,
-        inactivityPeriod: `${userIsPremium ? inactivityDays : 365} days`,
+        inactivityPeriod: `${userIsPremium ? inactivityDays : 2} days`,
         heirs: validHeirs.map(h => ({ address: h.address, percentage: h.percentage }))
       }, tx);
       
@@ -937,7 +937,7 @@ export default function SmartWalletManager() {
                 Inactivity Period (Days)
                 {!userIsPremium && (
                   <span className="ml-2 px-2 py-1 text-xs bg-yellow-500/20 text-yellow-300 rounded">
-                    Free: 365 days only
+                    Free: 2 days only
                   </span>
                 )}
               </label>
@@ -950,13 +950,13 @@ export default function SmartWalletManager() {
                 className={`w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   !userIsPremium ? 'opacity-60 cursor-not-allowed' : ''
                 }`}
-                placeholder="365"
+                placeholder="2"
               />
               <p className="text-xs text-gray-400 mt-1">
                 {userIsPremium ? (
                   `Assets will be inherited after ${inactivityDays} days of inactivity`
                 ) : (
-                  'Free users use 365 days. Upgrade to Premium for custom periods.'
+                  'Free users use 2 days. Upgrade to Premium for custom periods.'
                 )}
               </p>
               {!userIsPremium && (
@@ -1202,7 +1202,7 @@ export default function SmartWalletManager() {
         {!userIsPremium && (
           <div className="mt-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
             <p className="text-orange-300 text-sm">
-              <strong>Free Plan Limitations:</strong> You can only have 1 heir and a fixed 365-day inactivity period. 
+              <strong>Free Plan Limitations:</strong> You can only have 1 heir and a fixed 2-day inactivity period. 
               Upgrade to Premium to add up to 10 heirs and customize your inactivity period.
             </p>
           </div>

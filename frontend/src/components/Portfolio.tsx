@@ -3,6 +3,7 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import { Wallet, Coins, TrendingUp, ArrowUpRight, Eye, Copy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { cacheUtils, useOptimizedBlockchainData, usePerformanceMonitor } from '../lib/performance-utils';
 
 interface ParsedTokenHolding {
   mint: string;
@@ -19,36 +20,70 @@ export function Portfolio() {
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useTranslation();
 
+  // Performance monitoring
+  usePerformanceMonitor('Portfolio');
+
   useEffect(() => {
     const fetchPortfolio = async () => {
       if (!publicKey) return;
+      
+      const cacheKey = `portfolio_${publicKey.toBase58()}`;
+      const cached = cacheUtils.get(cacheKey);
+      
+      if (cached) {
+        setSolBalance(cached.solBalance);
+        setTokens(cached.tokens);
+        return;
+      }
+
       try {
         setIsLoading(true);
 
-        const [balanceLamports, tokenAccounts] = await Promise.all([
-          connection.getBalance(publicKey),
-          connection.getParsedTokenAccountsByOwner(publicKey, { programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') })
-        ]);
+        // Fetch balance first for immediate feedback
+        const balanceLamports = await connection.getBalance(publicKey);
+        const balanceSOL = balanceLamports / LAMPORTS_PER_SOL;
+        setSolBalance(balanceSOL);
 
-        setSolBalance(balanceLamports / LAMPORTS_PER_SOL);
+        // Then fetch tokens in background
+        setTimeout(async () => {
+          try {
+            const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+              publicKey, 
+              { programId: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') }
+            );
 
-        const holdings: ParsedTokenHolding[] = tokenAccounts.value
-          .map((acc) => {
-            const info: any = acc.account.data.parsed.info;
-            const amount = Number(info.tokenAmount.uiAmount || 0);
-            const decimals = Number(info.tokenAmount.decimals || 0);
-            return {
-              mint: info.mint as string,
-              amount,
-              decimals,
-              ata: info.owner as string,
-            };
-          })
-          .filter((h) => h.amount > 0)
-          .sort((a, b) => b.amount - a.amount);
+            const holdings: ParsedTokenHolding[] = tokenAccounts.value
+              .map((acc) => {
+                const info: any = acc.account.data.parsed.info;
+                const amount = Number(info.tokenAmount.uiAmount || 0);
+                const decimals = Number(info.tokenAmount.decimals || 0);
+                return {
+                  mint: info.mint as string,
+                  amount,
+                  decimals,
+                  ata: info.owner as string,
+                };
+              })
+              .filter((h) => h.amount > 0)
+              .sort((a, b) => b.amount - a.amount);
 
-        setTokens(holdings);
-      } finally {
+            setTokens(holdings);
+            
+            // Cache the complete portfolio data
+            cacheUtils.set(cacheKey, { 
+              solBalance: balanceSOL, 
+              tokens: holdings 
+            }, 30); // Cache for 30 seconds
+            
+          } catch (tokenError) {
+            console.error('Error fetching tokens:', tokenError);
+          } finally {
+            setIsLoading(false);
+          }
+        }, 100); // Small delay to show SOL balance first
+
+      } catch (error) {
+        console.error('Error fetching portfolio:', error);
         setIsLoading(false);
       }
     };

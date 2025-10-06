@@ -6,8 +6,8 @@ use anchor_lang::solana_program::system_instruction;
 
 declare_id!("EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu");
 
-// Default inactivity period for inheritance claims: 365 days
-const INACTIVITY_PERIOD_SECONDS: i64 = 365 * 24 * 60 * 60; // 365 days
+// Default inactivity period for inheritance claims: 2 days (for testing)
+const INACTIVITY_PERIOD_SECONDS: i64 = 2 * 24 * 60 * 60; // 2 days
 
 // Business Model Constants
 const DEFAULT_PLATFORM_FEE_BPS: u16 = 50; // 0.5% in basis points (50/10000)

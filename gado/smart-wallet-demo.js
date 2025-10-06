@@ -106,8 +106,8 @@ async function demoFullSmartWallet() {
       console.log("ℹ️  User profile already exists or initialization failed");
     }
 
-    // Create Smart Wallet (free users must use default 365 day inactivity period)
-    const INACTIVITY_PERIOD_SECONDS = 365 * 24 * 60 * 60; // 365 days for free users
+    // Create Smart Wallet (free users must use default 2 day inactivity period)
+    const INACTIVITY_PERIOD_SECONDS = 2 * 24 * 60 * 60; // 2 days for free users
     const createTx = await program.methods
       .createSmartWalletInheritance(heirs, new anchor.BN(INACTIVITY_PERIOD_SECONDS))
       .accounts({

@@ -3,7 +3,8 @@ import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import SmartWalletManager from './components/SmartWalletManager';
-import LanguageSuggestionModal from './components/LanguageSuggestionModal';
+import LanguageToast from './components/LanguageToast';
+import { DirectClaimPage } from './components/DirectClaimPage';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -26,16 +27,18 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/smart-wallet" element={<SmartWalletManager />} />
+            <Route path="/claim/:inheritanceId/:token" element={<DirectClaimPage />} />
           </Routes>
           <Toaster position="top-right" />
         </main>
         
-        {/* Language Suggestion Modal */}
-        {suggestion && (
-          <LanguageSuggestionModal
-            isOpen={showModal}
-            onClose={hideModal}
+        {/* Language Suggestion Toast */}
+        {suggestion && showModal && (
+          <LanguageToast
             suggestion={suggestion}
+            onAccept={hideModal}
+            onDismiss={hideModal}
+            onClose={hideModal}
           />
         )}
       </div>

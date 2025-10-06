@@ -1,11 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAnchorProgram, listCoinHeirsByOwnerAndHeir, listTokenHeirsByOwnerAndHeir, isHeirClaimable } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { web3 } from '@coral-xyz/anchor';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
-import { Gift, Search, AlertTriangle, CheckCircle, Coins, Coins as Token } from 'lucide-react';
+import { 
+  Gift, 
+  Search, 
+  AlertTriangle, 
+  CheckCircle, 
+  Coins, 
+  Coins as Token,
+  Clock,
+  User,
+  Mail,
+  ExternalLink,
+  Copy,
+  Shield,
+  Info,
+  Star,
+  Activity,
+  Eye,
+  Calendar,
+  Wallet
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
 
 interface ClaimableAsset {
   id: string;
@@ -15,6 +33,11 @@ interface ClaimableAsset {
   lastActiveTime: string;
   isClaimable: boolean;
   tokenMint?: string;
+  estimatedValue?: number;
+  claimableDate?: string;
+  ownerEmail?: string;
+  daysUntilClaimable?: number;
+  urgency?: 'low' | 'medium' | 'high';
 }
 
 export function ClaimAssets() {
@@ -25,6 +48,74 @@ export function ClaimAssets() {
   const [message, setMessage] = useState('');
   const [searchAddress, setSearchAddress] = useState('');
   const [claimableAssets, setClaimableAssets] = useState<ClaimableAsset[]>([]);
+  const [filter, setFilter] = useState<'all' | 'claimable' | 'pending'>('all');
+  const [sortBy, setSortBy] = useState<'amount' | 'date' | 'urgency'>('urgency');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState('');
+  const [totalAssets, setTotalAssets] = useState({ count: 0, value: 0 });
+
+  // Auto-clear copy notification
+  useEffect(() => {
+    if (copiedAddress) {
+      const timer = setTimeout(() => setCopiedAddress(''), 2000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [copiedAddress]);
+
+  // Utility functions
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedAddress(text);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const calculateUrgency = (asset: ClaimableAsset): 'low' | 'medium' | 'high' => {
+    const daysSinceInactive = getTimeSinceInactivity(asset.lastActiveTime);
+    if (asset.isClaimable) return 'high';
+    if (daysSinceInactive > 1) return 'medium';
+    return 'low';
+  };
+
+  const enhanceAsset = (asset: ClaimableAsset): ClaimableAsset => {
+    const daysSinceInactive = getTimeSinceInactivity(asset.lastActiveTime);
+    const daysUntilClaimable = Math.max(0, 2 - daysSinceInactive); // 2-day period
+    const estimatedValue = parseFloat(asset.amount) * (asset.type === 'sol' ? 100 : 1); // Mock SOL price
+    
+    return {
+      ...asset,
+      urgency: calculateUrgency(asset),
+      daysUntilClaimable,
+      estimatedValue,
+      claimableDate: new Date(Date.now() + daysUntilClaimable * 24 * 60 * 60 * 1000).toISOString(),
+    };
+  };
+
+  const filteredAndSortedAssets = claimableAssets
+    .filter(asset => {
+      if (filter === 'claimable') return asset.isClaimable;
+      if (filter === 'pending') return !asset.isClaimable;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'amount') return parseFloat(b.amount) - parseFloat(a.amount);
+      if (sortBy === 'date') return new Date(b.lastActiveTime).getTime() - new Date(a.lastActiveTime).getTime();
+      if (sortBy === 'urgency') {
+        const urgencyOrder = { high: 3, medium: 2, low: 1 };
+        return (urgencyOrder[b.urgency || 'low'] || 0) - (urgencyOrder[a.urgency || 'low'] || 0);
+      }
+      return 0;
+    });
+
+  // Update totals when assets change
+  useEffect(() => {
+    const count = claimableAssets.length;
+    const value = claimableAssets.reduce((sum, asset) => sum + (asset.estimatedValue || 0), 0);
+    setTotalAssets({ count, value });
+  }, [claimableAssets]);
 
   const handleSearchAssets = async () => {
     if (!program || !publicKey || !searchAddress) return;
@@ -39,7 +130,7 @@ export function ClaimAssets() {
         listTokenHeirsByOwnerAndHeir(program, ownerPk, publicKey),
       ]);
 
-      const assets: ClaimableAsset[] = [
+      const rawAssets: ClaimableAsset[] = [
         ...coinHeirs.map((c: any) => ({
           id: c.publicKey.toBase58(),
           type: 'sol' as const,
@@ -49,7 +140,7 @@ export function ClaimAssets() {
           isClaimable: isHeirClaimable(
             c.account.lastActiveTime.toNumber(),
             c.account.isClaimed,
-            c.account.inactivityPeriodSeconds?.toNumber?.() ?? c.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
+            c.account.inactivityPeriodSeconds?.toNumber?.() ?? c.account.inactivity_period_seconds?.toNumber?.() ?? 2 * 24 * 60 * 60,
           ),
         })),
         ...tokenHeirs.map((t: any) => ({
@@ -61,14 +152,15 @@ export function ClaimAssets() {
           isClaimable: isHeirClaimable(
             t.account.lastActiveTime.toNumber(),
             t.account.isClaimed,
-            t.account.inactivityPeriodSeconds?.toNumber?.() ?? t.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
+            t.account.inactivityPeriodSeconds?.toNumber?.() ?? t.account.inactivity_period_seconds?.toNumber?.() ?? 2 * 24 * 60 * 60,
           ),
           tokenMint: t.account.tokenMint.toBase58(),
         })),
       ];
 
-      setClaimableAssets(assets);
-      setMessage(assets.length ? t('assetsFound') : t('noClaimableAssets'));
+      const enhancedAssets = rawAssets.map(asset => enhanceAsset(asset));
+      setClaimableAssets(enhancedAssets);
+      setMessage(enhancedAssets.length ? t('assetsFound') : t('noClaimableAssets'));
     } catch (error) {
       console.error('Error searching assets:', error);
       setMessage(t('errorSearchingAssets'));
@@ -172,54 +264,137 @@ export function ClaimAssets() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="w-8 h-8 bg-gray-900 rounded-md flex items-center justify-center">
-          <Gift className="w-5 h-5 text-white" />
+      {/* Header Section */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl flex items-center justify-center shadow-lg">
+            <Gift className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('claimAssets')}</h2>
+            <p className="text-gray-600">{t('claimAssetsSubtitle')}</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{t('claimAssets')}</h2>
-          <p className="text-gray-600">{t('claimAssetsSubtitle')}</p>
-        </div>
+        
+        {/* Stats Summary */}
+        {totalAssets.count > 0 && (
+          <div className="flex items-center space-x-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">{totalAssets.count}</div>
+              <div className="text-sm text-gray-600">{t('totalAssets')}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">${totalAssets.value.toFixed(2)}</div>
+              <div className="text-sm text-gray-600">{t('estimatedValue')}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Search Section */}
-      <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('searchClaimableAssets')}</h3>
-        
-        <div className="flex space-x-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('ownerWalletAddress')}
-            </label>
-            <input
-              type="text"
-              value={searchAddress}
-              onChange={(e) => setSearchAddress(e.target.value)}
-              placeholder={t('enterOwnerWalletAddress') || ''}
-              className="input-field"
-            />
-            {searchAddress && !isValidAddress(searchAddress) && (
-              <p className="text-red-500 text-sm mt-1">{t('invalidWalletAddress')}</p>
-            )}
-          </div>
-          
+      <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white/90 dark:bg-gray-900/70 backdrop-blur-lg p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <Search className="w-5 h-5 mr-2" />
+            {t('searchClaimableAssets')}
+          </h3>
           <button
-            onClick={handleSearchAssets}
-            disabled={!searchAddress || !isValidAddress(searchAddress) || isLoading}
-            className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-sm text-gray-600 hover:text-gray-900 flex items-center"
           >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>{t('searching')}</span>
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4" />
-                <span>{t('search')}</span>
-              </>
-            )}
+            <Eye className="w-4 h-4 mr-1" />
+            {showAdvanced ? t('hideAdvanced') : t('showAdvanced')}
           </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex space-x-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <User className="w-4 h-4 inline mr-1" />
+                {t('ownerWalletAddress')}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchAddress}
+                  onChange={(e) => setSearchAddress(e.target.value)}
+                  placeholder={t('enterOwnerWalletAddress') || ''}
+                  className="input-field pr-10"
+                />
+                {searchAddress && (
+                  <button
+                    onClick={() => copyToClipboard(searchAddress)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {copiedAddress === searchAddress ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
+              </div>
+              {searchAddress && !isValidAddress(searchAddress) && (
+                <p className="text-red-500 text-sm mt-1 flex items-center">
+                  <AlertTriangle className="w-4 h-4 mr-1" />
+                  {t('invalidWalletAddress')}
+                </p>
+              )}
+            </div>
+            
+            <button
+              onClick={handleSearchAssets}
+              disabled={!searchAddress || !isValidAddress(searchAddress) || isLoading}
+              className="btn-primary flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{t('searching')}</span>
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4" />
+                  <span>{t('search')}</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Advanced Filters */}
+          {showAdvanced && (
+            <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('filterAssets')}
+                </label>
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value as any)}
+                  className="input-field"
+                >
+                  <option value="all">{t('allAssets')}</option>
+                  <option value="claimable">{t('claimableOnly')}</option>
+                  <option value="pending">{t('pendingOnly')}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('sortBy')}
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="input-field"
+                >
+                  <option value="urgency">{t('urgency')}</option>
+                  <option value="amount">{t('amount')}</option>
+                  <option value="date">{t('lastActiveDate')}</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -242,109 +417,281 @@ export function ClaimAssets() {
       )}
 
       {/* Claimable Assets List */}
-      {claimableAssets.length > 0 && (
+      {filteredAndSortedAssets.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">{t('claimableAssets')}</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Activity className="w-5 h-5 mr-2" />
+              {t('claimableAssets')} ({filteredAndSortedAssets.length})
+            </h3>
+            {filteredAndSortedAssets.length > 1 && (
+              <div className="text-sm text-gray-500">
+                {t('sortedBy')} {t(sortBy)}
+              </div>
+            )}
+          </div>
           
-          {claimableAssets.map((asset) => (
-            <div key={asset.id} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gray-900/60 backdrop-blur p-6">
-              <div className="flex items-center justify-between mb-4">
+          {filteredAndSortedAssets.map((asset) => (
+            <div key={asset.id} className={`rounded-xl border backdrop-blur-lg p-6 transition-all hover:shadow-lg ${
+              asset.isClaimable 
+                ? 'border-green-200 bg-green-50/80 dark:bg-green-900/20' 
+                : 'border-gray-200 bg-white/80 dark:bg-gray-900/60'
+            }`}>
+              {/* Asset Header */}
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  {asset.type === 'sol' ? (
-                    <Coins className="w-6 h-6 text-gray-600" />
-                  ) : (
-                    <Token className="w-6 h-6 text-gray-600" />
-                  )}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    asset.type === 'sol' 
+                      ? 'bg-gradient-to-br from-purple-500 to-blue-500' 
+                      : 'bg-gradient-to-br from-green-500 to-teal-500'
+                  } shadow-lg`}>
+                    {asset.type === 'sol' ? (
+                      <Coins className="w-6 h-6 text-white" />
+                    ) : (
+                      <Token className="w-6 h-6 text-white" />
+                    )}
+                  </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">
-                      {asset.type === 'sol' ? t('sol') : t('splToken')}
+                    <h4 className="font-bold text-gray-900 text-lg">
+                      {asset.amount} {asset.type === 'sol' ? 'SOL' : 'Tokens'}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {t('amount')}: {asset.amount} {asset.type === 'sol' ? t('sol') : t('splToken')}
+                      {asset.estimatedValue && `~$${asset.estimatedValue.toFixed(2)}`}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  {asset.isClaimable ? (
-                    <div className="flex items-center space-x-2 text-green-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium">{t('claimable')}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                      <span className="text-sm font-medium">{t('notYetClaimable')}</span>
+                {/* Status and Urgency Badge */}
+                <div className="flex items-center space-x-3">
+                  {asset.urgency && (
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      asset.urgency === 'high' ? 'bg-red-100 text-red-700' :
+                      asset.urgency === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      <Star className="w-3 h-3 inline mr-1" />
+                      {t(asset.urgency + 'Urgency')}
                     </div>
                   )}
+                  
+                  <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
+                    asset.isClaimable 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    <div className={`w-2 h-2 rounded-full ${
+                      asset.isClaimable ? 'bg-green-500' : 'bg-gray-400'
+                    }`}></div>
+                    <span className="text-sm font-medium">
+                      {asset.isClaimable ? t('claimable') : t('notYetClaimable')}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <span className="text-sm text-gray-600">{t('owner')}:</span>
-                  <p className="text-sm font-mono text-gray-900 break-all">{asset.owner}</p>
+              {/* Asset Details Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg">
+                  <div className="flex items-center text-sm text-gray-600 mb-1">
+                    <User className="w-4 h-4 mr-1" />
+                    {t('owner')}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-mono text-gray-900 truncate flex-1">{asset.owner}</p>
+                    <button
+                      onClick={() => copyToClipboard(asset.owner)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      {copiedAddress === asset.owner ? (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 
-                <div>
-                  <span className="text-sm text-gray-600">{t('lastActiveShort')}:</span>
-                  <p className="text-sm text-gray-900">{formatDate(asset.lastActiveTime)}</p>
+                <div className="p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg">
+                  <div className="flex items-center text-sm text-gray-600 mb-1">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {t('lastActive')}
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">{formatDate(asset.lastActiveTime)}</p>
+                  <p className="text-xs text-gray-500">{getTimeSinceInactivity(asset.lastActiveTime)} {t('daysAgo')}</p>
                 </div>
                 
-                <div>
-                  <span className="text-sm text-gray-600">{t('daysSinceInactivity')}:</span>
-                  <p className="text-sm text-gray-900">{getTimeSinceInactivity(asset.lastActiveTime)} {t('daysAgo')}</p>
-                </div>
+                {!asset.isClaimable && asset.daysUntilClaimable !== undefined && (
+                  <div className="p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg">
+                    <div className="flex items-center text-sm text-gray-600 mb-1">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      {t('claimableIn')}
+                    </div>
+                    <p className="text-sm font-medium text-orange-600">
+                      {asset.daysUntilClaimable} {t('days')}
+                    </p>
+                    {asset.claimableDate && (
+                      <p className="text-xs text-gray-500">{formatDate(asset.claimableDate)}</p>
+                    )}
+                  </div>
+                )}
                 
                 {asset.tokenMint && (
-                  <div>
-                    <span className="text-sm text-gray-600">{t('tokenMint')}:</span>
-                    <p className="text-sm font-mono text-gray-900 break-all">{asset.tokenMint}</p>
+                  <div className="p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg md:col-span-2 lg:col-span-3">
+                    <div className="flex items-center text-sm text-gray-600 mb-1">
+                      <Token className="w-4 h-4 mr-1" />
+                      {t('tokenMint')}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm font-mono text-gray-900 break-all flex-1">{asset.tokenMint}</p>
+                      <button
+                        onClick={() => copyToClipboard(asset.tokenMint!)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        {copiedAddress === asset.tokenMint ? (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
 
-              <button
-                onClick={() => handleClaimAsset(asset)}
-                disabled={!asset.isClaimable || isLoading}
-                className="btn-primary w-full flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>{t('claiming')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Gift className="w-4 h-4" />
-                    <span>{asset.type === 'sol' ? t('claimSol') : t('claimTokens')}</span>
-                  </>
-                )}
-              </button>
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => handleClaimAsset(asset)}
+                  disabled={!asset.isClaimable || isLoading}
+                  className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all ${
+                    asset.isClaimable
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>{t('claiming')}</span>
+                    </>
+                  ) : asset.isClaimable ? (
+                    <>
+                      <Gift className="w-5 h-5" />
+                      <span>{asset.type === 'sol' ? t('claimSol') : t('claimTokens')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-5 h-5" />
+                      <span>{t('waitingPeriod')}</span>
+                    </>
+                  )}
+                </button>
+                
+                {/* Secondary actions */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => window.open(`https://explorer.solana.com/address/${asset.owner}`, '_blank')}
+                    className="p-3 bg-white/80 hover:bg-white border border-gray-200 rounded-xl transition-colors"
+                    title={t('viewOnExplorer')}
+                  >
+                    <ExternalLink className="w-4 h-4 text-gray-600" />
+                  </button>
+                  
+                  {asset.ownerEmail && (
+                    <button
+                      className="p-3 bg-white/80 hover:bg-white border border-gray-200 rounded-xl transition-colors"
+                      title={t('contactOwner')}
+                    >
+                      <Mail className="w-4 h-4 text-gray-600" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Information Cards */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">{t('claimingProcess')}</h3>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• {t('canClaimAfterYear')}</li>
-            <li>• {t('onlyDesignatedHeirs')}</li>
-            <li>• {t('claimsRequireSignature')}</li>
-            <li>• {t('assetsTransferredDirectly')}</li>
+      {/* Enhanced Information Cards */}
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gradient-to-br from-white/90 to-gray-50/90 dark:bg-gray-900/60 backdrop-blur p-6 shadow-lg">
+          <div className="flex items-center mb-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+              <Info className="w-5 h-5 text-blue-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">{t('claimingProcess')}</h3>
+          </div>
+          <ul className="text-sm text-gray-700 space-y-2">
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('canClaimAfterTwoDays')}
+            </li>
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('onlyDesignatedHeirs')}
+            </li>
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('claimsRequireSignature')}
+            </li>
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('assetsTransferredDirectly')}
+            </li>
           </ul>
         </div>
 
-        <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-gray-900/60 backdrop-blur p-4">
-          <h3 className="font-semibold text-gray-900 mb-2">{t('requirements')}</h3>
-          <ul className="text-sm text-gray-700 space-y-1">
-            <li>• {t('mustBeDesignatedHeir')}</li>
-            <li>• {t('ownerInactiveOneYear')}</li>
-            <li>• {t('assetsNotAlreadyClaimed')}</li>
-            <li>• {t('validWalletRequired')}</li>
+        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gradient-to-br from-white/90 to-gray-50/90 dark:bg-gray-900/60 backdrop-blur p-6 shadow-lg">
+          <div className="flex items-center mb-3">
+            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+              <Shield className="w-5 h-5 text-orange-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">{t('requirements')}</h3>
+          </div>
+          <ul className="text-sm text-gray-700 space-y-2">
+            <li className="flex items-start">
+              <Wallet className="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('mustBeDesignatedHeir')}
+            </li>
+            <li className="flex items-start">
+              <Clock className="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('ownerInactiveTwoDays')}
+            </li>
+            <li className="flex items-start">
+              <Gift className="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('assetsNotAlreadyClaimed')}
+            </li>
+            <li className="flex items-start">
+              <User className="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('validWalletRequired')}
+            </li>
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gradient-to-br from-white/90 to-gray-50/90 dark:bg-gray-900/60 backdrop-blur p-6 shadow-lg">
+          <div className="flex items-center mb-3">
+            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+              <Activity className="w-5 h-5 text-green-600" />
+            </div>
+            <h3 className="font-semibold text-gray-900">{t('tipAndTricks')}</h3>
+          </div>
+          <ul className="text-sm text-gray-700 space-y-2">
+            <li className="flex items-start">
+              <Star className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('useEmailClaimLinks')}
+            </li>
+            <li className="flex items-start">
+              <Mail className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('notifyHeirsViaEmail')}
+            </li>
+            <li className="flex items-start">
+              <Search className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('searchByOwnerAddress')}
+            </li>
+            <li className="flex items-start">
+              <ExternalLink className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+              {t('verifyOnBlockchainExplorer')}
+            </li>
           </ul>
         </div>
       </div>

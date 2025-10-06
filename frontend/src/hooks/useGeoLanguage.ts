@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { geoLanguageService, type LanguageSuggestion } from '../lib/geo-language';
 
 interface UseGeoLanguageReturn {
@@ -10,9 +11,11 @@ interface UseGeoLanguageReturn {
 }
 
 export const useGeoLanguage = (): UseGeoLanguageReturn => {
+  const { connected, publicKey } = useWallet();
   const [suggestion, setSuggestion] = useState<LanguageSuggestion | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [hasCheckedOnConnect, setHasCheckedOnConnect] = useState(false);
 
   const checkForSuggestion = async () => {
     setIsLoading(true);
@@ -34,15 +37,19 @@ export const useGeoLanguage = (): UseGeoLanguageReturn => {
     setSuggestion(null);
   };
 
-  // Automatically check for language suggestion on component mount
+  // Check for language suggestion when wallet connects (indicates active use)
   useEffect(() => {
-    // Add a small delay to avoid blocking initial render
-    const timeoutId = setTimeout(() => {
-      checkForSuggestion();
-    }, 1000);
+    if (connected && publicKey && !hasCheckedOnConnect) {
+      setHasCheckedOnConnect(true);
+      // Add a small delay to avoid blocking wallet connection flow
+      const timeoutId = setTimeout(() => {
+        checkForSuggestion();
+      }, 2000); // Increased delay to let wallet connection settle
 
-    return () => clearTimeout(timeoutId);
-  }, []);
+      return () => clearTimeout(timeoutId);
+    }
+    return undefined;
+  }, [connected, publicKey, hasCheckedOnConnect]);
 
   return {
     suggestion,

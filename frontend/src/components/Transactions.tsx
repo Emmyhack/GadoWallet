@@ -4,6 +4,7 @@ import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getExplorerClusterParam } from '../lib/config';
+import { cacheUtils, batchAsyncOperations, usePerformanceMonitor } from '../lib/performance-utils';
 
 interface TxRow {
   signature: string;
@@ -20,30 +21,66 @@ export function Transactions() {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
 
+  // Performance monitoring
+  usePerformanceMonitor('Transactions');
+
   useEffect(() => {
     const load = async () => {
       if (!publicKey) return;
+      
+      const cacheKey = `transactions_${publicKey.toBase58()}`;
+      const cached = cacheUtils.get(cacheKey);
+      
+      if (cached) {
+        setRows(cached);
+        return;
+      }
+      
       setLoading(true);
       try {
-        const sigs = await connection.getSignaturesForAddress(publicKey, { limit: 20 });
-        const sigInfos = await Promise.all(
-          sigs.map(async (s) => {
-            const conf = await connection.getTransaction(s.signature, { maxSupportedTransactionVersion: 0 });
-            let lamports: number | null = null;
-            if (conf?.meta) {
-              const diff = (conf.meta.postBalances?.[0] ?? 0) - (conf.meta.preBalances?.[0] ?? 0);
-              lamports = diff / LAMPORTS_PER_SOL;
+        // First get signatures quickly
+        const sigs = await connection.getSignaturesForAddress(publicKey, { limit: 10 }); // Reduced limit
+        
+        // Then batch the transaction details to avoid overwhelming RPC
+        const sigInfos = await batchAsyncOperations(
+          sigs,
+          async (s) => {
+            try {
+              const conf = await connection.getTransaction(s.signature, { 
+                maxSupportedTransactionVersion: 0,
+                commitment: 'confirmed' // Faster than finalized
+              });
+              let lamports: number | null = null;
+              if (conf?.meta) {
+                const diff = (conf.meta.postBalances?.[0] ?? 0) - (conf.meta.preBalances?.[0] ?? 0);
+                lamports = diff / LAMPORTS_PER_SOL;
+              }
+              return {
+                signature: s.signature,
+                slot: s.slot,
+                err: !!s.err,
+                lamports,
+                date: s.blockTime ? new Date(s.blockTime * 1000).toLocaleString() : '-',
+              } as TxRow;
+            } catch (error) {
+              // Return fallback data for failed requests
+              return {
+                signature: s.signature,
+                slot: s.slot,
+                err: !!s.err,
+                lamports: null,
+                date: s.blockTime ? new Date(s.blockTime * 1000).toLocaleString() : '-',
+              } as TxRow;
             }
-            return {
-              signature: s.signature,
-              slot: s.slot,
-              err: !!s.err,
-              lamports,
-              date: s.blockTime ? new Date(s.blockTime * 1000).toLocaleString() : '-',
-            } as TxRow;
-          })
+          },
+          2, // Only 2 concurrent requests
+          200 // 200ms delay between batches
         );
+        
         setRows(sigInfos);
+        cacheUtils.set(cacheKey, sigInfos, 30); // Cache for 30 seconds
+      } catch (error) {
+        console.error('Error loading transactions:', error);
       } finally {
         setLoading(false);
       }

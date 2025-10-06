@@ -3,7 +3,6 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { CheckCircle } from 'lucide-react';
 import NotificationSystem from './NotificationSystem';
 import Logo from './Logo';
-import LanguageSelector from './LanguageSelector';
 
 export function Header() {
   const { connected } = useWallet();
@@ -19,9 +18,6 @@ export function Header() {
 
           {/* Navigation & Controls */}
           <div className="flex items-center space-x-6">
-            {/* Language Selector */}
-            <LanguageSelector />
-
             {/* Status Indicators */}
             {connected && (
               <div className="flex items-center space-x-4">
