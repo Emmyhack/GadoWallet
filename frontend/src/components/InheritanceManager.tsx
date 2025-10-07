@@ -157,10 +157,17 @@ export function InheritanceManager() {
           program.programId
         );
 
+        // Get user profile PDA - required by the smart contract
+        const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
+          [Buffer.from('user_profile'), publicKey.toBuffer()],
+          program.programId
+        );
+
         await program.methods
           .addCoinHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
             coinHeir: coinHeirPDA,
+            userProfile: userProfilePDA,
             owner: publicKey,
             heir: heirPubkey,
             systemProgram: web3.SystemProgram.programId,
@@ -190,10 +197,17 @@ export function InheritanceManager() {
           program.programId
         );
 
+        // Get user profile PDA - required by the smart contract
+        const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
+          [Buffer.from('user_profile'), publicKey.toBuffer()],
+          program.programId
+        );
+
         await program.methods
           .addTokenHeir(amountBN, new BN(inactivitySeconds))
           .accounts({
             tokenHeir: tokenHeirPDA,
+            userProfile: userProfilePDA,
             owner: publicKey,
             heir: heirPubkey,
             tokenMint: tokenMintPubkey,
@@ -255,6 +269,8 @@ export function InheritanceManager() {
           errorMessage += 'Insufficient funds to complete this transaction.';
         } else if (error.message.includes('Invalid public key')) {
           errorMessage += 'Invalid wallet address provided.';
+        } else if (error.message.includes('user_profile') || error.message.includes('Account does not exist or has no data') || error.message.includes('AccountNotInitialized')) {
+          errorMessage += 'User profile not found. Please create a user profile first by going to Platform Status → Create User Profile.';
         } else if (error.message.includes('program that does not exist') || error.message.includes('Attempt to load a program that does not exist')) {
           errorMessage += 'The Gado program is not deployed on this network. Please contact support or try again later.';
           console.error('Program deployment issue - Program ID:', PROGRAM_ID.toBase58(), 'Network:', getNetworkLabel());
@@ -613,6 +629,15 @@ export function InheritanceManager() {
 
       {/* Information Panel */}
       <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur border border-gray-200 dark:border-white/10 rounded-lg p-4">
+        {/* User Profile Requirement Notice */}
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">📋 Prerequisites</h4>
+          <p className="text-xs text-blue-700 dark:text-blue-300">
+            Before adding heirs, you need a user profile. If you haven't created one yet, go to 
+            <span className="font-semibold"> Platform Status → Create User Profile</span> first.
+          </p>
+        </div>
+        
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('whyGado') || 'Why Use Gado?'}</h3>
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li>• {t('designateHeirs') || 'Designate heirs for your digital assets'}</li>
