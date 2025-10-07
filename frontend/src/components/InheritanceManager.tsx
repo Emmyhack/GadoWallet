@@ -151,15 +151,36 @@ export function InheritanceManager() {
       const daysFloat = parseFloat(inactivityDays);
       const inactivitySeconds = Math.max(86400, Math.floor(daysFloat * 24 * 60 * 60)); // Minimum 1 day
 
+      // Pre-flight checks
+      console.log('=== PRE-FLIGHT CHECKS ===');
+      console.log('Program:', program?.programId?.toString());
+      console.log('Wallet:', publicKey?.toString());
+      console.log('Heir:', heirAddress);
+      console.log('Amount BN:', amountBN?.toString());
+      console.log('Inactivity Seconds:', inactivitySeconds);
+
+      // Check if user profile exists
+      const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
+        [Buffer.from('user_profile'), publicKey.toBuffer()],
+        program.programId
+      );
+
+      try {
+        const userProfileAccount = await program.provider.connection.getAccountInfo(userProfilePDA);
+        if (!userProfileAccount) {
+          setMessage('Error: User profile not found. Please create a user profile first in Platform Status.');
+          return;
+        }
+        console.log('✅ User profile exists at:', userProfilePDA.toString());
+      } catch (profileError) {
+        console.error('Profile check failed:', profileError);
+        setMessage('Error: Could not verify user profile. Please check your connection and try again.');
+        return;
+      }
+
       if (activeTab === 'sol') {
         const [coinHeirPDA] = web3.PublicKey.findProgramAddressSync(
           [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
-          program.programId
-        );
-
-        // Get user profile PDA - required by the smart contract
-        const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
-          [Buffer.from('user_profile'), publicKey.toBuffer()],
           program.programId
         );
 
@@ -194,12 +215,6 @@ export function InheritanceManager() {
         const tokenMintPubkey = new web3.PublicKey(tokenMint);
         const [tokenHeirPDA] = web3.PublicKey.findProgramAddressSync(
           [Buffer.from('token_heir'), publicKey.toBuffer(), heirPubkey.toBuffer(), tokenMintPubkey.toBuffer()],
-          program.programId
-        );
-
-        // Get user profile PDA - required by the smart contract
-        const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
-          [Buffer.from('user_profile'), publicKey.toBuffer()],
           program.programId
         );
 
@@ -246,6 +261,14 @@ export function InheritanceManager() {
     } catch (error) {
       console.error('Error adding heir:', error);
       
+      // Enhanced debugging information
+      console.log('=== DEBUGGING INFORMATION ===');
+      console.log('Wallet:', publicKey?.toString());
+      console.log('Heir Address:', heirAddress);
+      console.log('Amount:', amount, activeTab);
+      console.log('Inactivity Days:', inactivityDays);
+      console.log('Program ID:', program?.programId?.toString());
+      
       // Handle SendTransactionError specifically to get detailed logs
       if (error && typeof error === 'object' && 'getLogs' in error) {
         try {
@@ -259,6 +282,11 @@ export function InheritanceManager() {
       // Also check for logs property
       if (error && typeof error === 'object' && 'logs' in error && Array.isArray((error as any).logs)) {
         console.error('Transaction logs from property:', (error as any).logs);
+      }
+      
+      // Check for simulation errors
+      if (error && typeof error === 'object' && 'simulationResponse' in error) {
+        console.error('Simulation response:', (error as any).simulationResponse);
       }
       
       let errorMessage = 'Error adding heir. ';
@@ -631,11 +659,43 @@ export function InheritanceManager() {
       <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur border border-gray-200 dark:border-white/10 rounded-lg p-4">
         {/* User Profile Requirement Notice */}
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">📋 Prerequisites</h4>
-          <p className="text-xs text-blue-700 dark:text-blue-300">
-            Before adding heirs, you need a user profile. If you haven't created one yet, go to 
-            <span className="font-semibold"> Platform Status → Create User Profile</span> first.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">📋 Prerequisites</h4>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Before adding heirs, you need a user profile. If you haven't created one yet, go to 
+                <span className="font-semibold"> Platform Status → Create User Profile</span> first.
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                if (!program || !publicKey) {
+                  setMessage('Error: Wallet not connected or program not initialized');
+                  return;
+                }
+                
+                const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
+                  [Buffer.from('user_profile'), publicKey.toBuffer()],
+                  program.programId
+                );
+                
+                try {
+                  const accountInfo = await program.provider.connection.getAccountInfo(userProfilePDA);
+                  if (accountInfo) {
+                    const profileData = await program.account.userProfile.fetch(userProfilePDA);
+                    setMessage(`✅ User profile found! Premium: ${profileData.isPremium ? 'Yes' : 'No'}, Inheritances: ${profileData.totalInheritancesCreated}`);
+                  } else {
+                    setMessage('❌ No user profile found. Please create one in Platform Status first.');
+                  }
+                } catch (error) {
+                  setMessage(`Error checking profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                }
+              }}
+              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors"
+            >
+              Test Profile
+            </button>
+          </div>
         </div>
         
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('whyGado') || 'Why Use Gado?'}</h3>
