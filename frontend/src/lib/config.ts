@@ -1,10 +1,10 @@
-import { clusterApiUrl, PublicKey } from '@solana/web3.js';
+import { clusterApiUrl, PublicKey, Cluster } from '@solana/web3.js';
 
 // Network can be 'devnet', 'testnet', 'mainnet-beta', or 'localnet'
 export type ClusterName = 'devnet' | 'testnet' | 'mainnet-beta' | 'localnet';
 
 export function getCluster(): ClusterName {
-	const raw = (import.meta as any).env?.VITE_CLUSTER as string | undefined;
+	const raw = import.meta.env?.VITE_CLUSTER;
 	if (raw === 'testnet' || raw === 'mainnet-beta' || raw === 'localnet' || raw === 'devnet') {
 		return raw;
 	}
@@ -12,15 +12,15 @@ export function getCluster(): ClusterName {
 }
 
 export function getRpcUrl(): string {
-	const custom = (import.meta as any).env?.VITE_RPC_URL as string | undefined;
+	const custom = import.meta.env?.VITE_RPC_URL;
 	if (custom && custom.trim().length > 0) return custom.trim();
 	const cluster = getCluster();
 	if (cluster === 'localnet') return 'http://127.0.0.1:8899';
-	return clusterApiUrl(cluster as any);
+	return clusterApiUrl(cluster as Cluster);
 }
 
 export function getProgramId(): PublicKey {
-	const fromEnv = (import.meta as any).env?.VITE_PROGRAM_ID as string | undefined;
+	const fromEnv = import.meta.env?.VITE_PROGRAM_ID;
 	const candidate = fromEnv && fromEnv.trim().length > 0 ? fromEnv.trim() : 'EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu';
 	try {
 		return new PublicKey(candidate);

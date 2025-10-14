@@ -4,15 +4,16 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { CacheEntry, FunctionParameters, DependencyList } from '../types';
 
 // Cache for API responses
-const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+const cache = new Map<string, CacheEntry>();
 
 /**
  * Cache utility with TTL (Time To Live)
  */
 export const cacheUtils = {
-  set: (key: string, data: any, ttlSeconds = 300) => {
+  set: <T>(key: string, data: T, ttlSeconds = 300) => {
     cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -65,14 +66,14 @@ export function useDebounce<T>(value: T, delay: number): T {
 /**
  * Throttle function calls
  */
-export function useThrottle<T extends (...args: any[]) => void>(
+export function useThrottle<T extends (...args: never[]) => void>(
   callback: T,
   delay: number
 ): T {
   const lastCall = useRef<number>(0);
   
   return useCallback(
-    ((...args: any[]) => {
+    ((...args: FunctionParameters<T>) => {
       const now = Date.now();
       if (now - lastCall.current >= delay) {
         lastCall.current = now;
@@ -89,7 +90,7 @@ export function useThrottle<T extends (...args: any[]) => void>(
 export function useProgressiveLoad<T>(
   loadFunction: () => Promise<T[]>,
   batchSize = 5,
-  deps: any[] = []
+  deps: DependencyList = []
 ) {
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
@@ -176,7 +177,7 @@ export async function batchAsyncOperations<T, R>(
 export function useOptimizedBlockchainData<T>(
   key: string,
   fetchFunction: () => Promise<T>,
-  dependencies: any[] = [],
+  dependencies: DependencyList = [],
   ttlSeconds = 60
 ) {
   const [data, setData] = useState<T | null>(null);
