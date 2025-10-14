@@ -194,8 +194,11 @@ export function ClaimAssets() {
           amount: `${asset.amount} SOL`
         });
 
-        await program.methods
-          .claimSolInheritance()
+        if (!('claimSolInheritance' in program.methods)) {
+          throw new Error('Program methods not available. Please ensure wallet is connected.');
+        }
+
+        await (program.methods as any)['claimSolInheritance']()
           .accountsPartial({
             solHeir: solHeirPDA,
             heir: publicKey,

@@ -58,12 +58,12 @@ async function testInheritance() {
   // Create provider and program
   const provider = new anchor.AnchorProvider(connection, {
     publicKey: wallet.publicKey,
-    signTransaction: async (tx) => {
+    signTransaction: async (tx: anchor.web3.Transaction) => {
       tx.partialSign(wallet);
       return tx;
     },
-    signAllTransactions: async (txs) => {
-      return txs.map(tx => {
+    signAllTransactions: async (txs: anchor.web3.Transaction[]) => {
+      return txs.map((tx: anchor.web3.Transaction) => {
         tx.partialSign(wallet);
         return tx;
       });
@@ -105,7 +105,7 @@ async function testInheritance() {
         .rpc();
       console.log("✅ User profile initialized:", initTx);
     } catch (error) {
-      console.log("ℹ️ User profile might already exist or platform not initialized:", error.message);
+      console.log("ℹ️ User profile might already exist or platform not initialized:", error instanceof Error ? error.message : String(error));
     }
 
     // Create test heir
@@ -136,12 +136,12 @@ async function testInheritance() {
 
   } catch (error) {
     console.error("❌ Test failed:", error);
-    console.error("Error details:", error.message);
+    console.error("Error details:", error instanceof Error ? error.message : String(error));
     
     // Check if it's an anchor error
-    if (error.logs) {
+    if (error && typeof error === 'object' && 'logs' in error) {
       console.error("Program logs:");
-      error.logs.forEach((log, i) => console.error(`${i}: ${log}`));
+      (error.logs as any[]).forEach((log: any, i: number) => console.error(`${i}: ${log}`));
     }
   }
 }

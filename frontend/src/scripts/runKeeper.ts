@@ -127,7 +127,7 @@ function setupCommandInterface(keeper: SmartWalletKeeper) {
   const processCommand = async (input: string) => {
     const [command, ...args] = input.trim().split(' ');
 
-    switch (command.toLowerCase()) {
+    switch (command?.toLowerCase()) {
       case 'status':
         const status = keeper.getStatus();
         console.log("\n📊 Keeper Status:");
@@ -166,7 +166,7 @@ function setupCommandInterface(keeper: SmartWalletKeeper) {
         } else {
           try {
             const { PublicKey } = await import("@solana/web3.js");
-            const pubkey = new PublicKey(args[0]);
+            const pubkey = new PublicKey(args[0]!);
             keeper.addWalletToMonitor(pubkey);
             console.log(`✅ Added wallet to monitoring: ${pubkey.toString()}`);
           } catch (error) {

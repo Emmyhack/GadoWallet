@@ -195,10 +195,10 @@ export function Portfolio() {
             ) : (
               <>
                 <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {tokens[0].amount.toFixed(2)}
+                  {tokens[0]?.amount.toFixed(2)}
                 </div>
                 <div className="text-xs text-gray-600 dark:text-gray-400 font-mono truncate">
-                  {tokens[0].mint.slice(0, 8)}...{tokens[0].mint.slice(-4)}
+                  {tokens[0]?.mint.slice(0, 8)}...{tokens[0]?.mint.slice(-4)}
                 </div>
               </>
             )}

@@ -33,17 +33,17 @@ export function useWalletConnection() {
     connected: false,
     connecting: false,
     program: null,
-    connection: new Connection(RPC_ENDPOINTS[0], 'confirmed'),
+    connection: new Connection(RPC_ENDPOINTS[0]!, 'confirmed'),
     provider: null,
     programId: getProgramId(),
-    rpcEndpoint: RPC_ENDPOINTS[0],
+    rpcEndpoint: RPC_ENDPOINTS[0]!,
     rpcIndex: 0,
   });
 
   // Switch to next RPC endpoint
   const switchRpcEndpoint = useCallback(() => {
     const nextIndex = (state.rpcIndex + 1) % RPC_ENDPOINTS.length;
-    const newEndpoint = RPC_ENDPOINTS[nextIndex];
+    const newEndpoint = RPC_ENDPOINTS[nextIndex]!;
     const newConnection = new Connection(newEndpoint, 'confirmed');
     
     setState(prev => ({
@@ -56,7 +56,7 @@ export function useWalletConnection() {
     }));
 
     // console.log(`🔄 Switched to RPC endpoint: ${newEndpoint}`);
-    toast.success(`Switched to ${newEndpoint.includes('helius') ? 'Helius' : newEndpoint.includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
+    toast.success(`Switched to ${newEndpoint?.includes('helius') ? 'Helius' : newEndpoint?.includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
     
     return newConnection;
   }, [state.rpcIndex]);

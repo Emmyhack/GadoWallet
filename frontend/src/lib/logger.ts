@@ -105,7 +105,7 @@ class Logger {
       timestamp: new Date().toISOString(),
       level,
       message,
-      context,
+      ...(context !== undefined && { context }),
       data: data && typeof data === 'object' ? JSON.stringify(data) : data
     };
 

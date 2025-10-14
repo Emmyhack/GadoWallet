@@ -58,7 +58,7 @@ class SanctumGatewayService {
       // Gateway only works on mainnet with valid API key
       enabled: network === 'mainnet-beta' && !!apiKey && !!apiUrl,
       apiUrl,
-      apiKey,
+      ...(apiKey && { apiKey }),
       fallbackToStandard: true,
       priorityThreshold: 10000, // 0.01 SOL in microlamports
       criticalTransactions: ['inheritance', 'smart_wallet_create']
@@ -245,8 +245,8 @@ class SanctumGatewayService {
       }
 
       return {
-        optimizedTransaction,
-        transactionId: undefined // Gateway doesn't return transaction ID in build response
+        optimizedTransaction
+        // transactionId is optional, not setting it means undefined
       };
 
     } catch (error) {

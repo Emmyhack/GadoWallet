@@ -60,7 +60,7 @@ export function withLazyLoading<T extends ComponentType<any>>(
   
   return (props: React.ComponentProps<T>) => (
     <LazyErrorBoundary fallback={fallback}>
-      <Suspense fallback={<LoadingFallback componentName={componentName} />}>
+      <Suspense fallback={<LoadingFallback {...(componentName && { componentName })} />}>
         <LazyComponent {...props} />
       </Suspense>
     </LazyErrorBoundary>

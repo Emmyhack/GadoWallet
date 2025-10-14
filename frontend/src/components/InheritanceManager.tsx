@@ -156,8 +156,11 @@ export function InheritanceManager() {
           program.programId
         );
         
-        const txSignature = await program.methods
-          .addSolHeir(amountBN, inactivityBN)
+        if (!('addSolHeir' in program.methods)) {
+          throw new Error('Program methods not available. Please ensure wallet is connected.');
+        }
+
+        const txSignature = await (program.methods as any)['addSolHeir'](amountBN, inactivityBN)
           .accountsPartial({
             solHeir: solHeirPDA,
             userProfile: userProfilePDA,

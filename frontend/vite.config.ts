@@ -3,11 +3,16 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    jsxRuntime: 'automatic'
+  })],
   define: {
     global: 'globalThis',
     'process.env': {},
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+  },
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   },
   // Performance optimizations
   build: {
@@ -42,7 +47,7 @@ export default defineConfig({
       // Enhanced CSP for development - still allowing unsafe-eval for HMR
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-eval' blob: data:;
+        script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: data:;
         worker-src 'self' blob: data:;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
         style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;

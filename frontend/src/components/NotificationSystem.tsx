@@ -81,7 +81,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = () => {
             
             realNotifications.push({
               id: account.pubkey.toString(),
-              type: typeMap[notificationType] as 'info' | 'success' | 'warning' | 'error' || 'info',
+              type: (notificationType && typeMap[notificationType] as 'info' | 'success' | 'warning' | 'error') || 'info',
               message,
               timestamp: new Date(Number(timestamp) * 1000),
               read: isRead

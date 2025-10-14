@@ -181,7 +181,7 @@ export default function SubscriptionManager() {
         try {
           const program = new anchor.Program(idl as any, new anchor.AnchorProvider(
             connection,
-            new anchor.Wallet(Keypair.generate()), // Temp wallet for reading
+            { publicKey: Keypair.generate().publicKey, signTransaction: async () => { throw new Error('Read-only'); }, signAllTransactions: async () => { throw new Error('Read-only'); } }, // Temp wallet for reading
             { commitment: 'confirmed' }
           ));
 
@@ -190,7 +190,7 @@ export default function SubscriptionManager() {
             new PublicKey("EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu")
           );
 
-          const userProfileAccount = await program.account.userProfile.fetch(userProfilePda);
+          const userProfileAccount = await (program.account as any)['userProfile'].fetch(userProfilePda);
           
           const realProfile: UserProfile = {
             tier: userProfileAccount.isPremium ? SubscriptionTier.PREMIUM : SubscriptionTier.FREE,

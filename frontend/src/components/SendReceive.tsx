@@ -37,7 +37,7 @@ export function SendReceive() {
     const context: Omit<TransactionContext, 'userTier'> = {
       type: 'standard_send',
       priority: amountValue > 10 ? 'high' : amountValue > 1 ? 'medium' : 'low',
-      assetValue: tab === 'sol' ? amountValue : undefined
+      ...(tab === 'sol' && !isNaN(amountValue) && { assetValue: amountValue })
     };
 
     const estimate = await getCostEstimate(context, userTier);
@@ -128,7 +128,7 @@ export function SendReceive() {
         const context: Omit<TransactionContext, 'userTier'> = {
           type: 'standard_send',
           priority: amountValue > 10 ? 'high' : amountValue > 1 ? 'medium' : 'low',
-          assetValue: tab === 'sol' ? amountValue : undefined
+          ...(tab === 'sol' && !isNaN(amountValue) && { assetValue: amountValue })
         };
 
         // Use Gateway service for intelligent routing
@@ -147,7 +147,7 @@ export function SendReceive() {
           const retryContext: Omit<TransactionContext, 'userTier'> = {
             type: 'standard_send',
             priority: 'high', // Escalated priority
-            assetValue: tab === 'sol' ? amountValue : undefined
+            ...(tab === 'sol' && !isNaN(amountValue) && { assetValue: amountValue })
           };
           
           const sig = await sendWithGateway(tx, connection, retryContext, userTier);
@@ -347,7 +347,7 @@ export function SendReceive() {
                   {shouldUseGateway({
                     type: 'standard_send',
                     priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
-                    assetValue: tab === 'sol' ? parseFloat(amount) : undefined
+                    ...(tab === 'sol' && !isNaN(parseFloat(amount)) && { assetValue: parseFloat(amount) })
                   }, userTier) ? (
                     <Zap className="w-5 h-5 text-yellow-400" />
                   ) : (
@@ -361,7 +361,7 @@ export function SendReceive() {
                       {shouldUseGateway({
                         type: 'standard_send',
                         priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
-                        assetValue: tab === 'sol' ? parseFloat(amount) : undefined
+                        ...(tab === 'sol' && !isNaN(parseFloat(amount)) && { assetValue: parseFloat(amount) })
                       }, userTier) ? (
                         <>⚡ Gateway Optimization Active</>
                       ) : (
@@ -382,7 +382,7 @@ export function SendReceive() {
                       {shouldUseGateway({
                         type: 'standard_send',
                         priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
-                        assetValue: tab === 'sol' ? parseFloat(amount) : undefined
+                        ...(tab === 'sol' && !isNaN(parseFloat(amount)) && { assetValue: parseFloat(amount) })
                       }, userTier) ? (
                         <ul className="text-blue-200 space-y-1">
                           <li>✓ Multi-path delivery (RPC + Jito)</li>

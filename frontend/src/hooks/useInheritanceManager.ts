@@ -118,8 +118,11 @@ export function useInheritanceManager() {
           inactivity: `${inactivitySeconds}s (${daysFloat} days)`,
         });
 
-        return await program.methods
-          .addSolHeir(amountBN, new BN(inactivitySeconds))
+        if (!('addSolHeir' in program.methods)) {
+          throw new Error('Program methods not available. Please ensure wallet is connected.');
+        }
+
+        return await (program.methods as any)['addSolHeir'](amountBN, new BN(inactivitySeconds))
           .accountsPartial({
             solHeir: solHeirPDA,
             userProfile: userProfilePDA,

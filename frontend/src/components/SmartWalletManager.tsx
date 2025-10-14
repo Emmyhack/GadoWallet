@@ -80,7 +80,7 @@ export default function SmartWalletManager() {
 
   const updateHeir = (index: number, field: string, value: any) => {
     const updated = [...heirs];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = { ...updated[index], [field]: value } as { address: string; percentage: number; };
     setHeirs(updated);
   };
 
@@ -107,9 +107,9 @@ export default function SmartWalletManager() {
     }
   };
 
-  const updateEditHeir = (index: number, field: string, value: any) => {
+  const updateEditHeir = (index: number, field: keyof {address: string, percentage: number}, value: any) => {
     const updated = [...editHeirs];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = { ...updated[index]!, [field]: value };
     setEditHeirs(updated);
   };
 

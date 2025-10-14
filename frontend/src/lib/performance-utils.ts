@@ -133,7 +133,7 @@ export function useInView(options?: IntersectionObserverInit) {
     if (!node) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting),
+      ([entry]) => setInView(entry?.isIntersecting ?? false),
       options
     );
 

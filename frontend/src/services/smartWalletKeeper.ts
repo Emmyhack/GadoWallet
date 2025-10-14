@@ -221,7 +221,7 @@ export class SmartWalletKeeper {
         success: true,
         txSignature: tx,
         owner: monitoredWallet.owner,
-        amountDistributed: walletInfo.balance,
+        ...(walletInfo.balance !== undefined && { amountDistributed: walletInfo.balance }),
         heirsCount: walletInfo.smartWallet.heirs.length,
       };
 
@@ -364,9 +364,9 @@ export class SmartWalletKeeper {
       statuses.push({
         owner: wallet.owner.toString(),
         eligible: eligibility.eligible,
-        balance: eligibility.balance,
-        timeUntilEligible: eligibility.eligible ? 0 : undefined,
-        reason: eligibility.reason,
+        ...(eligibility.balance !== undefined && { balance: eligibility.balance }),
+        ...(eligibility.eligible ? { timeUntilEligible: 0 } : {}),
+        ...(eligibility.reason !== undefined && { reason: eligibility.reason }),
       });
     }
 

@@ -272,7 +272,7 @@ const Analytics: React.FC = () => {
       const randomFactor = 0.8 + Math.random() * 0.4;
       
       history.push({
-        date: date.toISOString().split('T')[0],
+        date: date.toISOString().split('T')[0]!,
         revenue: (analyticsData.totalRevenue / days) * dayFactor * randomFactor,
         fees: (analyticsData.totalFees / days) * dayFactor * randomFactor,
         users: Math.floor((analyticsData.activeUsers / days) * dayFactor * randomFactor),

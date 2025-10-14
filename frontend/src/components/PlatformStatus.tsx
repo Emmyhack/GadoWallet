@@ -27,7 +27,7 @@ const RPC_ENDPOINTS = [
 
 export default function PlatformStatus() {
   const { publicKey, wallet } = useWallet();
-  const [connection, setConnection] = useState(() => new Connection(RPC_ENDPOINTS[0], 'confirmed'));
+  const [connection, setConnection] = useState(() => new Connection(RPC_ENDPOINTS[0]!, 'confirmed'));
   const [currentRpcIndex, setCurrentRpcIndex] = useState(0);
   const [program, setProgram] = useState<Program<Gado> | null>(null);
   const [status, setStatus] = useState<PlatformStatus>({
@@ -41,9 +41,9 @@ export default function PlatformStatus() {
   // Function to try next RPC endpoint
   const tryNextRpcEndpoint = () => {
     const nextIndex = (currentRpcIndex + 1) % RPC_ENDPOINTS.length;
-    console.log(`🔄 Switching to RPC endpoint ${nextIndex + 1}/${RPC_ENDPOINTS.length}: ${RPC_ENDPOINTS[nextIndex]}`);
+    console.log(`🔄 Switching to RPC endpoint ${nextIndex + 1}/${RPC_ENDPOINTS.length}: ${RPC_ENDPOINTS[nextIndex]!}`);
     
-    const newConnection = new Connection(RPC_ENDPOINTS[nextIndex], 'confirmed');
+    const newConnection = new Connection(RPC_ENDPOINTS[nextIndex]!, 'confirmed');
     setConnection(newConnection);
     setCurrentRpcIndex(nextIndex);
     
@@ -337,7 +337,7 @@ export default function PlatformStatus() {
             }
           }
           
-          toast.loading(`Network issue detected. Retrying with ${RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 'default'} RPC... (${attempts}/${maxAttempts})`, { 
+          toast.loading(`Network issue detected. Retrying with ${RPC_ENDPOINTS[currentRpcIndex]?.includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex]?.includes('alchemy') ? 'Alchemy' : 'default'} RPC... (${attempts}/${maxAttempts})`, { 
             id: loadingToast,
             duration: 3000 
           });
@@ -537,7 +537,7 @@ export default function PlatformStatus() {
                   try {
                     const { blockhash } = await connection.getLatestBlockhash();
                     const duration = Date.now() - start;
-                    toast.success(`Network OK: ${duration}ms - ${RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
+                    toast.success(`Network OK: ${duration}ms - ${RPC_ENDPOINTS[currentRpcIndex]?.includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex]?.includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
                   } catch (error) {
                     toast.error(`Network Error: ${error instanceof Error ? error.message : 'Unknown'}`);
                   }
@@ -549,15 +549,15 @@ export default function PlatformStatus() {
               <button
                 onClick={() => {
                   const newConn = tryNextRpcEndpoint();
-                  toast.success(`Switched to: ${RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
+                  toast.success(`Switched to: ${RPC_ENDPOINTS[currentRpcIndex]?.includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex]?.includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
                 }}
                 className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
               >
                 Switch RPC ({currentRpcIndex + 1}/{RPC_ENDPOINTS.length})
               </button>
               <span className="px-3 py-1 bg-gray-700 text-gray-300 rounded text-xs">
-                Current: {RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : 
-                          RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 
+                Current: {RPC_ENDPOINTS[currentRpcIndex]?.includes('helius') ? 'Helius' : 
+                          RPC_ENDPOINTS[currentRpcIndex]?.includes('alchemy') ? 'Alchemy' : 
                           'Default Solana'}
               </span>
             </div>

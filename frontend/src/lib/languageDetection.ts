@@ -123,7 +123,7 @@ export const detectUserLocation = async (): Promise<LocationInfo | null> => {
 const fallbackDetection = (): LocationInfo | null => {
   try {
     const browserLanguage = navigator.language || 'en';
-    const langCode = browserLanguage.split('-')[0].toLowerCase();
+    const langCode = browserLanguage.split('-')[0]?.toLowerCase() || 'en';
     
     // Find language in our map
     for (const [countryCode, langInfo] of Object.entries(countryLanguageMap)) {
