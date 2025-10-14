@@ -29,7 +29,7 @@ export function Transactions() {
       if (!publicKey) return;
       
       const cacheKey = `transactions_${publicKey.toBase58()}`;
-      const cached = cacheUtils.get(cacheKey);
+      const cached = cacheUtils.get(cacheKey) as TxRow[] | null;
       
       if (cached) {
         setRows(cached);

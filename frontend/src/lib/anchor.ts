@@ -4,7 +4,6 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useMemo } from 'react';
 import idlData from './gado.json';
 import { getProgramId } from './config';
-import { WalletAdapter } from '../types';
 
 const IDL = idlData as anchor.Idl;
 
@@ -24,7 +23,7 @@ export function useAnchorProgram() {
 
     const provider = new anchor.AnchorProvider(
       connection,
-      wallet as WalletAdapter,
+      wallet as unknown as anchor.Wallet,
       {
         commitment: 'confirmed',
         preflightCommitment: 'confirmed',

@@ -28,7 +28,7 @@ export function Portfolio() {
       if (!publicKey) return;
       
       const cacheKey = `portfolio_${publicKey.toBase58()}`;
-      const cached = cacheUtils.get(cacheKey);
+      const cached = cacheUtils.get(cacheKey) as { solBalance: number; tokens: any[] } | null;
       
       if (cached) {
         setSolBalance(cached.solBalance);

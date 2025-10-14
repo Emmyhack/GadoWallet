@@ -139,10 +139,10 @@ export function useWalletConnection() {
       // If it's a network error and we have more RPC endpoints to try
       if (retryCount < 2 && (
         connectionError.message?.includes('fetch') ||
-        error.message?.includes('network') ||
-        error.message?.includes('timeout') ||
-        error.message?.includes('503') ||
-        error.message?.includes('502')
+        connectionError.message?.includes('network') ||
+        connectionError.message?.includes('timeout') ||
+        connectionError.message?.includes('503') ||
+        connectionError.message?.includes('502')
       )) {
         // console.log(`🔄 Trying next RPC endpoint...`);
         switchRpcEndpoint();
@@ -159,7 +159,7 @@ export function useWalletConnection() {
           connected: false, 
           connecting: false 
         }));
-        toast.error(`Failed to connect: ${error.message}`);
+        toast.error(`Failed to connect: ${connectionError.message}`);
       }
     }
   }, [wallet, publicKey, connected, state.connection, state.programId, switchRpcEndpoint]);
@@ -213,15 +213,15 @@ export function useWalletConnection() {
         console.error(`❌ ${description} failed (attempt ${attempt}):`, lastError);
 
         const isRetryable = (
-          error.message?.includes('Blockhash') ||
-          error.message?.includes('blockhash') ||
-          error.message?.includes('invalid') ||
-          error.message?.includes('expired') ||
-          error.message?.includes('timeout') ||
-          error.message?.includes('network') ||
-          error.message?.includes('503') ||
-          error.message?.includes('502') ||
-          error.message?.includes('429')
+          lastError.message?.includes('Blockhash') ||
+          lastError.message?.includes('blockhash') ||
+          lastError.message?.includes('invalid') ||
+          lastError.message?.includes('expired') ||
+          lastError.message?.includes('timeout') ||
+          lastError.message?.includes('network') ||
+          lastError.message?.includes('503') ||
+          lastError.message?.includes('502') ||
+          lastError.message?.includes('429')
         );
 
         if (isRetryable && attempt < maxRetries) {

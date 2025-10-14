@@ -132,8 +132,8 @@ export interface SendTransactionOptions {
 // Smart Wallet types
 export interface SmartWalletData {
   authority: import('@solana/web3.js').PublicKey;
-  lastActivity: import('bn.js');
-  inactivityThreshold: import('bn.js');
+  lastActivity: number; // Using number for timestamps instead of BN
+  inactivityThreshold: number; // Using number for time thresholds
   heirs: HeirInfo[];
   isActive: boolean;
 }
@@ -152,7 +152,7 @@ export interface SmartWalletAccount {
 export interface PlatformConfig {
   admin: import('@solana/web3.js').PublicKey;
   feeCollector: import('@solana/web3.js').PublicKey;
-  baseFee: import('bn.js');
+  baseFee: number; // Using number for fee amounts
   isInitialized: boolean;
 }
 

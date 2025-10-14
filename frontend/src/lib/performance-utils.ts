@@ -188,7 +188,7 @@ export function useOptimizedBlockchainData<T>(
     const cacheKey = `${key}_${JSON.stringify(dependencies)}`;
     
     // Check cache first
-    const cachedData = cacheUtils.get(cacheKey);
+    const cachedData = cacheUtils.get(cacheKey) as T | null;
     if (cachedData) {
       setData(cachedData);
       return;
