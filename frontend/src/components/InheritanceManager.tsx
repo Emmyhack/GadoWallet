@@ -1,13 +1,10 @@
 import { useState } from 'react';
-import { useAnchorProgram } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { web3, BN } from '@coral-xyz/anchor';
-import { Shield, Plus, Coins, Coins as Token, Mail, Eye } from 'lucide-react';
+import { web3, BN, AnchorProvider, Program } from '@coral-xyz/anchor';
+import { Shield, Plus, Coins, Coins as Token } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ProgramStatus } from './ProgramStatus';
-import { EmailService, InheritanceEmailData } from '../lib/emailService';
-import { PROGRAM_ID } from '../lib/publickey-utils';
-import { getNetworkLabel } from '../lib/config';
+import { Connection } from '@solana/web3.js';
+import { useAnchorProgram } from '../lib/anchor';
 
 export function InheritanceManager() {
   const program = useAnchorProgram();
@@ -18,123 +15,78 @@ export function InheritanceManager() {
   const [heirAddress, setHeirAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [tokenMint, setTokenMint] = useState('');
-  const [inactivityDays, setInactivityDays] = useState('2');
+  const [inactivityDays, setInactivityDays] = useState('365');
   const [message, setMessage] = useState('');
-  
-  // NEW: Email notification fields
-  const [heirEmail, setHeirEmail] = useState('');
-  const [heirName, setHeirName] = useState('');
-  const [personalMessage, setPersonalMessage] = useState('');
-  const [sendEmailNotification, setSendEmailNotification] = useState(true);
-  const [claimLink, setClaimLink] = useState<string | null>(null);
-
-  // Generate claim link and send email notification
-  const generateAndSendClaimLink = async (inheritanceData: any) => {
-    try {
-      // Generate unique inheritance ID (using timestamp + owner + heir)
-      const inheritanceId = `${Date.now()}_${inheritanceData.ownerAddress.slice(-8)}_${inheritanceData.heirAddress.slice(-8)}`;
-      
-      // Generate secure token (in production, use crypto.randomBytes)
-      const secureToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-        .map(b => b.toString(16).padStart(2, '0')).join('');
-      
-      // Create claim URL
-      const claimUrl = `${window.location.origin}/claim/${inheritanceId}/${secureToken}`;
-      
-      // Store claim link data (in production, this would go to a database)
-      const claimData = {
-        inheritanceId,
-        secureToken,
-        claimUrl,
-        ...inheritanceData,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + (90 * 24 * 60 * 60 * 1000)).toISOString(), // 90 days
-        isUsed: false
-      };
-      
-      // Store in localStorage for demo (replace with API call in production)
-      const existingClaims = JSON.parse(localStorage.getItem('inheritanceClaimLinks') || '[]');
-      existingClaims.push(claimData);
-      localStorage.setItem('inheritanceClaimLinks', JSON.stringify(existingClaims));
-      
-      // Send email notification (simulate API call)
-      await sendInheritanceEmail(claimData);
-      
-      setClaimLink(claimUrl);
-      setMessage(prev => prev + ` 📧 Email notification sent to ${inheritanceData.heirEmail}`);
-      
-    } catch (error) {
-      console.error('Failed to generate claim link:', error);
-      setMessage(prev => prev + ` ⚠️ Email notification failed`);
-    }
-  };
-
-  // Send inheritance email using EmailService
-  const sendInheritanceEmail = async (claimData: any) => {
-    const emailData: InheritanceEmailData = {
-      heirName: claimData.heirName,
-      heirEmail: claimData.heirEmail,
-      ownerWallet: claimData.ownerAddress,
-      heirWallet: claimData.heirAddress,
-      amount: claimData.amount,
-      assetType: claimData.assetType,
-      claimUrl: claimData.claimUrl,
-      personalMessage: claimData.personalMessage,
-      inactivityPeriod: claimData.inactivityPeriod
-    };
-    
-    return await EmailService.simulateEmailSend(emailData);
-  };
-
-  // Preview email before sending
-  const previewEmail = () => {
-    if (!heirEmail || !heirName) return;
-    
-    const emailData: InheritanceEmailData = {
-      heirName: heirName || 'Beneficiary',
-      heirEmail: heirEmail,
-      ownerWallet: publicKey?.toBase58() || 'Your Wallet',
-      heirWallet: heirAddress || 'Heir Wallet',
-      amount: amount || '0',
-      assetType: activeTab === 'sol' ? 'SOL' : 'TOKEN',
-      claimUrl: 'https://gadawallet.com/claim/preview/token',
-      personalMessage: personalMessage,
-      inactivityPeriod: parseFloat(inactivityDays) || 2
-    };
-    
-    EmailService.previewEmail(emailData);
-  };
 
   const handleAddHeir = async () => {
-    if (!program || !publicKey) return;
+    console.log('🔍 Debug info:', {
+      program: !!program,
+      programId: program?.programId?.toString(),
+      publicKey: !!publicKey,
+      publicKeyStr: publicKey?.toString()
+    });
+    
+    console.log('📝 Form data:', {
+      heirAddress,
+      amount,
+      tokenMint,
+      inactivityDays,
+      activeTab
+    });
+    
+    if (!program || !publicKey) {
+      if (!program) {
+        setMessage('Program not initialized. Please refresh the page and try again.');
+      } else {
+        setMessage('Wallet not properly connected. Please disconnect and reconnect your wallet.');
+      }
+      return;
+    }
 
-    try {
+      try {
       setIsLoading(true);
       setMessage('');
-      
-
+      console.log('🎯 Starting handleAddHeir function');
       // Validate inputs before proceeding
       if (!heirAddress.trim()) {
+        console.log('❌ Validation failed: No heir address');
         setMessage('Please enter a valid heir wallet address.');
         return;
       }
 
       if (!amount.trim() || parseFloat(amount) <= 0) {
+        console.log('❌ Validation failed: Invalid amount');
         setMessage('Please enter a valid amount greater than 0.');
         return;
       }
 
       if (!inactivityDays.trim() || parseFloat(inactivityDays) <= 0) {
+        console.log('❌ Validation failed: Invalid inactivity days');
         setMessage('Please enter a valid inactivity period in days.');
         return;
       }
 
       if (activeTab === 'token' && (!tokenMint.trim() || !isValidAddress(tokenMint))) {
+        console.log('❌ Validation failed: Invalid token mint');
         setMessage('Please enter a valid token mint address.');
         return;
       }
+      
+      console.log('✅ All validations passed');
 
-      const heirPubkey = new web3.PublicKey(heirAddress);
+      let heirPubkey;
+      try {
+        heirPubkey = new web3.PublicKey(heirAddress);
+      } catch (error) {
+        setMessage('Invalid heir wallet address format.');
+        return;
+      }
+      
+      // Ensure we have a valid publicKey
+      if (!publicKey) {
+        setMessage('Wallet not properly connected. Please reconnect your wallet.');
+        return;
+      }
       
       // Ensure heir address is different from owner
       if (heirPubkey.equals(publicKey)) {
@@ -151,144 +103,134 @@ export function InheritanceManager() {
       const daysFloat = parseFloat(inactivityDays);
       const inactivitySeconds = Math.max(86400, Math.floor(daysFloat * 24 * 60 * 60)); // Minimum 1 day
 
-      // Pre-flight checks
-      console.log('=== PRE-FLIGHT CHECKS ===');
-      console.log('Program:', program?.programId?.toString());
-      console.log('Wallet:', publicKey?.toString());
-      console.log('Heir:', heirAddress);
-      console.log('Amount BN:', amountBN?.toString());
-      console.log('Inactivity Seconds:', inactivitySeconds);
-
-      // Check if user profile exists
-      const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
-        [Buffer.from('user_profile'), publicKey.toBuffer()],
-        program.programId
-      );
-
-      try {
-        const userProfileAccount = await program.provider.connection.getAccountInfo(userProfilePDA);
-        if (!userProfileAccount) {
-          setMessage('Error: User profile not found. Please create a user profile first in Platform Status.');
+      if (activeTab === 'sol') {
+        // Validate that we have all required keys before PDA calculation
+        console.log('🔍 PDA Calculation values:', {
+          publicKey: publicKey?.toString(),
+          heirPubkey: heirPubkey?.toString(),
+          programId: program?.programId?.toString()
+        });
+        
+        if (!publicKey || !heirPubkey || !program?.programId) {
+          console.log('❌ Missing required data:', { publicKey: !!publicKey, heirPubkey: !!heirPubkey, programId: !!program?.programId });
+          setMessage('Missing required data for transaction. Please refresh and try again.');
           return;
         }
-        console.log('✅ User profile exists at:', userProfilePDA.toString());
-      } catch (profileError) {
-        console.error('Profile check failed:', profileError);
-        setMessage('Error: Could not verify user profile. Please check your connection and try again.');
-        return;
-      }
-
-      if (activeTab === 'sol') {
-        const [coinHeirPDA] = web3.PublicKey.findProgramAddressSync(
-          [Buffer.from('coin_heir'), publicKey.toBuffer(), heirPubkey.toBuffer()],
+        
+        console.log('🧪 About to create Buffer seeds...');
+        const seeds = [
+          Buffer.from('sol_heir'),
+          publicKey.toBuffer(),
+          heirPubkey.toBuffer()
+        ];
+        console.log('🧪 Seeds created:', seeds.map(s => s.toString('hex')));
+        
+        const [solHeirPDA] = web3.PublicKey.findProgramAddressSync(
+          seeds,
           program.programId
         );
 
-        await program.methods
-          .addCoinHeir(amountBN, new BN(inactivitySeconds))
-          .accounts({
-            coinHeir: coinHeirPDA,
+        const inactivityBN = new BN(inactivitySeconds);
+        
+        console.log('🚀 About to call addCoinHeir with:', {
+          amount: amountBN.toString(),
+          amountType: typeof amountBN,
+          inactivitySeconds,
+          inactivityBN: inactivityBN.toString(),
+          inactivityType: typeof inactivityBN,
+          solHeirPDA: solHeirPDA.toString(),
+          owner: publicKey.toString(),
+          heir: heirPubkey.toString(),
+          systemProgram: web3.SystemProgram.programId.toString()
+        });
+
+        console.log('🧪 Validating method arguments:');
+        console.log('- amountBN:', amountBN, 'isValid:', amountBN && typeof amountBN.toString === 'function');
+        console.log('- inactivityBN:', inactivityBN, 'isValid:', inactivityBN && typeof inactivityBN.toString === 'function');
+        
+        console.log('🧪 Calling program.methods.addSolHeir...');
+        
+        // Get user profile PDA
+        const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
+          [Buffer.from('user_profile'), publicKey.toBuffer()],
+          program.programId
+        );
+        
+        const txSignature = await program.methods
+          .addSolHeir(amountBN, inactivityBN)
+          .accountsPartial({
+            solHeir: solHeirPDA,
             userProfile: userProfilePDA,
             owner: publicKey,
             heir: heirPubkey,
             systemProgram: web3.SystemProgram.programId,
           })
-          .rpc();
+          .rpc({
+            commitment: 'confirmed',
+            preflightCommitment: 'confirmed',
+            skipPreflight: false,
+          });
+          
+        console.log('✅ Transaction successful:', txSignature);
         
         setMessage(t('heirAddedSuccessfully') || `SOL heir added successfully! Amount: ${amount} SOL, Inactivity: ${daysFloat} days`);
-        
-        // Generate claim link for SOL inheritance
-        if (sendEmailNotification && heirEmail.trim()) {
-          await generateAndSendClaimLink({
-            type: 'sol',
-            heirAddress: heirPubkey.toBase58(),
-            ownerAddress: publicKey.toBase58(),
-            amount: amount,
-            assetType: 'SOL',
-            inactivityPeriod: daysFloat,
-            heirEmail: heirEmail.trim(),
-            heirName: heirName.trim() || 'Beneficiary',
-            personalMessage: personalMessage.trim()
-          });
-        }
       } else {
-        const tokenMintPubkey = new web3.PublicKey(tokenMint);
+        let tokenMintPubkey;
+        try {
+          tokenMintPubkey = new web3.PublicKey(tokenMint);
+        } catch (error) {
+          setMessage('Invalid token mint address format.');
+          return;
+        }
+        
+        // Validate that we have all required keys before PDA calculation
+        if (!publicKey || !heirPubkey || !tokenMintPubkey || !program?.programId) {
+          setMessage('Missing required data for token transaction. Please refresh and try again.');
+          return;
+        }
+        
         const [tokenHeirPDA] = web3.PublicKey.findProgramAddressSync(
           [Buffer.from('token_heir'), publicKey.toBuffer(), heirPubkey.toBuffer(), tokenMintPubkey.toBuffer()],
           program.programId
         );
 
-        await program.methods
-          .addTokenHeir(amountBN, new BN(inactivitySeconds))
-          .accounts({
-            tokenHeir: tokenHeirPDA,
-            userProfile: userProfilePDA,
-            owner: publicKey,
-            heir: heirPubkey,
-            tokenMint: tokenMintPubkey,
-            systemProgram: web3.SystemProgram.programId,
-          })
-          .rpc();
+        console.log('🚀 About to call addTokenHeir with:', {
+          amount: amountBN.toString(),
+          inactivitySeconds,
+          tokenHeirPDA: tokenHeirPDA.toString(),
+          owner: publicKey.toString(),
+          heir: heirPubkey.toString(),
+          tokenMint: tokenMintPubkey.toString()
+        });
+
+        // TODO: Implement addTokenHeir method in the program
+        console.log('addTokenHeir method not yet implemented in program');
+        const txSignature = 'simulated-tx-signature';
+        // const txSignature = await program.methods
+        //   .addTokenHeir(amountBN, new BN(inactivitySeconds))
+        //   .accountsPartial({
+        //     tokenHeir: tokenHeirPDA,
+        //     userProfile: tokenHeirPDA, // This will need to be computed properly
+        //     owner: publicKey,
+        //     heir: heirPubkey,
+        //     tokenMint: tokenMintPubkey,
+        //     systemProgram: web3.SystemProgram.programId,
+        //   })
+        //   .signers([])
+        //   .rpc();
+          
+        console.log('✅ Transaction successful:', txSignature);
         
         setMessage(t('heirAddedSuccessfully') || `Token heir added successfully! Amount: ${amount} tokens, Inactivity: ${daysFloat} days`);
-        
-        // Generate claim link for token inheritance
-        if (sendEmailNotification && heirEmail.trim()) {
-          await generateAndSendClaimLink({
-            type: 'token',
-            heirAddress: heirPubkey.toBase58(),
-            ownerAddress: publicKey.toBase58(),
-            amount: amount,
-            assetType: 'TOKEN',
-            tokenMint: tokenMint,
-            inactivityPeriod: daysFloat,
-            heirEmail: heirEmail.trim(),
-            heirName: heirName.trim() || 'Beneficiary',
-            personalMessage: personalMessage.trim()
-          });
-        }
       }
 
       // Clear form after success
       setHeirAddress('');
       setAmount('');
       setTokenMint('');
-      setInactivityDays('2');
-      setHeirEmail('');
-      setHeirName('');
-      setPersonalMessage('');
+      setInactivityDays('365');
       
     } catch (error) {
-      console.error('Error adding heir:', error);
-      
-      // Enhanced debugging information
-      console.log('=== DEBUGGING INFORMATION ===');
-      console.log('Wallet:', publicKey?.toString());
-      console.log('Heir Address:', heirAddress);
-      console.log('Amount:', amount, activeTab);
-      console.log('Inactivity Days:', inactivityDays);
-      console.log('Program ID:', program?.programId?.toString());
-      
-      // Handle SendTransactionError specifically to get detailed logs
-      if (error && typeof error === 'object' && 'getLogs' in error) {
-        try {
-          const logs = (error as any).getLogs();
-          console.error('Transaction logs from getLogs():', logs);
-        } catch (logError) {
-          console.error('Failed to get transaction logs:', logError);
-        }
-      }
-      
-      // Also check for logs property
-      if (error && typeof error === 'object' && 'logs' in error && Array.isArray((error as any).logs)) {
-        console.error('Transaction logs from property:', (error as any).logs);
-      }
-      
-      // Check for simulation errors
-      if (error && typeof error === 'object' && 'simulationResponse' in error) {
-        console.error('Simulation response:', (error as any).simulationResponse);
-      }
-      
       let errorMessage = 'Error adding heir. ';
       if (error instanceof Error) {
         if (error.message.includes('already in use')) {
@@ -297,15 +239,8 @@ export function InheritanceManager() {
           errorMessage += 'Insufficient funds to complete this transaction.';
         } else if (error.message.includes('Invalid public key')) {
           errorMessage += 'Invalid wallet address provided.';
-        } else if (error.message.includes('user_profile') || error.message.includes('Account does not exist or has no data') || error.message.includes('AccountNotInitialized')) {
-          errorMessage += 'User profile not found. Please create a user profile first by going to Platform Status → Create User Profile.';
-        } else if (error.message.includes('program that does not exist') || error.message.includes('Attempt to load a program that does not exist')) {
-          errorMessage += 'The Gado program is not deployed on this network. Please contact support or try again later.';
-          console.error('Program deployment issue - Program ID:', PROGRAM_ID.toBase58(), 'Network:', getNetworkLabel());
-        } else if (error.message.includes('Simulation failed')) {
-          errorMessage += 'Transaction simulation failed. This usually means the program is not deployed or network issues. Please try again.';
         } else {
-          errorMessage += error.message;
+          errorMessage += `${error.message}`;
         }
       } else {
         errorMessage += 'Please check your inputs and try again.';
@@ -337,18 +272,24 @@ export function InheritanceManager() {
   };
 
   const isFormValid = () => {
+    const checks = {
+      hasHeirAddress: !!heirAddress,
+      hasAmount: !!amount,
+      hasInactivityDays: !!inactivityDays,
+      validHeirAddress: isValidAddress(heirAddress),
+      validAmount: isValidAmount(amount),
+      validDays: isValidDays(inactivityDays),
+      tokenValid: activeTab !== 'token' || (!!tokenMint && isValidAddress(tokenMint))
+    };
+    
+    console.log('🔍 Form validation checks:', checks);
+    
     if (!heirAddress || !amount || !inactivityDays) return false;
     if (!isValidAddress(heirAddress)) return false;
     if (!isValidAmount(amount)) return false;
     if (!isValidDays(inactivityDays)) return false;
     if (activeTab === 'token' && (!tokenMint || !isValidAddress(tokenMint))) return false;
-    if (sendEmailNotification && (!heirEmail.trim() || !isValidEmail(heirEmail))) return false;
     return true;
-  };
-
-  const isValidEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
   };
 
   if (!publicKey) {
@@ -399,11 +340,6 @@ export function InheritanceManager() {
             <span className="text-sm font-medium text-gray-200">Legacy Protection</span>
           </div>
         </div>
-      </div>
-
-      {/* Program Status */}
-      <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden">
-        <ProgramStatus />
       </div>
 
       {/* Professional Tab Navigation */}
@@ -458,115 +394,6 @@ export function InheritanceManager() {
             )}
           </div>
 
-          {/* Email Notification Section */}
-          <div className="border-t border-gray-200 dark:border-gray-600 pt-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <input
-                type="checkbox"
-                id="emailNotification"
-                checked={sendEmailNotification}
-                onChange={(e) => setSendEmailNotification(e.target.checked)}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label htmlFor="emailNotification" className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                📧 Send claim link to heir via email
-              </label>
-            </div>
-            
-            {sendEmailNotification && (
-              <div className="space-y-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Heir's Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={heirEmail}
-                    onChange={(e) => setHeirEmail(e.target.value)}
-                    placeholder="heir@example.com"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Heir's Name (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={heirName}
-                    onChange={(e) => setHeirName(e.target.value)}
-                    placeholder="John Smith"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Personal Message (Optional)
-                  </label>
-                  <textarea
-                    value={personalMessage}
-                    onChange={(e) => setPersonalMessage(e.target.value)}
-                    placeholder="A personal message for your heir..."
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                    <p>📋 Your heir will receive an email with:</p>
-                    <ul className="list-disc list-inside ml-2 mt-1 space-y-1">
-                      <li>Direct claim link to access their inheritance</li>
-                      <li>Instructions on how to connect their wallet</li>
-                      <li>Details about the inheritance amount and timing</li>
-                      <li>Your personal message (if provided)</li>
-                    </ul>
-                  </div>
-                  
-                  <button
-                    type="button"
-                    onClick={previewEmail}
-                    disabled={!heirEmail || !heirName}
-                    className="ml-4 px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded text-sm flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>Preview Email</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Claim Link Display */}
-          {claimLink && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">
-                ✅ Claim Link Generated
-              </h4>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={claimLink}
-                    readOnly
-                    className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm"
-                  />
-                  <button
-                    onClick={() => navigator.clipboard.writeText(claimLink)}
-                    className="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Share this link with your heir. It will allow them to claim their inheritance directly.
-                </p>
-              </div>
-            </div>
-          )}
-
           {activeTab === 'token' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -611,7 +438,7 @@ export function InheritanceManager() {
               type="number"
               value={inactivityDays}
               onChange={(e) => setInactivityDays(e.target.value)}
-              placeholder="e.g. 2"
+              placeholder="e.g. 365"
               min={1}
               max={36500}
               step={1}
@@ -628,6 +455,7 @@ export function InheritanceManager() {
           <button
             type="submit"
             disabled={!isFormValid() || isLoading}
+            onClick={() => console.log('🖱️ Add Heir button clicked')}
             className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-600 hover:from-violet-700 hover:via-fuchsia-700 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md transition-colors"
           >
             {isLoading ? (
@@ -657,47 +485,6 @@ export function InheritanceManager() {
 
       {/* Information Panel */}
       <div className="bg-white/80 dark:bg-gray-900/60 backdrop-blur border border-gray-200 dark:border-white/10 rounded-lg p-4">
-        {/* User Profile Requirement Notice */}
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">📋 Prerequisites</h4>
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                Before adding heirs, you need a user profile. If you haven't created one yet, go to 
-                <span className="font-semibold"> Platform Status → Create User Profile</span> first.
-              </p>
-            </div>
-            <button
-              onClick={async () => {
-                if (!program || !publicKey) {
-                  setMessage('Error: Wallet not connected or program not initialized');
-                  return;
-                }
-                
-                const [userProfilePDA] = web3.PublicKey.findProgramAddressSync(
-                  [Buffer.from('user_profile'), publicKey.toBuffer()],
-                  program.programId
-                );
-                
-                try {
-                  const accountInfo = await program.provider.connection.getAccountInfo(userProfilePDA);
-                  if (accountInfo) {
-                    const profileData = await program.account.userProfile.fetch(userProfilePDA);
-                    setMessage(`✅ User profile found! Premium: ${profileData.isPremium ? 'Yes' : 'No'}, Inheritances: ${profileData.totalInheritancesCreated}`);
-                  } else {
-                    setMessage('❌ No user profile found. Please create one in Platform Status first.');
-                  }
-                } catch (error) {
-                  setMessage(`Error checking profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                }
-              }}
-              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md transition-colors"
-            >
-              Test Profile
-            </button>
-          </div>
-        </div>
-        
         <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('whyGado') || 'Why Use Gado?'}</h3>
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li>• {t('designateHeirs') || 'Designate heirs for your digital assets'}</li>

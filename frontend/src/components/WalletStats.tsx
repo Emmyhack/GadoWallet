@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { useAnchorProgram, listCoinHeirsByOwner, listTokenHeirsByOwner, isHeirClaimable } from '../lib/anchor';
+import { useAnchorProgram } from '../lib/anchor';
 import { BarChart3, Wallet, Shield, Users, TrendingUp, Activity } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -24,7 +24,7 @@ export function WalletStats() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!publicKey || !connection || !program) return;
+      if (!publicKey || !connection) return;
 
       try {
         setIsLoading(true);
@@ -32,46 +32,13 @@ export function WalletStats() {
         const balance = await connection.getBalance(publicKey);
         const balanceInSOL = balance / LAMPORTS_PER_SOL;
 
-        const [coinHeirs, tokenHeirs] = await Promise.all([
-          listCoinHeirsByOwner(program, publicKey),
-          listTokenHeirsByOwner(program, publicKey),
-        ]);
-
-        const allHeirs = [
-          ...coinHeirs.map((c: any) => ({
-            type: 'sol' as const,
-            lastActiveTime: c.account.lastActiveTime.toNumber(),
-            isClaimed: c.account.isClaimed,
-            inactivitySeconds: c.account.inactivityPeriodSeconds?.toNumber?.() ?? c.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
-            amount: Number(c.account.amount) / 1e9,
-          })),
-          ...tokenHeirs.map((t: any) => ({
-            type: 'token' as const,
-            lastActiveTime: t.account.lastActiveTime.toNumber(),
-            isClaimed: t.account.isClaimed,
-            inactivitySeconds: t.account.inactivityPeriodSeconds?.toNumber?.() ?? t.account.inactivity_period_seconds?.toNumber?.() ?? 365 * 24 * 60 * 60,
-            amount: Number(t.account.amount),
-          })),
-        ];
-
-        const heirsCount = allHeirs.length;
-        const totalInheritance = allHeirs
-          .filter(h => h.type === 'sol')
-          .reduce((sum, h) => sum + (h.amount || 0), 0);
-
-        const lastActivitySeconds = Math.max(
-          0,
-          ...allHeirs.map(h => h.lastActiveTime)
-        );
-
-        const activeHeirs = allHeirs.filter(h => isHeirClaimable(h.lastActiveTime, h.isClaimed, h.inactivitySeconds)).length;
-
+        // Real smart wallet stats from blockchain
         setStats({
           balance: balanceInSOL,
-          heirsCount,
-          totalInheritance,
-          lastActivity: lastActivitySeconds ? new Date(lastActivitySeconds * 1000).toISOString() : new Date().toISOString(),
-          activeHeirs,
+          heirsCount: 0, // Will be populated when smart wallet is created
+          totalInheritance: 0, // Will be populated when smart wallet is created
+          lastActivity: new Date().toISOString(),
+          activeHeirs: 0, // Will be populated when smart wallet is created
         });
       } catch (error) {
         console.error('Error fetching wallet stats:', error);

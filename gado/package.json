@@ -5,11 +5,8 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "keeper:basic": "ts-node keeper-bot.ts",
     "keeper:enhanced": "ts-node -e \"require('./enhanced-keeper-bot').runEnhancedKeeperBot()\"",
-    "keeper:test": "ts-node test-keeper-bot.ts",
     "keeper:build": "tsc --noEmit --skipLibCheck keeper-bot.ts enhanced-keeper-bot.ts",
-    "keeper:check": "node check-smart-wallets.js",
-    "keeper:test-simple": "node test-keeper-simple.js",
-    "keeper:simulate": "node simulate-keeper-test.js"
+    "keeper:check": "node check-smart-wallets.js"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",

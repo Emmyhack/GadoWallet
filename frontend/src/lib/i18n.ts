@@ -8,7 +8,6 @@ const resources = {
       inheritance: 'Inheritance',
       batchTransfer: 'Batch Transfer',
       activity: 'Activity',
-      claimAssets: 'Claim Assets',
       statistics: 'Statistics',
       sendReceive: 'Send/Receive',
       transactions: 'Transactions',
@@ -128,8 +127,6 @@ const resources = {
       transfersRequireSignature: 'All transfers require wallet signature',
       recipientsMustHaveValidAddresses: 'Recipients must have valid Solana addresses',
 
-      // ClaimAssets
-      claimAssetsSubtitle: 'Claim inherited SOL and tokens after inactivity period',
       searchClaimableAssets: 'Search for Claimable Assets',
       ownerWalletAddress: "Owner's Wallet Address",
       enterOwnerWalletAddress: "Enter the owner's wallet address",
@@ -215,7 +212,6 @@ const resources = {
       inheritance: 'Herencia',
       batchTransfer: 'Transferencia en Lote',
       activity: 'Actividad',
-      claimAssets: 'Reclamar Activos',
       statistics: 'Estadísticas',
       sendReceive: 'Enviar/Recibir',
       transactions: 'Transacciones',
@@ -335,8 +331,6 @@ const resources = {
       transfersRequireSignature: 'Todas las transferencias requieren firma',
       recipientsMustHaveValidAddresses: 'Los destinatarios deben tener direcciones válidas',
 
-      // ClaimAssets
-      claimAssetsSubtitle: 'Reclama SOL y tokens heredados tras el periodo de inactividad',
       searchClaimableAssets: 'Buscar activos reclamables',
       ownerWalletAddress: 'Dirección del propietario',
       enterOwnerWalletAddress: 'Ingresa la dirección del propietario',
@@ -422,7 +416,6 @@ const resources = {
       inheritance: 'Ìjogún',
       batchTransfer: 'Ìfiránṣẹ̀ Pọ̀',
       activity: 'Ìṣe',
-      claimAssets: 'Gba Ọ̀rò',
       statistics: 'Ìṣirò',
       sendReceive: 'Firanṣẹ/Ìgbọ̀wọ́',
       transactions: 'Ìdúnádúrà',
@@ -542,8 +535,6 @@ const resources = {
       transfersRequireSignature: 'Gbogbo ìfiránṣẹ̀ nílò ìbuwọlu',
       recipientsMustHaveValidAddresses: 'Àwọn olùgba gbọ́dọ̀ ní adirẹsi tó bófin mu',
 
-      // ClaimAssets
-      claimAssetsSubtitle: 'Gba SOL àti tókẹnì lẹ́yìn àìṣiṣẹ́',
       searchClaimableAssets: 'Wá àwọn ohun-ini tí a lè béèrè',
       ownerWalletAddress: 'Adirẹsi apamọwọ olùníní',
       enterOwnerWalletAddress: 'Tẹ adirẹsi olùníní',
@@ -629,7 +620,6 @@ const resources = {
       inheritance: 'Gādon dukiya',
       batchTransfer: 'Canja wurin taro',
       activity: 'Ayyuka',
-      claimAssets: 'Neman dukiya',
       statistics: 'Kididdiga',
       sendReceive: 'Aika/Karɓa',
       transactions: 'Mu’amaloli',
@@ -749,8 +739,6 @@ const resources = {
       transfersRequireSignature: 'Dukkan canje-canje na bukatar sa hannu',
       recipientsMustHaveValidAddresses: 'Masu karɓa su kasance da ingantattun adireshi',
 
-      // ClaimAssets
-      claimAssetsSubtitle: 'Nemi SOL da tokens bayan lokacin rashin aiki',
       searchClaimableAssets: 'Bincika dukiya da za a iya nema',
       ownerWalletAddress: 'Adireshin mai shi',
       enterOwnerWalletAddress: 'Shigar da adireshin mai shi',
@@ -836,7 +824,6 @@ const resources = {
       inheritance: 'Héritage',
       batchTransfer: 'Transfert groupé',
       activity: 'Activité',
-      claimAssets: 'Réclamer des actifs',
       statistics: 'Statistiques',
       sendReceive: 'Envoyer/Recevoir',
       transactions: 'Transactions',
@@ -956,8 +943,6 @@ const resources = {
       transfersRequireSignature: 'Tous les transferts nécessitent une signature',
       recipientsMustHaveValidAddresses: 'Destinataires avec adresses valides',
 
-      // ClaimAssets
-      claimAssetsSubtitle: 'Réclamez SOL et tokens après inactivité',
       searchClaimableAssets: 'Rechercher des actifs réclamables',
       ownerWalletAddress: 'Adresse du propriétaire',
       enterOwnerWalletAddress: 'Saisir l’adresse du propriétaire',
@@ -1043,7 +1028,6 @@ const resources = {
       inheritance: '继承',
       batchTransfer: '批量转账',
       activity: '活动',
-      claimAssets: '领取资产',
       statistics: '统计',
       sendReceive: '发送/接收',
       transactions: '交易',
@@ -1163,8 +1147,6 @@ const resources = {
       transfersRequireSignature: '所有转账需要签名',
       recipientsMustHaveValidAddresses: '收款人必须有有效地址',
 
-      // ClaimAssets
-      claimAssetsSubtitle: '在不活跃期后领取继承的 SOL 和代币',
       searchClaimableAssets: '搜索可申领资产',
       ownerWalletAddress: '所有者钱包地址',
       enterOwnerWalletAddress: '输入所有者钱包地址',

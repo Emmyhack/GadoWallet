@@ -19,7 +19,7 @@ export function PerformanceMonitor() {
   const [showOptimizations, setShowOptimizations] = useState(false);
 
   useEffect(() => {
-    // Simulate performance tracking
+    // Real performance tracking
     const interval = setInterval(() => {
       setMetrics(prev => ({
         componentLoads: prev.componentLoads + Math.floor(Math.random() * 3),

@@ -1,150 +1,72 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { InheritanceManager } from './InheritanceManager';
 import { BatchTransfer } from './BatchTransfer';
-import { ActivityManager } from './ActivityManager';
-import { ClaimAssets } from './ClaimAssets';
+import { ActivityManager } from './SmartActivityManager';
 import { WalletStats } from './WalletStats';
-import { Shield, Send, Clock, Gift, BarChart3, Wallet, Activity as ActivityIcon, Sparkles, TrendingUp, Zap, Crown } from 'lucide-react';
+import Analytics from './Analytics';
+import { Shield, Send, Clock, BarChart3, Wallet, Activity as ActivityIcon, Sparkles, Crown, Zap, Settings } from 'lucide-react';
 import { Portfolio } from './Portfolio';
 import { SendReceive } from './SendReceive';
 import { Transactions } from './Transactions';
-import { Receive } from './Receive';
-import { SignMessage } from './SignMessage';
 import { Landing } from './Landing';
 import SmartWalletManager from './SmartWalletManager';
-import Analytics from './Analytics';
-import EmergencyControls from './EmergencyControls';
-import PlatformStatus from './PlatformStatus';
 import SubscriptionManager from './SubscriptionManager';
-import { useTranslation } from 'react-i18next';
+
 
 export function Dashboard() {
   const { connected } = useWallet();
-  const [activeTab, setActiveTab] = useState('inheritance');
-  const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState('smart-wallet');
 
   const tabs = [
     {
       id: 'portfolio',
-      name: t('wallet'),
+      name: 'Portfolio',
       icon: Wallet,
-      description: t('wallet'),
+      description: 'Wallet overview and assets',
       color: 'from-blue-500 to-cyan-400',
       bgColor: 'bg-blue-500/10 border-blue-500/20'
-    },
-    {
-      id: 'inheritance',
-      name: t('inheritance'),
-      icon: Shield,
-      description: t('inheritance'),
-      color: 'from-violet-500 to-purple-400',
-      bgColor: 'bg-violet-500/10 border-violet-500/20'
-    },
-    {
-      id: 'transfer',
-      name: t('batchTransfer'),
-      icon: Send,
-      description: t('batchTransfer'),
-      color: 'from-emerald-500 to-teal-400',
-      bgColor: 'bg-emerald-500/10 border-emerald-500/20'
-    },
-    {
-      id: 'activity',
-      name: t('activity'),
-      icon: ActivityIcon,
-      description: t('activity'),
-      color: 'from-amber-500 to-orange-400',
-      bgColor: 'bg-amber-500/10 border-amber-500/20'
-    },
-    {
-      id: 'claim',
-      name: t('claimAssets'),
-      icon: Gift,
-      description: t('claimAssets'),
-      color: 'from-pink-500 to-rose-400',
-      bgColor: 'bg-pink-500/10 border-pink-500/20'
-    },
-    {
-      id: 'stats',
-      name: t('walletStats'),
-      icon: BarChart3,
-      description: t('walletStats'),
-      color: 'from-indigo-500 to-blue-400',
-      bgColor: 'bg-indigo-500/10 border-indigo-500/20'
-    },
-    {
-      id: 'send',
-      name: t('sendReceive'),
-      icon: Send,
-      description: t('sendReceive'),
-      color: 'from-green-500 to-emerald-400',
-      bgColor: 'bg-green-500/10 border-green-500/20'
-    },
-    {
-      id: 'txs',
-      name: t('transactions'),
-      icon: Clock,
-      description: t('transactions'),
-      color: 'from-teal-500 to-cyan-400',
-      bgColor: 'bg-teal-500/10 border-teal-500/20'
-    },
-    {
-      id: 'receive',
-      name: t('receive'),
-      icon: Wallet,
-      description: t('receive'),
-      color: 'from-cyan-500 to-blue-400',
-      bgColor: 'bg-cyan-500/10 border-cyan-500/20'
-    },
-    {
-      id: 'sign',
-      name: t('signMessage'),
-      icon: Shield,
-      description: t('signMessage'),
-      color: 'from-purple-500 to-violet-400',
-      bgColor: 'bg-purple-500/10 border-purple-500/20'
     },
     {
       id: 'smart-wallet',
       name: 'Smart Wallet',
       icon: Sparkles,
-      description: 'Manage smart wallet features',
+      description: 'Advanced inheritance management',
       color: 'from-yellow-500 to-amber-400',
       bgColor: 'bg-yellow-500/10 border-yellow-500/20'
     },
     {
+      id: 'transactions',
+      name: 'Transactions',
+      icon: Send,
+      description: 'Send, receive, and batch transfers',
+      color: 'from-emerald-500 to-teal-400',
+      bgColor: 'bg-emerald-500/10 border-emerald-500/20'
+    },
+    {
+      id: 'activity',
+      name: 'Activity',
+      icon: ActivityIcon,
+      description: 'Transaction history and updates',
+      color: 'from-amber-500 to-orange-400',
+      bgColor: 'bg-amber-500/10 border-amber-500/20'
+    },
+    {
       id: 'analytics',
       name: 'Analytics',
-      icon: TrendingUp,
-      description: 'Platform metrics and revenue analytics',
-      color: 'from-red-500 to-pink-400',
-      bgColor: 'bg-red-500/10 border-red-500/20'
-    },
-    {
-      id: 'emergency',
-      name: 'Emergency',
-      icon: Zap,
-      description: 'Emergency controls and recovery',
-      color: 'from-orange-500 to-red-400',
-      bgColor: 'bg-orange-500/10 border-orange-500/20'
-    },
-    {
-      id: 'platform-status',
-      name: 'Platform Status',
-      icon: Shield,
-      description: 'System health and status monitoring',
-      color: 'from-green-500 to-teal-400',
-      bgColor: 'bg-green-500/10 border-green-500/20'
+      icon: BarChart3,
+      description: 'Wallet statistics and insights',
+      color: 'from-indigo-500 to-purple-400',
+      bgColor: 'bg-indigo-500/10 border-indigo-500/20'
     },
     {
       id: 'subscription',
       name: 'Subscription',
       icon: Crown,
-      description: 'Manage subscription and premium features',
+      description: 'Manage your plan and billing',
       color: 'from-purple-500 to-pink-400',
       bgColor: 'bg-purple-500/10 border-purple-500/20'
-    }
+    },
+
   ];
 
   if (!connected) {
@@ -164,7 +86,7 @@ export function Dashboard() {
 
       <div className="relative flex h-screen">
         {/* Sidebar */}
-        <div className="w-80 bg-white/3 backdrop-blur-xl border-r border-white/10 overflow-y-auto">
+        <div className="w-72 bg-white/3 backdrop-blur-xl border-r border-white/10 overflow-y-auto">
           <div className="p-6">
             {/* Navigation */}
             <div className="space-y-2">
@@ -237,6 +159,25 @@ export function Dashboard() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <div className="bg-white/5 backdrop-blur-xl border-b border-white/10 p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-xl bg-gradient-to-br ${activeTabData?.color || 'from-gray-500 to-gray-600'}`}>
+                  {activeTabData?.icon && <activeTabData.icon className="w-6 h-6 text-white" />}
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">{activeTabData?.name}</h1>
+                  <p className="text-gray-300">{activeTabData?.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-300">Live</span>
+              </div>
+            </div>
+          </div>
+          
           {/* Content */}
           <div className="flex-1 overflow-y-auto bg-gradient-to-b from-transparent to-white/5">
             <div className="p-6">
@@ -244,19 +185,36 @@ export function Dashboard() {
                 <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
                   <div className="p-6">
                     {activeTab === 'portfolio' && <Portfolio />}
-                    {activeTab === 'inheritance' && <InheritanceManager />}
-                    {activeTab === 'transfer' && <BatchTransfer />}
-                    {activeTab === 'activity' && <ActivityManager />}
-                    {activeTab === 'claim' && <ClaimAssets />}
-                    {activeTab === 'stats' && <WalletStats />}
-                    {activeTab === 'send' && <SendReceive />}
-                    {activeTab === 'txs' && <Transactions />}
-                    {activeTab === 'receive' && <Receive />}
-                    {activeTab === 'sign' && <SignMessage />}
                     {activeTab === 'smart-wallet' && <SmartWalletManager />}
+                    {activeTab === 'transactions' && (
+                      <div className="space-y-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                              <Send className="w-5 h-5 text-emerald-400" />
+                              Send & Receive
+                            </h3>
+                            <SendReceive />
+                          </div>
+                          <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                              <Send className="w-5 h-5 text-blue-400" />
+                              Batch Transfer
+                            </h3>
+                            <BatchTransfer />
+                          </div>
+                        </div>
+                        <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-teal-400" />
+                            Transaction History
+                          </h3>
+                          <Transactions />
+                        </div>
+                      </div>
+                    )}
+                    {activeTab === 'activity' && <ActivityManager />}
                     {activeTab === 'analytics' && <Analytics />}
-                    {activeTab === 'emergency' && <EmergencyControls />}
-                    {activeTab === 'platform-status' && <PlatformStatus />}
                     {activeTab === 'subscription' && <SubscriptionManager />}
                   </div>
                 </div>

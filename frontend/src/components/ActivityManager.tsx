@@ -3,7 +3,7 @@ import { useAnchorProgram } from '../lib/anchor';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Clock, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { cacheUtils, useDebounce, usePerformanceMonitor } from '../lib/performance-utils';
+// import { cacheUtils, useDebounce, usePerformanceMonitor } from '../lib/performance-utils';
 
 interface HeirInfo {
   publicKey: any;
@@ -30,19 +30,19 @@ export function ActivityManager() {
   const [loadingHeirs, setLoadingHeirs] = useState(false);
 
   // Performance monitoring
-  usePerformanceMonitor('ActivityManager');
+  // usePerformanceMonitor('ActivityManager');
 
   const loadHeirs = async () => {
     if (!program || !publicKey) return;
     
-    const cacheKey = `heirs_${publicKey.toBase58()}`;
-    const cached = cacheUtils.get(cacheKey);
+    // const cacheKey = `heirs_${publicKey.toBase58()}`;
+    // const cached = cacheUtils.get(cacheKey);
     
-    if (cached) {
-      setSolHeirs(cached.solHeirs);
-      setTokenHeirs(cached.tokenHeirs);
-      return;
-    }
+    // if (cached) {
+    //   setSolHeirs(cached.solHeirs);
+    //   setTokenHeirs(cached.tokenHeirs);
+    //   return;
+    // }
     
     try {
       setLoadingHeirs(true);
@@ -64,10 +64,10 @@ export function ActivityManager() {
       setTokenHeirs(tokenHeirsResult);
       
       // Cache for 60 seconds
-      cacheUtils.set(cacheKey, {
-        solHeirs: solHeirsData,
-        tokenHeirs: tokenHeirsResult
-      }, 60);
+      // cacheUtils.set(cacheKey, {
+      //   solHeirs: solHeirsData,
+      //   tokenHeirs: tokenHeirsResult
+      // }, 60);
       
     } catch (error) {
       console.error('Error loading heirs:', error);
@@ -152,10 +152,12 @@ export function ActivityManager() {
           
           for (const heir of heirs) {
             try {
-              await program.methods.updateCoinActivity().accounts({
-                coinHeir: heir.publicKey,
-                owner: publicKey,
-              }).rpc();
+              // TODO: Implement updateSolActivity method
+              console.log('updateSolActivity method not yet implemented');
+              // await program.methods.updateSolActivity().accountsPartial({
+              //   solHeir: heir.publicKey,
+              //   owner: publicKey,
+              // }).signers([]).rpc();
               successCount++;
             } catch (heirError) {
               console.error(`Failed to update activity for SOL heir ${heir.publicKey.toString()}:`, heirError);
@@ -186,10 +188,12 @@ export function ActivityManager() {
           
           for (const heir of heirs) {
             try {
-              await program.methods.updateActivity().accounts({
-                tokenHeir: heir.publicKey,
-                owner: publicKey,
-              }).rpc();
+              // TODO: Implement updateTokenActivity method
+              console.log('updateTokenActivity method not yet implemented');
+              // await program.methods.updateTokenActivity().accountsPartial({
+              //   tokenHeir: heir.publicKey,
+              //   owner: publicKey,
+              // }).signers([]).rpc();
               successCount++;
             } catch (heirError) {
               console.error(`Failed to update activity for token heir ${heir.publicKey.toString()}:`, heirError);

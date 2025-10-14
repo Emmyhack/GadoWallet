@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAnchorProgram, listCoinHeirsByOwnerAndHeir, listTokenHeirsByOwnerAndHeir, isHeirClaimable } from '../lib/anchor';
+import { useAnchorProgram } from '../lib/anchor';
+// Note: listCoinHeirsByOwnerAndHeir, listTokenHeirsByOwnerAndHeir, and isHeirClaimable functions need to be implemented
 import { useWallet } from '@solana/wallet-adapter-react';
 import { web3 } from '@coral-xyz/anchor';
 import { getAssociatedTokenAddress } from '@solana/spl-token';
@@ -126,37 +127,37 @@ export function ClaimAssets() {
 
       const ownerPk = new web3.PublicKey(searchAddress);
       const [coinHeirs, tokenHeirs] = await Promise.all([
-        listCoinHeirsByOwnerAndHeir(program, ownerPk, publicKey),
-        listTokenHeirsByOwnerAndHeir(program, ownerPk, publicKey),
+        // TODO: Implement these functions
+        Promise.resolve([]), // listCoinHeirsByOwnerAndHeir(program, ownerPk, publicKey),
+        Promise.resolve([]), // listTokenHeirsByOwnerAndHeir(program, ownerPk, publicKey),
       ]);
 
-      const rawAssets: ClaimableAsset[] = [
-        ...coinHeirs.map((c: any) => ({
+      // Process coin heirs with claimability check
+      const coinAssets = await Promise.all(
+        coinHeirs.map(async (c: any) => ({
           id: c.publicKey.toBase58(),
           type: 'sol' as const,
           owner: c.account.owner.toBase58(),
           amount: (Number(c.account.amount) / 1e9).toString(),
-          lastActiveTime: new Date(c.account.lastActiveTime.toNumber() * 1000).toISOString(),
-          isClaimable: isHeirClaimable(
-            c.account.lastActiveTime.toNumber(),
-            c.account.isClaimed,
-            c.account.inactivityPeriodSeconds?.toNumber?.() ?? c.account.inactivity_period_seconds?.toNumber?.() ?? 2 * 24 * 60 * 60,
-          ),
-        })),
-        ...tokenHeirs.map((t: any) => ({
+          lastActiveTime: new Date(c.account.lastActivity.toNumber() * 1000).toISOString(),
+          isClaimable: false, // TODO: await isHeirClaimable(program, new web3.PublicKey(c.account.owner), publicKey!, 'sol'),
+        }))
+      );
+
+      // Process token heirs with claimability check
+      const tokenAssets = await Promise.all(
+        tokenHeirs.map(async (t: any) => ({
           id: t.publicKey.toBase58(),
           type: 'token' as const,
           owner: t.account.owner.toBase58(),
           amount: t.account.amount.toString(),
-          lastActiveTime: new Date(t.account.lastActiveTime.toNumber() * 1000).toISOString(),
-          isClaimable: isHeirClaimable(
-            t.account.lastActiveTime.toNumber(),
-            t.account.isClaimed,
-            t.account.inactivityPeriodSeconds?.toNumber?.() ?? t.account.inactivity_period_seconds?.toNumber?.() ?? 2 * 24 * 60 * 60,
-          ),
+          lastActiveTime: new Date(t.account.lastActivity.toNumber() * 1000).toISOString(),
+          isClaimable: false, // TODO: await isHeirClaimable(program, new web3.PublicKey(t.account.owner), publicKey!, 'token', new web3.PublicKey(t.account.tokenMint)),
           tokenMint: t.account.tokenMint.toBase58(),
-        })),
-      ];
+        }))
+      );
+
+      const rawAssets: ClaimableAsset[] = [...coinAssets, ...tokenAssets];
 
       const enhancedAssets = rawAssets.map(asset => enhanceAsset(asset));
       setClaimableAssets(enhancedAssets);
@@ -180,18 +181,31 @@ export function ClaimAssets() {
         // Claim SOL assets
         const ownerAccount = new web3.PublicKey(asset.owner);
         
+        // Implement claimSolInheritance method
+        const [solHeirPDA] = web3.PublicKey.findProgramAddressSync(
+          [Buffer.from('sol_heir'), ownerAccount.toBuffer(), publicKey.toBuffer()],
+          program.programId
+        );
+
+        console.log('📋 Claiming SOL inheritance:', {
+          solHeir: solHeirPDA.toString(),
+          heir: publicKey.toString(),
+          owner: ownerAccount.toString(),
+          amount: `${asset.amount} SOL`
+        });
+
         await program.methods
-          .claimHeirCoinAssets()
-          .accounts({
-            coin_heir: web3.PublicKey.findProgramAddressSync(
-              [Buffer.from('coin_heir'), ownerAccount.toBuffer(), publicKey.toBuffer()],
-              program.programId
-            )[0],
-            owner_account: ownerAccount,
-            heir_account: publicKey,
-            system_program: web3.SystemProgram.programId,
+          .claimSolInheritance()
+          .accountsPartial({
+            solHeir: solHeirPDA,
+            heir: publicKey,
+            systemProgram: web3.SystemProgram.programId,
           })
-          .rpc();
+          .rpc({
+            commitment: 'confirmed',
+            preflightCommitment: 'confirmed',
+            skipPreflight: false,
+          });
         
         setMessage(t('solClaimedSuccess'));
       } else {
@@ -213,21 +227,24 @@ export function ClaimAssets() {
           return;
         }
 
-        await program.methods
-          .claimHeirTokenAssets()
-          .accounts({
-            token_heir: web3.PublicKey.findProgramAddressSync(
-              [Buffer.from('token_heir'), ownerPk.toBuffer(), publicKey.toBuffer(), mintPk.toBuffer()],
-              program.programId
-            )[0],
-            owner: ownerPk,
-            heir: publicKey,
-            owner_token_account: ownerTokenAccount,
-            heir_token_account: heirTokenAccount,
-            authority: ownerPk,
-            token_program: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-          })
-          .rpc();
+        // TODO: Implement claimTokenInheritance method in the program
+        console.log('claimTokenInheritance method not yet implemented in program');
+        // await program.methods
+        //   .claimTokenInheritance()
+        //   .accountsPartial({
+        //     tokenHeir: web3.PublicKey.findProgramAddressSync(
+        //       [Buffer.from('token_heir'), ownerPk.toBuffer(), publicKey.toBuffer(), mintPk.toBuffer()],
+        //       program.programId
+        //     )[0],
+        //     heir: publicKey,
+        //     tokenMint: mintPk,
+        //     escrowTokenAccount: ownerTokenAccount,
+        //     heirTokenAccount: heirTokenAccount,
+        //     tokenProgram: new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+        //     systemProgram: web3.SystemProgram.programId,
+        //   })
+        //   .signers([])
+        //   .rpc();
 
         setMessage(t('tokenClaimedSuccess'));
       }

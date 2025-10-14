@@ -1,7 +1,6 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { CheckCircle } from 'lucide-react';
-import NotificationSystem from './NotificationSystem';
 import Logo from './Logo';
 
 export function Header() {
@@ -25,8 +24,6 @@ export function Header() {
                   <CheckCircle className="w-4 h-4 text-green-400" />
                   <span className="text-sm font-medium text-green-200">Connected</span>
                 </div>
-                
-                <NotificationSystem />
               </div>
             )}
 

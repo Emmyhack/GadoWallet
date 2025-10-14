@@ -1,320 +1,148 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
+import { Connection, PublicKey, Keypair } from "@solana/web3.js";
+import { Program } from "@coral-xyz/anchor";
 import { Gado } from "./target/types/gado";
-import { 
-  Connection, 
-  Keypair, 
-  clusterApiUrl,
-  LAMPORTS_PER_SOL,
-  PublicKey 
-} from "@solana/web3.js";
-import { SmartWalletClient } from "./smart-wallet-client";
-import { 
-  KeeperConfig, 
-  defaultConfig, 
-  loadConfigFromEnv, 
-  mergeConfig, 
-  validateConfig 
-} from "./keeper-config";
-import * as fs from "fs";
 
 /**
- * Enhanced Inheritance Keeper Bot with configuration support
+ * Simple inheritance keeper bot for the new program structure
+ * The new program doesn't have smart wallets - it uses individual inheritance heirs
+ * This is a minimal replacement to prevent compilation errors
  */
-export class EnhancedInheritanceKeeperBot {
+export class InheritanceKeeperBot {
   private program: Program<Gado>;
-  private smartWalletClient: SmartWalletClient;
-  private keeperWallet: Keypair;
   private connection: Connection;
-  private config: KeeperConfig;
+  private keeperKeypair: Keypair;
 
   constructor(
     program: Program<Gado>,
     connection: Connection,
-    keeperWallet: Keypair,
-    config: KeeperConfig
+    keeperKeypair: Keypair
   ) {
     this.program = program;
     this.connection = connection;
-    this.keeperWallet = keeperWallet;
-    this.config = config;
-    this.smartWalletClient = new SmartWalletClient(program, connection);
+    this.keeperKeypair = keeperKeypair;
   }
 
   /**
-   * Log message with optional file output
+   * Check a single SOL heir for claimable inheritance
    */
-  private log(message: string, level: "info" | "error" | "warn" = "info"): void {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
-    
-    if (this.config.verbose) {
-      console.log(logMessage);
-    }
-    
-    if (this.config.logFile) {
-      fs.appendFileSync(this.config.logFile, logMessage + "\n");
-    }
-  }
-
-  /**
-   * Check and execute inheritance for a specific owner with retry logic
-   */
-  async checkAndExecuteInheritance(ownerPublicKey: PublicKey, retries: number = 3): Promise<boolean> {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        this.log(`🔍 Checking Smart Wallet for owner: ${ownerPublicKey.toString()} (attempt ${attempt})`);
-
-        // Ensure keeper wallet has sufficient balance
-        await this.ensureFunding();
-
-        // Get Smart Wallet data
-        const smartWallet = await this.smartWalletClient.getSmartWallet(ownerPublicKey);
-        
-        if (!smartWallet) {
-          this.log("❌ Smart Wallet not found", "warn");
-          return false;
-        }
-
-        if (smartWallet.data.isExecuted) {
-          this.log("✅ Inheritance already executed");
-          return false;
-        }
-
-        // Check if owner is inactive
-        const isInactive = await this.smartWalletClient.isOwnerInactive(ownerPublicKey);
-        
-        if (!isInactive) {
-          this.log("⏰ Owner is still active");
-          return false;
-        }
-
-        // Get Smart Wallet balance
-        const balance = await this.smartWalletClient.getSmartWalletBalance(ownerPublicKey);
-        
-        if (balance === 0) {
-          this.log("💰 No assets to distribute");
-          return false;
-        }
-
-        this.log(`💸 Found ${balance} SOL to distribute among ${smartWallet.data.heirs.length} heirs`);
-
-        // Execute inheritance
-        this.log("🚀 Executing inheritance...");
-        const tx = await this.smartWalletClient.executeInheritance(
-          ownerPublicKey,
-          this.keeperWallet
-        );
-
-        this.log(`✅ Inheritance executed successfully: ${tx}`);
-        
-        // Log distribution details
-        for (let i = 0; i < smartWallet.data.heirs.length; i++) {
-          const heir = smartWallet.data.heirs[i];
-          const expectedAmount = (balance * heir.allocationPercentage) / 100;
-          this.log(`📋 Heir ${i + 1}: ${heir.heirPubkey.toString()} should receive ${expectedAmount.toFixed(6)} SOL (${heir.allocationPercentage}%)`);
-        }
-
-        return true;
-
-      } catch (error) {
-        this.log(`❌ Error on attempt ${attempt} for ${ownerPublicKey.toString()}: ${error}`, "error");
-        
-        if (attempt === retries) {
-          this.log(`❌ Failed after ${retries} attempts`, "error");
-          return false;
-        }
-        
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-      }
-    }
-    
-    return false;
-  }
-
-  /**
-   * Monitor Smart Wallets in batches
-   */
-  async monitorSmartWalletsBatch(ownerAddresses: PublicKey[]): Promise<void> {
-    this.log(`🤖 Keeper Bot started - monitoring ${ownerAddresses.length} Smart Wallets`);
-
-    const batchSize = this.config.batchSize;
-    let processedCount = 0;
-    let successCount = 0;
-
-    for (let i = 0; i < ownerAddresses.length; i += batchSize) {
-      const batch = ownerAddresses.slice(i, i + batchSize);
-      this.log(`📦 Processing batch ${Math.floor(i / batchSize) + 1} (${batch.length} wallets)`);
-
-      const promises = batch.map(async (ownerAddress) => {
-        const result = await this.checkAndExecuteInheritance(ownerAddress);
-        processedCount++;
-        if (result) successCount++;
-        return result;
-      });
-
-      await Promise.allSettled(promises);
-      
-      // Small delay between batches to avoid overwhelming the RPC
-      if (i + batchSize < ownerAddresses.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-
-    this.log(`🏁 Monitoring cycle complete - processed ${processedCount} wallets, executed ${successCount} inheritances`);
-  }
-
-  /**
-   * Get all Smart Wallets on-chain
-   */
-  async getAllSmartWallets(): Promise<Array<{ owner: PublicKey; data: any }>> {
+  async checkSolInheritance(ownerPublicKey: PublicKey, heirPublicKey: PublicKey): Promise<boolean> {
     try {
-      this.log("🔍 Fetching all Smart Wallet accounts...");
-      const accounts = await this.program.account.smartWallet.all();
+      const [solHeirPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("sol_heir"), ownerPublicKey.toBuffer(), heirPublicKey.toBuffer()],
+        this.program.programId
+      );
+
+      const solHeir = await this.program.account.solHeir.fetch(solHeirPDA);
       
-      this.log(`📊 Found ${accounts.length} Smart Wallet accounts`);
-      
-      return accounts.map(acc => ({
-        owner: acc.account.owner,
-        data: acc.account
-      }));
+      if (solHeir.isClaimed) {
+        console.log(`⚠️ SOL inheritance already claimed for heir ${heirPublicKey.toString()}`);
+        return false;
+      }
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeSinceLastActive = currentTime - solHeir.lastActivity.toNumber();
+      const isInactive = timeSinceLastActive > solHeir.inactivityPeriodSeconds.toNumber();
+
+      if (isInactive) {
+        console.log(`🚨 Found claimable SOL inheritance for heir ${heirPublicKey.toString()}`);
+        console.log(`Owner: ${ownerPublicKey.toString()}`);
+        console.log(`Amount: ${solHeir.amount.toNumber() / 1_000_000_000} SOL`);
+        console.log(`Inactive for: ${timeSinceLastActive} seconds`);
+        return true;
+      }
+
+      return false;
     } catch (error) {
-      this.log(`❌ Error fetching Smart Wallet accounts: ${error}`, "error");
-      return [];
+      console.log(`❌ Error checking SOL inheritance: ${error}`);
+      return false;
     }
   }
 
   /**
-   * Run continuous monitoring
+   * Check a single Token heir for claimable inheritance
    */
-  async runContinuous(): Promise<void> {
-    this.log(`🤖 Starting continuous keeper bot (checking every ${this.config.checkIntervalMinutes} minutes)`);
+  async checkTokenInheritance(ownerPublicKey: PublicKey, heirPublicKey: PublicKey, tokenMint: PublicKey): Promise<boolean> {
+    try {
+      const [tokenHeirPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("token_heir"), ownerPublicKey.toBuffer(), heirPublicKey.toBuffer(), tokenMint.toBuffer()],
+        this.program.programId
+      );
 
-    const intervalMs = this.config.checkIntervalMinutes * 60 * 1000;
-
-    // Get target wallets
-    const targetWallets = this.config.targetWallets.length > 0 
-      ? this.config.targetWallets.map(addr => new PublicKey(addr))
-      : (await this.getAllSmartWallets()).map(wallet => wallet.owner);
-
-    if (targetWallets.length === 0) {
-      this.log("⚠️  No Smart Wallets to monitor", "warn");
-      return;
-    }
-
-    // Run initial check
-    await this.monitorSmartWalletsBatch(targetWallets);
-
-    // Set up interval for continuous monitoring
-    setInterval(async () => {
-      this.log(`⏰ Running scheduled check at ${new Date().toISOString()}`);
-      await this.monitorSmartWalletsBatch(targetWallets);
-    }, intervalMs);
-  }
-
-  /**
-   * Ensure keeper wallet has sufficient balance
-   */
-  async ensureFunding(): Promise<void> {
-    const balance = await this.connection.getBalance(this.keeperWallet.publicKey);
-    const balanceSOL = balance / LAMPORTS_PER_SOL;
-    
-    if (balanceSOL < this.config.minKeeperBalance) {
-      this.log(`💰 Keeper wallet balance low (${balanceSOL} SOL), requesting airdrop...`);
+      const tokenHeir = await this.program.account.tokenHeir.fetch(tokenHeirPDA);
       
-      try {
-        const airdropAmount = Math.max(0.1, this.config.minKeeperBalance * 2);
-        const airdropTx = await this.connection.requestAirdrop(
-          this.keeperWallet.publicKey,
-          airdropAmount * LAMPORTS_PER_SOL
-        );
-        await this.connection.confirmTransaction(airdropTx);
-        this.log(`✅ Keeper wallet funded with ${airdropAmount} SOL`);
-      } catch (error) {
-        this.log(`❌ Failed to fund keeper wallet: ${error}`, "error");
-        throw new Error("Insufficient keeper wallet balance and unable to fund");
+      if (tokenHeir.isClaimed) {
+        console.log(`⚠️ Token inheritance already claimed for heir ${heirPublicKey.toString()}`);
+        return false;
+      }
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      const timeSinceLastActive = currentTime - tokenHeir.lastActivity.toNumber();
+      const isInactive = timeSinceLastActive > tokenHeir.inactivityPeriodSeconds.toNumber();
+
+      if (isInactive) {
+        console.log(`🚨 Found claimable Token inheritance for heir ${heirPublicKey.toString()}`);
+        console.log(`Owner: ${ownerPublicKey.toString()}`);
+        console.log(`Token: ${tokenMint.toString()}`);
+        console.log(`Amount: ${tokenHeir.amount.toString()}`);
+        console.log(`Inactive for: ${timeSinceLastActive} seconds`);
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.log(`❌ Error checking Token inheritance: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * Scan for all inheritance accounts (requires manual list of known heirs)
+   * In a production system, you would maintain an index of all heirs
+   */
+  async scanInheritances(knownHeirsList: Array<{owner: PublicKey, heir: PublicKey, type: 'sol' | 'token', tokenMint?: PublicKey}>): Promise<void> {
+    console.log("🔍 Scanning for claimable inheritances...");
+
+    for (const inheritance of knownHeirsList) {
+      if (inheritance.type === 'sol') {
+        const isClaimable = await this.checkSolInheritance(inheritance.owner, inheritance.heir);
+        if (isClaimable) {
+          console.log(`✨ Notify heir ${inheritance.heir.toString()} to claim SOL inheritance`);
+        }
+      } else if (inheritance.type === 'token' && inheritance.tokenMint) {
+        const isClaimable = await this.checkTokenInheritance(inheritance.owner, inheritance.heir, inheritance.tokenMint);
+        if (isClaimable) {
+          console.log(`✨ Notify heir ${inheritance.heir.toString()} to claim Token inheritance`);
+        }
       }
     }
   }
 
   /**
-   * Get keeper wallet info
+   * Legacy method compatibility
    */
-  async getKeeperInfo(): Promise<{ address: string; balance: number }> {
-    const balance = await this.connection.getBalance(this.keeperWallet.publicKey);
-    return {
-      address: this.keeperWallet.publicKey.toString(),
-      balance: balance / LAMPORTS_PER_SOL
-    };
+  async executeInheritanceForOwner(ownerPublicKey: PublicKey): Promise<void> {
+    console.log("⚠️ executeInheritanceForOwner is deprecated in the new inheritance system");
+    console.log("Heirs must now claim their own inheritance using claimSolInheritance or claimTokenInheritance");
+    console.log(`Owner: ${ownerPublicKey.toString()}`);
+  }
+
+  async monitorSmartWallets(ownerAddresses: PublicKey[]): Promise<void> {
+    console.log("⚠️ monitorSmartWallets is deprecated - smart wallets no longer exist");
+    console.log("Use scanInheritances with known heir list instead");
+  }
+
+  async monitorAllSmartWallets(): Promise<void> {
+    console.log("⚠️ monitorAllSmartWallets is deprecated - smart wallets no longer exist");
+    console.log("Use scanInheritances with known heir list instead");
+  }
+
+  async getAllSmartWallets(): Promise<Array<{ owner: PublicKey; data: any }>> {
+    console.log("⚠️ getAllSmartWallets is deprecated - smart wallets no longer exist");
+    return [];
   }
 }
 
-/**
- * Create and run enhanced keeper bot
- */
-export async function runEnhancedKeeperBot(customConfig?: Partial<KeeperConfig>): Promise<void> {
-  // Load and merge configuration
-  const envConfig = loadConfigFromEnv();
-  const config = mergeConfig(defaultConfig, { ...envConfig, ...customConfig });
-  
-  // Validate configuration
-  validateConfig(config);
-
-  console.log("🤖 Starting Enhanced Inheritance Keeper Bot...\n");
-  console.log("Configuration:", JSON.stringify(config, null, 2));
-
-  // Configure connection
-  const connection = new Connection(
-    config.rpcUrl || clusterApiUrl(config.network), 
-    "confirmed"
-  );
-  
-  // Create or load keeper wallet
-  let keeperWallet: Keypair;
-  
-  if (config.keeperWalletPath && fs.existsSync(config.keeperWalletPath)) {
-    console.log(`📂 Loading keeper wallet from: ${config.keeperWalletPath}`);
-    const walletData = JSON.parse(fs.readFileSync(config.keeperWalletPath, "utf8"));
-    keeperWallet = Keypair.fromSecretKey(new Uint8Array(walletData));
-  } else {
-    console.log("🆕 Generating new keeper wallet");
-    keeperWallet = Keypair.generate();
-    
-    // Save wallet if path is provided
-    if (config.keeperWalletPath) {
-      fs.writeFileSync(
-        config.keeperWalletPath, 
-        JSON.stringify(Array.from(keeperWallet.secretKey))
-      );
-      console.log(`💾 Keeper wallet saved to: ${config.keeperWalletPath}`);
-    }
-  }
-
-  // Set up provider and program
-  const wallet = new Wallet(keeperWallet);
-  const provider = new AnchorProvider(connection, wallet, {
-    commitment: "confirmed",
-  });
-  anchor.setProvider(provider);
-
-  // Load the IDL
-  const IDL = require("./target/idl/gado.json");
-  const program = new Program(IDL as any, provider) as Program<Gado>;
-
-  // Create enhanced keeper bot instance
-  const keeperBot = new EnhancedInheritanceKeeperBot(program, connection, keeperWallet, config);
-
-  // Get keeper info
-  const keeperInfo = await keeperBot.getKeeperInfo();
-  console.log(`Keeper wallet: ${keeperInfo.address}`);
-  console.log(`Keeper balance: ${keeperInfo.balance} SOL\n`);
-
-  try {
-    // Run continuous monitoring
-    await keeperBot.runContinuous();
-  } catch (error) {
-    console.error("❌ Enhanced keeper bot error:", error);
-    throw error;
-  }
-}
+// Export with old name for compatibility
+export class KeeperBot extends InheritanceKeeperBot {}
+export default InheritanceKeeperBot;

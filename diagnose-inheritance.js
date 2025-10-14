@@ -12,7 +12,7 @@ const path = require('path');
 
 // Configuration
 const NETWORK_URL = 'https://api.devnet.solana.com';
-const PROGRAM_ID = new PublicKey('9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM');
+const PROGRAM_ID = new PublicKey('EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu');
 
 // Load program IDL
 const idlPath = path.join(__dirname, 'gado/target/idl/gado.json');

@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 import { web3 } from '@coral-xyz/anchor';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from '@solana/spl-token';
-import { Send, Download, Coins } from 'lucide-react';
+import { Send, Download, Coins, Zap, Gauge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useGatewayService, TransactionContext } from '../lib/gateway-service';
+import { SubscriptionTier } from './SubscriptionManager';
 
 export function SendReceive() {
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const { t } = useTranslation();
+  const { sendWithGateway, shouldUseGateway, getCostEstimate } = useGatewayService();
 
   const [tab, setTab] = useState<'sol' | 'token'>('sol');
   const [toAddress, setToAddress] = useState('');
@@ -17,10 +20,34 @@ export function SendReceive() {
   const [mint, setMint] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userTier, setUserTier] = useState<SubscriptionTier>(SubscriptionTier.FREE);
+  const [costEstimate, setCostEstimate] = useState<{ baseFee: number; gatewayFee: number; total: number; savings?: number } | null>(null);
 
   const isValidAddress = (addr: string) => {
     try { new PublicKey(addr); return true; } catch { return false; }
   };
+
+  const updateCostEstimate = async () => {
+    if (!amount || isNaN(parseFloat(amount))) {
+      setCostEstimate(null);
+      return;
+    }
+
+    const amountValue = parseFloat(amount);
+    const context: Omit<TransactionContext, 'userTier'> = {
+      type: 'standard_send',
+      priority: amountValue > 10 ? 'high' : amountValue > 1 ? 'medium' : 'low',
+      assetValue: tab === 'sol' ? amountValue : undefined
+    };
+
+    const estimate = await getCostEstimate(context, userTier);
+    setCostEstimate(estimate);
+  };
+
+  // Update cost estimate when amount or tab changes
+  useEffect(() => {
+    updateCostEstimate();
+  }, [amount, tab, userTier]);
 
   const estimatePriorityFee = async (fallback: number): Promise<number> => {
     try {
@@ -95,7 +122,17 @@ export function SendReceive() {
 
       try {
         const tx = await buildTx();
-        const sig = await sendTransaction!(tx, connection, sendOpts);
+        
+        // Prepare Gateway context
+        const amountValue = parseFloat(amount);
+        const context: Omit<TransactionContext, 'userTier'> = {
+          type: 'standard_send',
+          priority: amountValue > 10 ? 'high' : amountValue > 1 ? 'medium' : 'low',
+          assetValue: tab === 'sol' ? amountValue : undefined
+        };
+
+        // Use Gateway service for intelligent routing
+        const sig = await sendWithGateway(tx, connection, context, userTier);
         lastSignature = sig;
       } catch (sendErr: any) {
         const msg = String(sendErr?.message || '');
@@ -104,7 +141,16 @@ export function SendReceive() {
           priorityFeeMicroLamports = Math.max(priorityFeeMicroLamports * 3, fallbackPriority * 3);
           computeUnitLimit = Math.floor(computeUnitLimit * 1.5);
           const tx = await buildTx();
-          const sig = await sendTransaction!(tx, connection, sendOpts);
+          
+          // Retry with Gateway service
+          const amountValue = parseFloat(amount);
+          const retryContext: Omit<TransactionContext, 'userTier'> = {
+            type: 'standard_send',
+            priority: 'high', // Escalated priority
+            assetValue: tab === 'sol' ? amountValue : undefined
+          };
+          
+          const sig = await sendWithGateway(tx, connection, retryContext, userTier);
           lastSignature = sig;
         } else {
           throw sendErr;
@@ -292,6 +338,97 @@ export function SendReceive() {
               </div>
             </div>
           </div>
+
+          {/* Gateway Cost Estimation & Info */}
+          {amount && parseFloat(amount) > 0 && (
+            <div className="mt-6 p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-400/20 rounded-2xl">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                  {shouldUseGateway({
+                    type: 'standard_send',
+                    priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
+                    assetValue: tab === 'sol' ? parseFloat(amount) : undefined
+                  }, userTier) ? (
+                    <Zap className="w-5 h-5 text-yellow-400" />
+                  ) : (
+                    <Gauge className="w-5 h-5 text-blue-400" />
+                  )}
+                </div>
+                
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-blue-300 font-semibold">
+                      {shouldUseGateway({
+                        type: 'standard_send',
+                        priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
+                        assetValue: tab === 'sol' ? parseFloat(amount) : undefined
+                      }, userTier) ? (
+                        <>⚡ Gateway Optimization Active</>
+                      ) : (
+                        <>📡 Standard RPC Delivery</>
+                      )}
+                    </h4>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full">
+                        {userTier} TIER
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-gray-300 mb-2">Delivery Method:</div>
+                      {shouldUseGateway({
+                        type: 'standard_send',
+                        priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
+                        assetValue: tab === 'sol' ? parseFloat(amount) : undefined
+                      }, userTier) ? (
+                        <ul className="text-blue-200 space-y-1">
+                          <li>✓ Multi-path delivery (RPC + Jito)</li>
+                          <li>✓ Priority fee optimization</li>
+                          <li>✓ 95%+ success rate</li>
+                          {userTier === SubscriptionTier.ENTERPRISE && (
+                            <li>✓ SLA guarantee</li>
+                          )}
+                        </ul>
+                      ) : (
+                        <ul className="text-gray-300 space-y-1">
+                          <li>• Standard RPC delivery</li>
+                          <li>• Basic retry logic</li>
+                          <li>• Standard success rate</li>
+                        </ul>
+                      )}
+                    </div>
+                    
+                    {costEstimate && (
+                      <div>
+                        <div className="text-gray-300 mb-2">Estimated Cost:</div>
+                        <div className="text-blue-200 space-y-1">
+                          <div>Base fee: ~{(costEstimate.baseFee * 1000000).toFixed(0)} lamports</div>
+                          {costEstimate.gatewayFee > 0 && (
+                            <div>Gateway fee: ~{(costEstimate.gatewayFee * 1000000).toFixed(0)} lamports</div>
+                          )}
+                          <div className="font-medium">Total: ~{(costEstimate.total * 1000000).toFixed(0)} lamports</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {parseFloat(amount) > 1 && userTier === SubscriptionTier.FREE && (
+                    <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-400/20 rounded-lg">
+                      <div className="flex items-center gap-2 text-yellow-300">
+                        <Zap className="w-4 h-4" />
+                        <span className="text-sm">
+                          High-value transaction detected! Upgrade to Premium for Gateway optimization and better success rates.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Professional Send Button */}
           <div className="mt-8">

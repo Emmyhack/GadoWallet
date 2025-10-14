@@ -81,7 +81,7 @@ export function Landing() {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
                   Gada Wallet
                 </h1>
-                <p className="text-xs text-gray-300 font-medium">where your crypto doesn't die with you</p>
+                <p className="text-xs text-gray-300 font-medium">Protecting your crypto wealth beyond your lifetime</p>
               </div>
             </div>
             <WalletMultiButton className="!bg-gradient-to-r !from-blue-600 !to-purple-600 hover:!from-blue-700 hover:!to-purple-700 !border-none !rounded-xl !px-6 !py-3 !font-semibold !transition-all !duration-300 transform hover:!scale-105" />
@@ -111,7 +111,7 @@ export function Landing() {
               and receive real-time notifications for every transaction. Your legacy, secured on-chain.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 px-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 px-4">
               <WalletMultiButton className="w-full sm:w-auto bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 hover:from-purple-700 hover:via-pink-700 hover:to-cyan-700 text-white font-bold py-4 px-6 sm:px-8 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-200 text-center" />
               <a 
                 href="#features" 
@@ -121,6 +121,8 @@ export function Landing() {
                 Explore Features
               </a>
             </div>
+
+
 
             {/* Feature Preview Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto">

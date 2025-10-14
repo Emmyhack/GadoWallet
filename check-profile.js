@@ -8,7 +8,7 @@
 const { Connection, PublicKey } = require('@solana/web3.js');
 
 const NETWORK_URL = 'https://api.devnet.solana.com';
-const PROGRAM_ID = new PublicKey('9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM');
+const PROGRAM_ID = new PublicKey('EciS2vNDTe5S6WnNWEBmdBmKjQL5bsXyfauYmxPFKQGu');
 
 async function checkProfile(walletAddress) {
   console.log(`🔍 Checking profile for: ${walletAddress}`);

@@ -36,10 +36,12 @@ A comprehensive, business-ready digital asset inheritance platform built on Sola
 
 ## Quick Start
 
+For detailed setup instructions with troubleshooting, see **[📚 Complete Setup Guide](docs/setup/COMPLETE-SETUP-GUIDE.md)**.
+
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/Emmyhack/GadoWallet.git
-cd GadoWallet
+cd GadaWallet
 ```
 
 ### 2. Install Dependencies
@@ -221,4 +223,5 @@ GadoWallet/
 Pull requests are welcome. For major changes, please open an issue first to discuss your proposal.
 
 ## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 MIT License.

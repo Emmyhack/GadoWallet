@@ -18,9 +18,17 @@ interface PlatformStatus {
   loading: boolean;
 }
 
+// Alternative RPC endpoints for fallback
+const RPC_ENDPOINTS = [
+  'https://api.devnet.solana.com',
+  'https://devnet.helius-rpc.com/?api-key=7c128dba-91b3-4bc8-a111-6dd41c07bc55', // Helius devnet
+  'https://api.devnet.solana.com', // Solana devnet RPC
+];
+
 export default function PlatformStatus() {
   const { publicKey, wallet } = useWallet();
-  const [connection] = useState(() => new Connection('https://api.devnet.solana.com', 'confirmed'));
+  const [connection, setConnection] = useState(() => new Connection(RPC_ENDPOINTS[0], 'confirmed'));
+  const [currentRpcIndex, setCurrentRpcIndex] = useState(0);
   const [program, setProgram] = useState<Program<Gado> | null>(null);
   const [status, setStatus] = useState<PlatformStatus>({
     isInitialized: false,
@@ -29,6 +37,18 @@ export default function PlatformStatus() {
     loading: true
   });
   const [isInitializing, setIsInitializing] = useState(false);
+
+  // Function to try next RPC endpoint
+  const tryNextRpcEndpoint = () => {
+    const nextIndex = (currentRpcIndex + 1) % RPC_ENDPOINTS.length;
+    console.log(`🔄 Switching to RPC endpoint ${nextIndex + 1}/${RPC_ENDPOINTS.length}: ${RPC_ENDPOINTS[nextIndex]}`);
+    
+    const newConnection = new Connection(RPC_ENDPOINTS[nextIndex], 'confirmed');
+    setConnection(newConnection);
+    setCurrentRpcIndex(nextIndex);
+    
+    return newConnection;
+  };
 
   // Initialize program
   useEffect(() => {
@@ -107,49 +127,115 @@ export default function PlatformStatus() {
   }, [program, publicKey]);
 
   const initializePlatform = async () => {
-    if (!program || !publicKey) {
+    if (!program || !publicKey || !wallet) {
       toast.error('Wallet not connected');
       return;
     }
 
     setIsInitializing(true);
-    try {
-      const [platformConfigPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("platform_config")],
-        PROGRAM_ID
-      );
+    let attempts = 0;
+    const maxAttempts = 5;
+    const loadingToast = toast.loading('Initializing platform...');
 
-      const [treasuryPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("treasury")],
-        PROGRAM_ID
-      );
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        console.log(`🚀 Initializing platform... (Attempt ${attempts}/${maxAttempts})`);
+        
+        const [platformConfigPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("platform_config")],
+          PROGRAM_ID
+        );
 
-      const tx = await program.methods
-        .initialize()
-        .accountsPartial({
-          platformConfig: platformConfigPDA,
-          treasury: treasuryPDA,
-          admin: publicKey,
-        })
-        .rpc();
+        const [treasuryPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("treasury")],
+          PROGRAM_ID
+        );
 
-      toast.success('Platform initialized successfully!');
-      console.log('Platform initialization transaction:', tx);
-      
-      // Refresh status
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to initialize platform:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error('Failed to initialize platform: ' + errorMessage);
+        // Use Anchor's built-in RPC with enhanced options
+        const signature = await program.methods
+          .initialize()
+          .accountsPartial({
+            platformConfig: platformConfigPDA,
+            treasury: treasuryPDA,
+            admin: publicKey,
+          })
+          .rpc({
+            commitment: 'finalized',
+            preflightCommitment: 'finalized',
+            skipPreflight: false,
+            maxRetries: 10,
+          });
+
+        toast.dismiss(loadingToast);
+        toast.success('Platform initialized successfully!');
+        console.log('Platform initialization confirmed:', signature);
+        
+        // Refresh status
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
+        setIsInitializing(false);
+        return; // Success, exit retry loop
+        
+      } catch (error: any) {
+        console.error(`Failed to initialize platform (attempt ${attempts}):`, error);
+        
+        const errorMessage = error?.message || 'Unknown error';
+        
+        // Handle already initialized error
+        if (errorMessage.includes('already in use') || errorMessage.includes('0x0') || errorMessage.includes('initialized')) {
+          toast.dismiss(loadingToast);
+          toast.success('Platform already initialized!');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          setIsInitializing(false);
+          return;
+        }
+        
+        // Handle specific retryable errors
+        const isRetryableError = 
+          errorMessage.includes('Blockhash') || 
+          errorMessage.includes('blockhash') || 
+          errorMessage.includes('invalid') ||
+          errorMessage.includes('expired') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('network') ||
+          errorMessage.includes('503') ||
+          errorMessage.includes('429');
+        
+        if (isRetryableError && attempts < maxAttempts) {
+          console.log(`🔄 Retrying due to network issue... (${attempts}/${maxAttempts})`);
+          toast.loading(`Network issue detected. Retrying... (${attempts}/${maxAttempts})`, { 
+            id: loadingToast,
+            duration: 3000 
+          });
+          
+          // Progressive backoff
+          const delay = Math.min(2000 * attempts, 8000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        // If it's the last attempt or non-retryable error
+        if (attempts >= maxAttempts) {
+          toast.dismiss(loadingToast);
+          toast.error(`Failed to initialize platform after ${maxAttempts} attempts. Try refreshing the page and ensuring you have a stable connection.`);
+          console.error('All retry attempts failed. Last error:', errorMessage);
+        } else if (!isRetryableError) {
+          toast.dismiss(loadingToast);
+          toast.error(`Failed to initialize platform: ${errorMessage}`);
+          break;
+        }
+      }
     }
     setIsInitializing(false);
   };
 
   const createUserProfile = async () => {
-    if (!program || !publicKey) {
+    if (!program || !publicKey || !wallet) {
       toast.error('Wallet not connected');
       return;
     }
@@ -159,37 +245,120 @@ export default function PlatformStatus() {
       return;
     }
 
-    try {
-      const [userProfilePDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("user_profile"), publicKey.toBuffer()],
-        PROGRAM_ID
-      );
+    let attempts = 0;
+    const maxAttempts = 5;
+    const loadingToast = toast.loading('Creating user profile...');
 
-      const [platformConfigPDA] = PublicKey.findProgramAddressSync(
-        [Buffer.from("platform_config")],
-        PROGRAM_ID
-      );
+    while (attempts < maxAttempts) {
+      try {
+        attempts++;
+        console.log(`👤 Creating user profile... (Attempt ${attempts}/${maxAttempts})`);
+        
+        const [userProfilePDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("user_profile"), publicKey.toBuffer()],
+          PROGRAM_ID
+        );
 
-      const tx = await program.methods
-        .initializeUserProfile(false) // false = not premium user by default
-        .accountsPartial({
-          userProfile: userProfilePDA,
-          user: publicKey,
-          platformConfig: platformConfigPDA,
-        })
-        .rpc();
+        const [platformConfigPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("platform_config")],
+          PROGRAM_ID
+        );
 
-      toast.success('User profile created successfully!');
-      console.log('User profile transaction:', tx);
-      
-      // Refresh status
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-    } catch (error) {
-      console.error('Failed to create user profile:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error('Failed to create user profile: ' + errorMessage);
+        // Use Anchor's built-in RPC with enhanced options
+        const signature = await program.methods
+          .initializeUserProfile(false)
+          .accountsPartial({
+            userProfile: userProfilePDA,
+            user: publicKey,
+            platformConfig: platformConfigPDA,
+          })
+          .rpc({
+            commitment: 'finalized',
+            preflightCommitment: 'finalized',
+            skipPreflight: false,
+            maxRetries: 10,
+          });
+
+        toast.dismiss(loadingToast);
+        toast.success('User profile created successfully!');
+        console.log('User profile transaction confirmed:', signature);
+        
+        // Refresh status
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+        
+        return; // Success, exit retry loop
+        
+      } catch (error: any) {
+        console.error(`Failed to create user profile (attempt ${attempts}):`, error);
+        
+        const errorMessage = error?.message || 'Unknown error';
+        
+        // Handle account already exists error
+        if (errorMessage.includes('already in use') || errorMessage.includes('0x0')) {
+          toast.dismiss(loadingToast);
+          toast.success('User profile already exists!');
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          return;
+        }
+        
+        // Handle specific retryable errors
+        const isRetryableError = 
+          errorMessage.includes('Blockhash') || 
+          errorMessage.includes('blockhash') || 
+          errorMessage.includes('invalid') ||
+          errorMessage.includes('expired') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('network') ||
+          errorMessage.includes('503') ||
+          errorMessage.includes('429') ||
+          errorMessage.includes('fetch');
+        
+        if (isRetryableError && attempts < maxAttempts) {
+          console.log(`🔄 Retrying due to network issue... (${attempts}/${maxAttempts})`);
+          
+          // Try next RPC endpoint on every 2nd retry
+          if (attempts % 2 === 0 && currentRpcIndex < RPC_ENDPOINTS.length - 1) {
+            const newConnection = tryNextRpcEndpoint();
+            // Update the program with new connection
+            try {
+              const provider = new AnchorProvider(
+                newConnection,
+                wallet.adapter as any,
+                { commitment: 'confirmed' }
+              );
+              const newProgram = new Program(IDL as any, provider) as Program<Gado>;
+              setProgram(newProgram);
+            } catch (providerError) {
+              console.error('Failed to update provider:', providerError);
+            }
+          }
+          
+          toast.loading(`Network issue detected. Retrying with ${RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 'default'} RPC... (${attempts}/${maxAttempts})`, { 
+            id: loadingToast,
+            duration: 3000 
+          });
+          
+          // Progressive backoff: 2s, 4s, 6s, 8s
+          const delay = Math.min(2000 * attempts, 8000);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        // If it's the last attempt or non-retryable error
+        if (attempts >= maxAttempts) {
+          toast.dismiss(loadingToast);
+          toast.error(`Failed to create user profile after ${maxAttempts} attempts. Try refreshing the page and ensuring you have a stable connection.`);
+          console.error('All retry attempts failed. Last error:', errorMessage);
+        } else if (!isRetryableError) {
+          toast.dismiss(loadingToast);
+          toast.error(`Failed to create user profile: ${errorMessage}`);
+          break;
+        }
+      }
     }
   };
 
@@ -357,6 +526,42 @@ export default function PlatformStatus() {
               </div>
             </div>
           )}
+
+          {/* Debug Section */}
+          <div className="p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg">
+            <h4 className="text-gray-300 font-semibold mb-3">Network Debug Tools</h4>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <button
+                onClick={async () => {
+                  const start = Date.now();
+                  try {
+                    const { blockhash } = await connection.getLatestBlockhash();
+                    const duration = Date.now() - start;
+                    toast.success(`Network OK: ${duration}ms - ${RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
+                  } catch (error) {
+                    toast.error(`Network Error: ${error instanceof Error ? error.message : 'Unknown'}`);
+                  }
+                }}
+                className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded"
+              >
+                Test Network
+              </button>
+              <button
+                onClick={() => {
+                  const newConn = tryNextRpcEndpoint();
+                  toast.success(`Switched to: ${RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 'Default'} RPC`);
+                }}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
+              >
+                Switch RPC ({currentRpcIndex + 1}/{RPC_ENDPOINTS.length})
+              </button>
+              <span className="px-3 py-1 bg-gray-700 text-gray-300 rounded text-xs">
+                Current: {RPC_ENDPOINTS[currentRpcIndex].includes('helius') ? 'Helius' : 
+                          RPC_ENDPOINTS[currentRpcIndex].includes('alchemy') ? 'Alchemy' : 
+                          'Default Solana'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
