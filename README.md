@@ -226,3 +226,6 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 MIT License.
 # Contributors cleaned - Fri Oct 17 13:05:13 WAT 2025
+
+## Single Author Repository
+This repository is maintained solely by Olajumoke Emmanuel.
