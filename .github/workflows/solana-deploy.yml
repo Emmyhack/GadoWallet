@@ -1,0 +1,66 @@
+name: Deploy Solana Program
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'gado/programs/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-program:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        
+    - name: Install Solana CLI
+      run: |
+        sh -c "$(curl -sSfL https://release.solana.com/v1.18.4/install)"
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        
+    - name: Install Anchor CLI
+      run: |
+        npm install -g @coral-xyz/anchor-cli@0.30.1
+        
+    - name: Setup Solana Keypair
+      run: |
+        mkdir -p ~/.config/solana
+        echo "${{ secrets.SOLANA_PRIVATE_KEY }}" > ~/.config/solana/id.json
+        solana config set --url https://api.devnet.solana.com
+        
+    - name: Build Program
+      run: |
+        cd gado
+        anchor build
+        
+    - name: Deploy Program
+      run: |
+        cd gado
+        solana airdrop 2
+        anchor deploy
+        
+    - name: Update Program ID
+      run: |
+        cd gado
+        PROGRAM_ID=$(solana-keygen pubkey target/deploy/gado-keypair.json)
+        echo "New Program ID: $PROGRAM_ID"
+        # Update configuration files with new program ID
+        sed -i "s/JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM/$PROGRAM_ID/g" ../frontend/src/lib/publickey-utils.ts
+        sed -i "s/JDiDDsbcxy1389gGQw26nVSuyn6WuhauAFQkFiozEPdM/$PROGRAM_ID/g" Anchor.toml
+        
+    - name: Commit updated Program ID
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update program ID after deployment: $(solana-keygen pubkey gado/target/deploy/gado-keypair.json)" || exit 0
+        git push

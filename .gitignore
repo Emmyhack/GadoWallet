@@ -1,0 +1,45 @@
+# Build outputs
+gada/target/
+frontend/dist/
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment files (exclude example files)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+!.env.example
+
+# Test ledger
+test-ledger/
+
+# OS files
+.DS_Store
+*:Zone.Identifier
+
+# IDE files
+.vscode/settings.json
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*ado/node_modules/
+frontend/node_modules/
+gado/frontend/node_modules/
+frontend/dist/
+gado/frontend/dist/
+.env.local
+.env.development
+.env.production
+.env.test
+test-ledger/rocksdb/
+test-ledger/snapshot/
+test-ledger/snapshot-*.tar.zst
+test-ledger/genesis.*
+.DS_Store
+node_modules
