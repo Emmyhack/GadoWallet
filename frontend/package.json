@@ -52,7 +52,7 @@
     "terser": "^5.44.0",
     "tsx": "^4.20.6",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.35.1",
+    "typescript-eslint": "^8.46.2",
     "vite": "^7.0.4",
     "vite-bundle-analyzer": "^0.18.0"
   },
