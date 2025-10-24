@@ -3,7 +3,6 @@ import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, ComputeBudgetProgram } from '@solana/web3.js';
 import { web3 } from '@coral-xyz/anchor';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, createTransferInstruction } from '@solana/spl-token';
-import { Send, Download, Coins, Zap, Gauge } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useGatewayService, TransactionContext } from '../lib/gateway-service';
 import { SubscriptionTier } from './SubscriptionManager';
@@ -214,7 +213,7 @@ export function SendReceive() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-cyan-600 shadow-2xl">
-            <Send className="w-7 h-7 text-white" />
+            
           </div>
           <div>
             <h2 className="text-3xl font-bold text-white">{t('sendReceive')}</h2>
@@ -240,7 +239,7 @@ export function SendReceive() {
               : 'text-gray-300 hover:text-white hover:bg-white/10'
           }`}
         >
-          <Download className="w-5 h-5" />
+          
           <div className="text-left">
             <div className="font-bold">{t('sol')}</div>
             <div className="text-xs opacity-75">Native Solana</div>
@@ -254,7 +253,7 @@ export function SendReceive() {
               : 'text-gray-300 hover:text-white hover:bg-white/10'
           }`}
         >
-          <Coins className="w-5 h-5" />
+          
           <div className="text-left">
             <div className="font-bold">{t('splToken')}</div>
             <div className="text-xs opacity-75">SPL Tokens</div>
@@ -349,9 +348,9 @@ export function SendReceive() {
                     priority: parseFloat(amount) > 10 ? 'high' : parseFloat(amount) > 1 ? 'medium' : 'low',
                     ...(tab === 'sol' && !isNaN(parseFloat(amount)) && { assetValue: parseFloat(amount) })
                   }, userTier) ? (
-                    <Zap className="w-5 h-5 text-yellow-400" />
+                    <span>⚡</span>
                   ) : (
-                    <Gauge className="w-5 h-5 text-blue-400" />
+                    <span>📡</span>
                   )}
                 </div>
                 
@@ -418,7 +417,7 @@ export function SendReceive() {
                   {parseFloat(amount) > 1 && userTier === SubscriptionTier.FREE && (
                     <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-400/20 rounded-lg">
                       <div className="flex items-center gap-2 text-yellow-300">
-                        <Zap className="w-4 h-4" />
+                        
                         <span className="text-sm">
                           High-value transaction detected! Upgrade to Premium for Gateway optimization and better success rates.
                         </span>
@@ -444,7 +443,7 @@ export function SendReceive() {
                 </>
               ) : (
                 <>
-                  <Send className="w-6 h-6" />
+                  
                   <span>Send {tab === 'sol' ? 'SOL' : 'Tokens'}</span>
                 </>
               )}

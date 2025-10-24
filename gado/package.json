@@ -5,8 +5,13 @@
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "keeper:basic": "ts-node keeper-bot.ts",
     "keeper:enhanced": "ts-node -e \"require('./enhanced-keeper-bot').runEnhancedKeeperBot()\"",
-    "keeper:build": "tsc --noEmit --skipLibCheck keeper-bot.ts enhanced-keeper-bot.ts",
-    "keeper:check": "node check-smart-wallets.js"
+    "keeper:build": "tsc --noEmit --skipLibCheck keeper-bot.ts enhanced-keeper-bot.ts inheritance-keeper-bot.ts auto-execution-keeper.ts",
+    "keeper:check": "node check-smart-wallets.js",
+    "keeper:notification": "ts-node --esm inheritance-keeper-bot.ts",
+    "keeper:auto-execution": "ts-node --esm auto-execution-keeper.ts",
+    "keeper:start": "./run-keeper.sh",
+    "keeper:auto-start": "./run-auto-execution.sh",
+    "keeper:compile": "tsc inheritance-keeper-bot.ts --target es2020 --module commonjs --moduleResolution node --esModuleInterop --allowSyntheticDefaultImports --skipLibCheck && tsc auto-execution-keeper.ts --target es2020 --module commonjs --moduleResolution node --esModuleInterop --allowSyntheticDefaultImports --skipLibCheck"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.1",
@@ -20,12 +25,12 @@
     "@types/bn.js": "^5.2.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^24.6.0",
+    "@types/node": "^24.9.1",
     "chai": "^4.3.4",
     "mocha": "^11.6.0",
     "prettier": "^2.6.2",
     "ts-mocha": "^10.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }
