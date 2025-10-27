@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gado Wallet</title>
+    <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+    <div class="wallet-container">
+        <!-- Header -->
+        <header class="wallet-header">
+            <div class="logo-section">
+                <img src="icons/gada-48.png" alt="gado Wallet" class="logo">
+                <h1>gado Wallet</h1>
+            </div>
+            <div class="network-selector">
+                <select id="networkSelect">
+                    <option value="mainnet-beta">Mainnet</option>
+                    <option value="devnet" selected>Devnet</option>
+                    <option value="testnet">Testnet</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Wallet Status -->
+        <div class="wallet-status" id="walletStatus">
+            <div class="status-disconnected" id="disconnectedState">
+                <div class="status-icon">🔒</div>
+                <p>Connect your Solana wallet</p>
+                <button id="connectWallet" class="btn btn-primary">Connect Wallet</button>
+            </div>
+
+            <div class="status-connected hidden" id="connectedState">
+                <div class="wallet-info">
+                    <div class="address-section">
+                        <span class="address" id="walletAddress"></span>
+                        <button id="copyAddress" class="btn-icon" title="Copy address">📋</button>
+                    </div>
+                    <div class="balance-section">
+                        <span class="balance" id="solBalance">0 SOL</span>
+                        <button id="refreshBalance" class="btn-icon" title="Refresh">🔄</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation -->
+        <nav class="main-nav" id="mainNav">
+            <button class="nav-btn active" data-tab="dashboard">
+                <span class="nav-icon">📊</span>
+                Dashboard
+            </button>
+            <button class="nav-btn" data-tab="inheritance">
+                <span class="nav-icon">🏛️</span>
+                Inheritance
+            </button>
+            <button class="nav-btn" data-tab="transactions">
+                <span class="nav-icon">📝</span>
+                Transactions
+            </button>
+            <button class="nav-btn" data-tab="settings">
+                <span class="nav-icon">⚙️</span>
+                Settings
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="tab-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane active" id="dashboard">
+                <div class="dashboard-section">
+                    <h3>Portfolio Overview</h3>
+                    <div class="portfolio-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Balance</div>
+                            <div class="stat-value" id="totalBalance">0 SOL</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Protected Assets</div>
+                            <div class="stat-value" id="protectedAssets">0 SOL</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Heirs</div>
+                            <div class="stat-value" id="activeHeirs">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="action-btn" id="sendBtn">
+                            <span class="action-icon">📤</span>
+                            Send
+                        </button>
+                        <button class="action-btn" id="receiveBtn">
+                            <span class="action-icon">📥</span>
+                            Receive
+                        </button>
+                        <button class="action-btn" id="addHeirBtn">
+                            <span class="action-icon">👨‍👩‍👧‍👦</span>
+                            Add Heir
+                        </button>
+                        <button class="action-btn" id="viewKeeper">
+                            <span class="action-icon">🤖</span>
+                            Keeper Bot
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list" id="recentActivity">
+                        <div class="activity-item">
+                            <div class="activity-icon">⏳</div>
+                            <div class="activity-details">
+                                <div class="activity-title">No recent activity</div>
+                                <div class="activity-subtitle">Your transactions will appear here</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inheritance Tab -->
+            <div class="tab-pane" id="inheritance">
+                <div class="inheritance-header">
+                    <h3>Inheritance Management</h3>
+                    <button id="createInheritanceBtn" class="btn btn-primary">+ Setup Inheritance</button>
+                </div>
+
+                <div class="inheritance-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">SOL Inheritances</div>
+                        <div class="stat-value" id="solInheritanceCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Token Inheritances</div>
+                        <div class="stat-value" id="tokenInheritanceCount">0</div>
+                    </div>
+                </div>
+
+                <div class="inheritance-list" id="inheritanceList">
+                    <div class="empty-state">
+                        <div class="empty-icon">🏛️</div>
+                        <h4>No inheritances set up</h4>
+                        <p>Protect your crypto assets by setting up automated inheritance</p>
+                        <button id="setupFirstInheritance" class="btn btn-primary">Setup First Inheritance</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Tab -->
+            <div class="tab-pane" id="transactions">
+                <div class="transactions-header">
+                    <h3>Transaction History</h3>
+                    <div class="transaction-filters">
+                        <select id="transactionFilter">
+                            <option value="all">All Transactions</option>
+                            <option value="sent">Sent</option>
+                            <option value="received">Received</option>
+                            <option value="inheritance">Inheritance</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="transaction-list" id="transactionList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h4>No transactions found</h4>
+                        <p>Your transaction history will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane" id="settings">
+                <div class="settings-section">
+                    <h3>Wallet Settings</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Auto-Lock Timer</span>
+                            <small>Lock wallet after inactivity</small>
+                        </div>
+                        <select id="autoLockTimer">
+                            <option value="300">5 minutes</option>
+                            <option value="900" selected>15 minutes</option>
+                            <option value="1800">30 minutes</option>
+                            <option value="3600">1 hour</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Keeper Bot Notifications</span>
+                            <small>Get notified about inheritance activities</small>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="keeperNotifications" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Transaction Confirmations</span>
+                            <small>Number of confirmations to wait</small>
+                        </div>
+                        <select id="confirmationCount">
+                            <option value="1">1 confirmation</option>
+                            <option value="3" selected>3 confirmations</option>
+                            <option value="5">5 confirmations</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Security</h3>
+                    
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="exportWallet">Export Private Key</button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="resetWallet">Reset Wallet</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>About</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Version</span>
+                        </div>
+                        <span class="setting-value">1.0.0</span>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-label">
+                            <span>Website</span>
+                        </div>
+                        <a href="https://gadawallet.com" target="_blank" class="setting-link">gadawallet.com</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div class="modal hidden" id="sendModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Send SOL</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="sendAddress">Recipient Address</label>
+                        <input type="text" id="sendAddress" placeholder="Enter Solana address">
+                    </div>
+                    <div class="form-group">
+                        <label for="sendAmount">Amount (SOL)</label>
+                        <input type="number" id="sendAmount" step="0.001" placeholder="0.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="sendMemo">Memo (Optional)</label>
+                        <input type="text" id="sendMemo" placeholder="Transaction memo">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" id="cancelSend">Cancel</button>
+                    <button class="btn btn-primary" id="confirmSend">Send SOL</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal hidden" id="receiveModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Receive SOL</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="receive-address">
+                        <div class="qr-code" id="qrCode"></div>
+                        <div class="address-display">
+                            <input type="text" id="receiveAddress" readonly>
+                            <button id="copyReceiveAddress" class="btn btn-secondary">Copy</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" id="closeReceive">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="popup.js"></script>
+</body>
+</html>

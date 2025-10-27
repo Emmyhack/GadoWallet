@@ -1,0 +1,72 @@
+{
+  "manifest_version": 3,
+  "name": "gado Wallet",
+  "version": "1.0.0",
+  "description": "Secure Solana wallet with automated crypto inheritance - protecting your digital legacy",
+  
+  "icons": {
+    "16": "icons/gada-16.png",
+    "32": "icons/gada-32.png",
+    "48": "icons/gada-48.png",
+    "128": "icons/gada-128.png"
+  },
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "gado Wallet",
+    "default_icon": {
+      "16": "icons/gada-16.png",
+      "32": "icons/gada-32.png",
+      "48": "icons/gada-48.png",
+      "128": "icons/gada-128.png"
+    }
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "alarms",
+    "notifications"
+  ],
+
+  "host_permissions": [
+    "https://*.solana.com/*",
+    "https://*.solanabeach.io/*", 
+    "https://*.solscan.io/*",
+    "https://api.mainnet-beta.solana.com/*",
+    "https://api.devnet.solana.com/*",
+    "https://api.testnet.solana.com/*"
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["injected.js", "wallet.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+
+  "externally_connectable": {
+    "matches": [
+      "https://*.gadawallet.com/*",
+      "https://localhost:*/*"
+    ]
+  }
+}

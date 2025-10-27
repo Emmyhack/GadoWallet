@@ -17,33 +17,291 @@ import {
 } from "@solana/spl-token";
 import { assert } from "chai";
 
-describe("Business Model Integration", () => {
+describe("Gada Inheritance System Tests", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
   const program = anchor.workspace.Gado as Program<Gado>;
   
   // Test accounts
-  let admin: Keypair;
-  let freeUser: Keypair;
-  let premiumUser: Keypair;
+  let user: Keypair;
   let heir1: Keypair;
   let heir2: Keypair;
-  let keeper: Keypair;
   
   // Token setup
   let tokenMint: PublicKey;
-  let freeUserTokenAccount: PublicKey;
-  let premiumUserTokenAccount: PublicKey;
+  let userTokenAccount: PublicKey;
   let heir1TokenAccount: PublicKey;
   
   // PDAs
-  let platformConfigPda: PublicKey;
-  let treasuryPda: PublicKey;
-  let freeUserProfilePda: PublicKey;
-  let premiumUserProfilePda: PublicKey;
-  let smartWalletPda: PublicKey;
-  let smartWalletAssetsPda: PublicKey;
+  let userProfilePda: PublicKey;
+  let solHeirPda: PublicKey;
+  let tokenHeirPda: PublicKey;
+
+  before(async () => {
+    // Generate keypairs
+    user = Keypair.generate();
+    heir1 = Keypair.generate();
+    heir2 = Keypair.generate();
+
+    // Airdrop SOL
+    const accounts = [user, heir1, heir2];
+    for (const account of accounts) {
+      await provider.connection.confirmTransaction(
+        await provider.connection.requestAirdrop(account.publicKey, 5 * LAMPORTS_PER_SOL)
+      );
+    }
+
+    // Create token mint
+    tokenMint = await createMint(
+      provider.connection,
+      user,
+      user.publicKey,
+      null,
+      9
+    );
+
+    // Create token accounts
+    userTokenAccount = await createAssociatedTokenAccount(
+      provider.connection,
+      user,
+      tokenMint,
+      user.publicKey
+    );
+    
+    heir1TokenAccount = await createAssociatedTokenAccount(
+      provider.connection,
+      heir1,
+      tokenMint,
+      heir1.publicKey
+    );
+
+    // Mint tokens to user
+    await mintTo(
+      provider.connection,
+      user,
+      tokenMint,
+      userTokenAccount,
+      user.publicKey,
+      1000000000000 // 1000 tokens
+    );
+
+    // Derive PDAs
+    [userProfilePda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("user_profile"), user.publicKey.toBuffer()],
+      program.programId
+    );
+
+    [solHeirPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("sol_heir"), user.publicKey.toBuffer(), heir1.publicKey.toBuffer()],
+      program.programId
+    );
+
+    [tokenHeirPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("token_heir"), user.publicKey.toBuffer(), heir1.publicKey.toBuffer(), tokenMint.toBuffer()],
+      program.programId
+    );
+  });
+
+  it("Initializes user profile", async () => {
+    await program.methods
+      .initializeUser()
+      .accounts({
+        userProfile: userProfilePda,
+        owner: user.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([user])
+      .rpc();
+
+    const userProfile = await program.account.userProfile.fetch(userProfilePda);
+    assert.ok(userProfile.owner.equals(user.publicKey));
+    assert.equal(userProfile.totalInheritances, 0);
+
+    console.log("✅ User profile initialized");
+  });
+
+  it("Creates SOL inheritance", async () => {
+    const inheritanceAmount = new anchor.BN(1 * LAMPORTS_PER_SOL); // 1 SOL
+    const inactivityPeriod = new anchor.BN(7 * 24 * 60 * 60); // 7 days
+
+    await program.methods
+      .addSolHeir(inheritanceAmount, inactivityPeriod)
+      .accounts({
+        solHeir: solHeirPda,
+        userProfile: userProfilePda,
+        owner: user.publicKey,
+        heir: heir1.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([user])
+      .rpc();
+
+    const solHeir = await program.account.solHeir.fetch(solHeirPda);
+    const userProfile = await program.account.userProfile.fetch(userProfilePda);
+    
+    assert.ok(solHeir.owner.equals(user.publicKey));
+    assert.ok(solHeir.heir.equals(heir1.publicKey));
+    assert.ok(solHeir.amount.eq(inheritanceAmount));
+    assert.equal(solHeir.isClaimed, false);
+    assert.equal(userProfile.totalInheritances, 1);
+
+    console.log("✅ SOL inheritance created successfully");
+  });
+
+  it("Creates token inheritance", async () => {
+    const inheritanceAmount = new anchor.BN(100000000000); // 100 tokens
+    const inactivityPeriod = new anchor.BN(30 * 24 * 60 * 60); // 30 days
+
+    const [escrowTokenAccount] = PublicKey.findProgramAddressSync(
+      [
+        tokenHeirPda.toBuffer(),
+        TOKEN_PROGRAM_ID.toBuffer(),
+        tokenMint.toBuffer(),
+      ],
+      ASSOCIATED_TOKEN_PROGRAM_ID
+    );
+
+    await program.methods
+      .addTokenHeir(inheritanceAmount, inactivityPeriod)
+      .accounts({
+        tokenHeir: tokenHeirPda,
+        userProfile: userProfilePda,
+        owner: user.publicKey,
+        heir: heir1.publicKey,
+        tokenMint: tokenMint,
+        ownerTokenAccount: userTokenAccount,
+        escrowTokenAccount: escrowTokenAccount,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([user])
+      .rpc();
+
+    const tokenHeir = await program.account.tokenHeir.fetch(tokenHeirPda);
+    const userProfile = await program.account.userProfile.fetch(userProfilePda);
+    
+    assert.ok(tokenHeir.owner.equals(user.publicKey));
+    assert.ok(tokenHeir.heir.equals(heir1.publicKey));
+    assert.ok(tokenHeir.amount.eq(inheritanceAmount));
+    assert.equal(tokenHeir.isClaimed, false);
+    assert.equal(userProfile.totalInheritances, 2);
+
+    console.log("✅ Token inheritance created successfully");
+  });
+
+  it("Updates SOL activity", async () => {
+    const solHeirBefore = await program.account.solHeir.fetch(solHeirPda);
+
+    // Wait a moment
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await program.methods
+      .updateSolActivity()
+      .accounts({
+        solHeir: solHeirPda,
+        owner: user.publicKey,
+      })
+      .signers([user])
+      .rpc();
+
+    const solHeirAfter = await program.account.solHeir.fetch(solHeirPda);
+    
+    assert.ok(solHeirAfter.lastActivity > solHeirBefore.lastActivity);
+
+    console.log("✅ SOL activity updated successfully");
+  });
+
+  it("Updates token activity", async () => {
+    const tokenHeirBefore = await program.account.tokenHeir.fetch(tokenHeirPda);
+
+    // Wait a moment
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    await program.methods
+      .updateTokenActivity()
+      .accounts({
+        tokenHeir: tokenHeirPda,
+        owner: user.publicKey,
+      })
+      .signers([user])
+      .rpc();
+
+    const tokenHeirAfter = await program.account.tokenHeir.fetch(tokenHeirPda);
+    
+    assert.ok(tokenHeirAfter.lastActivity > tokenHeirBefore.lastActivity);
+
+    console.log("✅ Token activity updated successfully");
+  });
+
+  it("Validates inheritance cannot be claimed while owner is active", async () => {
+    try {
+      await program.methods
+        .claimSolInheritance()
+        .accounts({
+          solHeir: solHeirPda,
+          heir: heir1.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([heir1])
+        .rpc();
+      
+      assert.fail("Should have failed - owner is still active");
+    } catch (error) {
+      assert.ok(error.toString().includes("OwnerStillActive"));
+      console.log("✅ Inheritance claim correctly blocked - owner still active");
+    }
+  });
+
+  it("Displays inheritance system statistics", async () => {
+    const userProfile = await program.account.userProfile.fetch(userProfilePda);
+    const solHeir = await program.account.solHeir.fetch(solHeirPda);
+    const tokenHeir = await program.account.tokenHeir.fetch(tokenHeirPda);
+
+    console.log("\n📊 INHERITANCE SYSTEM STATISTICS:");
+    console.log("=================================");
+    console.log(`Total Inheritances Created: ${userProfile.totalInheritances}`);
+    console.log(`SOL Inheritance Amount: ${solHeir.amount.toNumber() / LAMPORTS_PER_SOL} SOL`);
+    console.log(`Token Inheritance Amount: ${tokenHeir.amount.toNumber() / 1e9} tokens`);
+    console.log(`SOL Heir: ${solHeir.heir.toString()}`);
+    console.log(`Token Heir: ${tokenHeir.heir.toString()}`);
+    console.log(`SOL Claimed: ${solHeir.isClaimed ? "Yes" : "No"}`);
+    console.log(`Token Claimed: ${tokenHeir.isClaimed ? "Yes" : "No"}`);
+  });
+});
+
+// Utility functions for testing
+export async function getAccountBalances(
+  connection: anchor.web3.Connection,
+  accounts: PublicKey[]
+): Promise<number[]> {
+  const balances = await Promise.all(
+    accounts.map(account => connection.getBalance(account))
+  );
+  return balances;
+}
+
+describe("Gada Inheritance System Tests", () => {
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
+
+  const program = anchor.workspace.Gado as Program<Gado>;
+  
+  // Test accounts
+  let user: Keypair;
+  let heir1: Keypair;
+  let heir2: Keypair;
+  
+  // Token setup
+  let tokenMint: PublicKey;
+  let userTokenAccount: PublicKey;
+  let heir1TokenAccount: PublicKey;
+  
+  // PDAs
+  let userProfilePda: PublicKey;
+  let solHeirPda: PublicKey;
+  let tokenHeirPda: PublicKey;
 
   before(async () => {
     // Generate keypairs

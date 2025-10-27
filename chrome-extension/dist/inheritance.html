@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inheritance Setup - gado Wallet</title>
+    <link rel="stylesheet" href="styles/inheritance.css">
+</head>
+<body>
+    <div class="inheritance-container">
+        <!-- Header -->
+        <header class="inheritance-header">
+            <div class="header-left">
+                <button id="backButton" class="btn-back">← Back to Wallet</button>
+            </div>
+            <div class="header-center">
+                <img src="icons/gada-48.png" alt="gado Wallet" class="logo">
+                <h1>Inheritance Setup</h1>
+            </div>
+            <div class="header-right">
+                <div class="network-indicator" id="networkIndicator">Devnet</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="inheritance-main">
+            <!-- Setup Steps -->
+            <div class="setup-progress">
+                <div class="step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Type</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Details</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Confirm</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Choose Type -->
+            <div class="setup-step active" id="step1">
+                <div class="step-content">
+                    <h2>Choose Inheritance Type</h2>
+                    <p>Select what type of assets you want to set up for inheritance.</p>
+
+                    <div class="inheritance-types">
+                        <div class="type-card" data-type="SOL">
+                            <div class="type-icon">◎</div>
+                            <h3>SOL Inheritance</h3>
+                            <p>Set up automatic SOL transfer to your heir when you become inactive.</p>
+                            <ul class="type-features">
+                                <li>✅ Direct SOL transfer</li>
+                                <li>✅ Automatic execution</li>
+                                <li>✅ Customizable inactivity period</li>
+                                <li>✅ Keeper bot monitoring</li>
+                            </ul>
+                            <button class="btn btn-primary select-type" data-type="SOL">
+                                Select SOL
+                            </button>
+                        </div>
+
+                        <div class="type-card" data-type="TOKEN">
+                            <div class="type-icon">🪙</div>
+                            <h3>Token Inheritance</h3>
+                            <p>Set up automatic token transfer for SPL tokens to your heir.</p>
+                            <ul class="type-features">
+                                <li>✅ SPL token support</li>
+                                <li>✅ Secure escrow system</li>
+                                <li>✅ Automatic execution</li>
+                                <li>✅ Multi-token support</li>
+                            </ul>
+                            <button class="btn btn-primary select-type" data-type="TOKEN">
+                                Select Token
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Details -->
+            <div class="setup-step" id="step2">
+                <div class="step-content">
+                    <h2 id="step2Title">Configure Inheritance</h2>
+                    
+                    <!-- SOL Configuration -->
+                    <div class="config-section" id="solConfig" style="display: none;">
+                        <div class="form-group">
+                            <label for="heirAddress">Heir Wallet Address</label>
+                            <input type="text" id="heirAddress" placeholder="Enter heir's Solana wallet address">
+                            <small class="form-help">The wallet address that will receive the inheritance</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="solAmount">SOL Amount</label>
+                            <div class="amount-input">
+                                <input type="number" id="solAmount" step="0.001" placeholder="0.0">
+                                <span class="amount-suffix">SOL</span>
+                            </div>
+                            <div class="balance-info">
+                                <small>Available: <span id="availableBalance">0 SOL</span></small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inactivityPeriod">Inactivity Period</label>
+                            <select id="inactivityPeriod">
+                                <option value="7">7 days</option>
+                                <option value="14">14 days</option>
+                                <option value="30" selected>30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90">90 days</option>
+                                <option value="180">180 days</option>
+                                <option value="365">1 year</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group hidden" id="customPeriodGroup">
+                            <label for="customDays">Custom Period (Days)</label>
+                            <input type="number" id="customDays" min="1" max="3650" placeholder="30">
+                        </div>
+
+                        <div class="inheritance-summary">
+                            <h4>Inheritance Summary</h4>
+                            <div class="summary-item">
+                                <span>Type:</span>
+                                <span>SOL Inheritance</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Amount:</span>
+                                <span id="summaryAmount">0 SOL</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Heir:</span>
+                                <span id="summaryHeir">Not set</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Inactivity Trigger:</span>
+                                <span id="summaryPeriod">30 days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Token Configuration -->
+                    <div class="config-section" id="tokenConfig" style="display: none;">
+                        <div class="form-group">
+                            <label for="tokenHeirAddress">Heir Wallet Address</label>
+                            <input type="text" id="tokenHeirAddress" placeholder="Enter heir's Solana wallet address">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tokenMint">Token Mint Address</label>
+                            <input type="text" id="tokenMint" placeholder="Enter SPL token mint address">
+                            <small class="form-help">The mint address of the SPL token to inherit</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tokenAmount">Token Amount</label>
+                            <div class="amount-input">
+                                <input type="number" id="tokenAmount" step="1" placeholder="0">
+                                <span class="amount-suffix" id="tokenSymbol">TOKENS</span>
+                            </div>
+                            <div class="balance-info">
+                                <small>Available: <span id="availableTokens">0 tokens</span></small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tokenInactivityPeriod">Inactivity Period</label>
+                            <select id="tokenInactivityPeriod">
+                                <option value="7">7 days</option>
+                                <option value="14">14 days</option>
+                                <option value="30" selected>30 days</option>
+                                <option value="60">60 days</option>
+                                <option value="90">90 days</option>
+                                <option value="180">180 days</option>
+                                <option value="365">1 year</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group hidden" id="tokenCustomPeriodGroup">
+                            <label for="tokenCustomDays">Custom Period (Days)</label>
+                            <input type="number" id="tokenCustomDays" min="1" max="3650" placeholder="30">
+                        </div>
+
+                        <div class="inheritance-summary">
+                            <h4>Token Inheritance Summary</h4>
+                            <div class="summary-item">
+                                <span>Type:</span>
+                                <span>Token Inheritance</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Token:</span>
+                                <span id="tokenSummaryMint">Not set</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Amount:</span>
+                                <span id="tokenSummaryAmount">0 tokens</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Heir:</span>
+                                <span id="tokenSummaryHeir">Not set</span>
+                            </div>
+                            <div class="summary-item">
+                                <span>Inactivity Trigger:</span>
+                                <span id="tokenSummaryPeriod">30 days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="prevStep">← Previous</button>
+                        <button class="btn btn-primary" id="nextStep">Next →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Confirmation -->
+            <div class="setup-step" id="step3">
+                <div class="step-content">
+                    <h2>Confirm Inheritance Setup</h2>
+                    <p>Please review your inheritance configuration carefully before creating.</p>
+
+                    <div class="confirmation-card">
+                        <div class="confirmation-header">
+                            <div class="confirmation-icon" id="confirmIcon">🏛️</div>
+                            <h3 id="confirmTitle">Inheritance Configuration</h3>
+                        </div>
+
+                        <div class="confirmation-details" id="confirmationDetails">
+                            <!-- Details will be populated by JavaScript -->
+                        </div>
+
+                        <div class="confirmation-fees">
+                            <h4>Transaction Fees</h4>
+                            <div class="fee-item">
+                                <span>Setup Fee:</span>
+                                <span>~0.002 SOL</span>
+                            </div>
+                            <div class="fee-item">
+                                <span>Network Fee:</span>
+                                <span>~0.000005 SOL</span>
+                            </div>
+                            <div class="fee-total">
+                                <span>Total Fee:</span>
+                                <span>~0.002005 SOL</span>
+                            </div>
+                        </div>
+
+                        <div class="confirmation-warnings">
+                            <div class="warning-item">
+                                ⚠️ Once created, this inheritance can only be cancelled by you
+                            </div>
+                            <div class="warning-item">
+                                ⚠️ The keeper bot will automatically execute when inactive
+                            </div>
+                            <div class="warning-item">
+                                ⚠️ Make sure the heir address is correct - this cannot be changed
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="prevStep2">← Previous</button>
+                        <button class="btn btn-primary" id="createInheritance">
+                            <span class="btn-text">Create Inheritance</span>
+                            <span class="btn-loader hidden">Creating...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Step -->
+            <div class="setup-step" id="stepSuccess" style="display: none;">
+                <div class="step-content">
+                    <div class="success-content">
+                        <div class="success-icon">✅</div>
+                        <h2>Inheritance Created Successfully!</h2>
+                        <p>Your inheritance has been set up and is now being monitored by the keeper bot.</p>
+
+                        <div class="success-details">
+                            <div class="detail-card">
+                                <h4>Transaction Details</h4>
+                                <div class="detail-item">
+                                    <span>Transaction:</span>
+                                    <span id="successTxId">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Inheritance Address:</span>
+                                    <span id="successHeirAddress">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Status:</span>
+                                    <span class="status-active">Active</span>
+                                </div>
+                            </div>
+
+                            <div class="detail-card">
+                                <h4>What's Next?</h4>
+                                <ul class="next-steps">
+                                    <li>✅ Keeper bot is now monitoring your activity</li>
+                                    <li>✅ Update activity regularly to prevent early execution</li>
+                                    <li>✅ Notify your heir about the inheritance setup</li>
+                                    <li>✅ You can manage this inheritance from your wallet</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="success-actions">
+                            <button class="btn btn-secondary" id="viewExplorer">View on Explorer</button>
+                            <button class="btn btn-primary" id="backToWallet">Back to Wallet</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing transaction...</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="inheritance.js"></script>
+</body>
+</html>
