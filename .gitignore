@@ -43,3 +43,7 @@ test-ledger/snapshot-*.tar.zst
 test-ledger/genesis.*
 .DS_Store
 node_modules
+
+# Chrome extension icons (large files)
+chrome-extension/icons/*.png
+chrome-extension/dist/icons/*.png
